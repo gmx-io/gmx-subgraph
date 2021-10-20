@@ -1,3 +1,77 @@
+type ChainlinkPrice @entity {
+  id: ID!
+  value: BigInt!
+}
+
+enum OrderStatus {
+  open
+  cancelled
+  executed
+}
+
+type Order @entity {
+  id: ID!
+
+  type: String!
+  account: String!
+  status: OrderStatus!
+  index: BigInt!
+
+  createdTimestamp: Int!
+  cancelledTimestamp: Int
+  executedTimestamp: Int
+}
+
+type OrderStat @entity {
+  id: ID!
+
+  openSwap: Int!
+  openIncrease: Int!
+  openDecrease: Int!
+
+  cancelledSwap: Int!
+  cancelledIncrease: Int!
+  cancelledDecrease: Int!
+
+  executedSwap: Int!
+  executedIncrease: Int!
+  executedDecrease: Int!
+
+  period: Period!
+}
+
+enum Period {
+  daily
+  total
+}
+
+type UserData @entity {
+  id: ID!
+
+  actionSwapCount: Int!
+  actionMarginCount: Int!
+  actionMintBurnCount: Int!
+
+  period: Period!
+  timestamp: Int
+}
+
+type UserStat @entity {
+  id: ID!
+  uniqueCount: Int!
+  uniqueSwapCount: Int!
+  uniqueMarginCount: Int!
+  uniqueMintBurnCount: Int!
+
+  actionCount: Int!
+  actionSwapCount: Int!
+  actionMarginCount: Int!
+  actionMintBurnCount: Int!
+
+  period: Period!
+  timestamp: Int
+}
+
 type AddLiquidity @entity {
   id: ID!
 
