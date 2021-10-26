@@ -3,6 +3,16 @@ type ChainlinkPrice @entity {
   value: BigInt!
 }
 
+type FundingRate @entity {
+  id: ID!
+
+  startFundingRate: Int!
+  endFundingRate: Int!
+  token: String!
+  timestamp: Int
+  period: Period!
+}
+
 enum OrderStatus {
   open
   cancelled
@@ -16,6 +26,7 @@ type Order @entity {
   account: String!
   status: OrderStatus!
   index: BigInt!
+  size: BigInt!
 
   createdTimestamp: Int!
   cancelledTimestamp: Int
