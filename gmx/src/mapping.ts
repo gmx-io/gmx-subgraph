@@ -18,10 +18,6 @@ import {
 } from "../generated/Vault/Vault"
 
 import {
-  AnswerUpdated as AnswerUpdatedEvent
-} from '../generated/ChainlinkAggregatorBTC/ChainlinkAggregator'
-
-import {
   AddLiquidity,
   RemoveLiquidity,
   Swap,
@@ -31,7 +27,6 @@ import {
   HourlyGlpStat,
   HourlyVolumeBySource,
   HourlyVolumeByToken,
-  ChainlinkPrice,
   UserData,
   UserStat,
   FundingRate
@@ -39,38 +34,9 @@ import {
 
 import {
   BASIS_POINTS_DIVISOR,
-  PRECISION,
-  WETH,
-  BTC,
-  LINK,
-  UNI,
-  USDT,
-  USDC,
   getTokenPrice,
   getTokenDecimals
 } from "./helpers"
-
-function _storeChainlinkPrice(token: string, value: BigInt): void {
-  let entity = new ChainlinkPrice(token)
-  entity.value = value
-  entity.save()
-}
-
-export function handleAnswerUpdatedBTC(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(BTC, event.params.current)
-}
-
-export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(WETH, event.params.current)
-}
-
-export function handleAnswerUpdatedUNI(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(UNI, event.params.current)
-}
-
-export function handleAnswerUpdatedLINK(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(LINK, event.params.current)
-}
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -148,12 +114,6 @@ export function handleSwap(event: SwapEvent): void {
 
   entity.transaction = txId
 
-  // let contract = Vault.bind(event.address)
-  // let tokenInPrice = contract.getMinPrice(Address.fromString(entity.tokenIn))
-  // entity.tokenInPrice = prices.get(entity.tokenIn) as BigInt
-  // prices.get(event.params.tokenIn)
-
-
   entity.tokenInPrice = getTokenPrice(entity.tokenIn)
 
   entity.timestamp = event.block.timestamp.toI32()
@@ -172,11 +132,6 @@ export function handleSwap(event: SwapEvent): void {
 
   _storeUserAction(event.block.timestamp, event.transaction.from, "swap")
 }
-
-// let USER_ACTION_TYPES = new Array<string>(5)
-// USER_ACTION_TYPES[0] = "margin"
-// USER_ACTION_TYPES[1] = "swap"
-// USER_ACTION_TYPES[2] = "mintBurn"
 
 function _storeUserAction(timestamp: BigInt, account: Address, actionType: String): void {
   _storeUserActionByType(timestamp, account, actionType, "total")
@@ -290,6 +245,9 @@ function _getFundingRateId(timeKey: string, token: Address): string {
 }
 
 export function handleUpdateFundingRate(event: UpdateFundingRate): void {
+  const FUNDING_INTERVAL = 3600
+  let fundingIntervalTimestamp = event.block.timestamp.toI32() / FUNDING_INTERVAL * FUNDING_INTERVAL
+
   let timestamp = _getDayId(event.block.timestamp)
   let id = _getFundingRateId(timestamp, event.params.token)
   let entity = FundingRate.load(id)
@@ -301,14 +259,17 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
     entity = new FundingRate(id)
     if (totalEntity) {
       entity.startFundingRate = totalEntity.endFundingRate
+      entity.startTimestamp = totalEntity.endTimestamp
     } else {
       entity.startFundingRate = 0
+      entity.startTimestamp = fundingIntervalTimestamp
     }
     entity.timestamp = BigInt.fromString(timestamp).toI32()
     entity.token = event.params.token.toHexString()
     entity.period = "daily"
   }
   entity.endFundingRate = event.params.fundingRate.toI32()
+  entity.endTimestamp = fundingIntervalTimestamp
   entity.save()
 
   if (totalEntity == null) {
@@ -316,9 +277,11 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
     totalEntity.period = "total"
     totalEntity.startFundingRate = 0
     totalEntity.token = event.params.token.toHexString()
+    totalEntity.startTimestamp = fundingIntervalTimestamp
   }
   totalEntity.endFundingRate = event.params.fundingRate.toI32()
   totalEntity.timestamp = BigInt.fromString(timestamp).toI32()
+  totalEntity.endTimestamp = fundingIntervalTimestamp
   totalEntity.save()
 }
 

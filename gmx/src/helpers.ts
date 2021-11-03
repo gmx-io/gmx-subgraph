@@ -13,6 +13,10 @@ export let UNI = "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0"
 export let USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
 export let USDC = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
 
+export function timestampToDay(timestamp: BigInt): BigInt {
+  return timestamp / BigInt.fromI32(86400) * BigInt.fromI32(86400)
+}
+
 export function getTokenDecimals(token: String): u8 {
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)

@@ -4,86 +4,86 @@ repository: https://github.com/gkrasulya/gmx-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorBTC
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x942d00008D658dbB40745BBEc89A93c253f9B882"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 225000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedBTC
-  #     file: ./src/mapping.ts
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorETH
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 225000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedETH
-  #     file: ./src/mapping.ts
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorUNI
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0xeFc5061B7a8AeF31F789F1bA5b3b8256674F2B71"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 225000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedUNI
-  #     file: ./src/mapping.ts
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorLINK
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x9b8DdcF800a7BfCdEbaD6D65514dE59160a2C9CC"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 225000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedLINK
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorBTC
+    network: arbitrum-one
+    source:
+      address: "0x942d00008D658dbB40745BBEc89A93c253f9B882"
+      abi: ChainlinkAggregator
+      startBlock: 225000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedBTC
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: arbitrum-one
+    source:
+      address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
+      abi: ChainlinkAggregator
+      startBlock: 225000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedETH
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorUNI
+    network: arbitrum-one
+    source:
+      address: "0xeFc5061B7a8AeF31F789F1bA5b3b8256674F2B71"
+      abi: ChainlinkAggregator
+      startBlock: 225000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedUNI
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorLINK
+    network: arbitrum-one
+    source:
+      address: "0x9b8DdcF800a7BfCdEbaD6D65514dE59160a2C9CC"
+      abi: ChainlinkAggregator
+      startBlock: 225000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedLINK
+      file: ./src/pricesMapping.ts
 
   # - kind: ethereum/contract
   #   name: GlpManager
@@ -150,6 +150,54 @@ dataSources:
   #     file: ./src/ordersMapping.ts
 
   - kind: ethereum/contract
+    name: FastPriceFeed
+    network: arbitrum-one
+    source:
+      address: "0x73fE72C9cAA0fAf0e488570D5898984783E728Df"
+      abi: FastPriceFeed
+      startBlock: 1326270
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - FastPrice
+      abis:
+        - name: FastPriceFeed
+          file: ./abis/FastPriceFeed.json
+      eventHandlers:
+        - event: SetPrice(address,uint256)
+          handler: handleSetPrice
+      file: ./src/pricesMapping.ts
+
+  - kind: ethereum/contract
+    name: Vault2
+    network: arbitrum-one
+    source:
+      address: "0x489ee077994B6658eAfA855C308275EAd8097C4A"
+      abi: Vault
+      startBlock: 225000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - TradingStat
+      abis:
+        - name: Vault
+          file: ./abis/VaultV2.json
+      eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+      file: ./src/tradingMapping.ts
+
+  - kind: ethereum/contract
     name: Vault
     network: arbitrum-one
     source:
@@ -176,8 +224,8 @@ dataSources:
       eventHandlers:
         - event: UpdateFundingRate(address,uint256)
           handler: handleUpdateFundingRate
-        # - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
-        #   handler: handleSwap
+        - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
+          handler: handleSwap
         # - event: CollectMarginFees(address,uint256,uint256)
         #   handler: handleCollectMarginFees
         # - event: BuyUSDG(address,address,uint256,uint256,uint256)

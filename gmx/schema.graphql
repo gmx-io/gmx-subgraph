@@ -1,15 +1,48 @@
+enum PricePeriod {
+  any
+  last
+}
+
 type ChainlinkPrice @entity {
   id: ID!
+  token: String!
   value: BigInt!
+  timestamp: Int!
+  period: PricePeriod!
+}
+
+type FastPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  period: PricePeriod!
 }
 
 type FundingRate @entity {
   id: ID!
 
   startFundingRate: Int!
+  startTimestamp: Int!
   endFundingRate: Int!
+  endTimestamp: Int!
   token: String!
   timestamp: Int
+  period: Period!
+}
+
+type TradingStat @entity {
+  id: ID!
+
+  profit: BigInt!
+  loss: BigInt!
+  cumulativeProfit: BigInt!
+  cumulativeLoss: BigInt!
+
+  longOpenInterest: BigInt!
+  shortOpenInterest: BigInt!
+
+  timestamp: Int!
   period: Period!
 }
 

@@ -5,6 +5,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --product hosted-service gmx-io/gmx-stats",
+    "deploy-gkrasulya/gmx": "graph deploy --product hosted-service gkrasulya/gmx --deploy-key $(cat .gkrasulya_access_token)",
     "create-local": "graph create --node http://localhost:8020/ gmx",
     "remove-local": "graph remove --node http://localhost:8020/ gmx",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 gmx"
