@@ -86,10 +86,10 @@ export function handleClosePosition(event: ClosePosition): void {
 
   if (pnl > ZERO) {
     entity.profit += pnl
-    entity.cumulativeProfit = totalEntity.cumulativeProfit
   } else {
     entity.loss -= pnl
-    entity.cumulativeLoss = totalEntity.cumulativeLoss
   }
+  entity.cumulativeProfit = totalEntity.cumulativeProfit
+  entity.cumulativeLoss = totalEntity.cumulativeLoss
   entity.save()
 }
