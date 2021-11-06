@@ -117,10 +117,19 @@ type UserStat @entity {
 }
 
 type HourlyGlpStat @entity {
+  # deprecated
   id: ID!
 
   glpSupply: BigInt!
   aumInUsdg: BigInt!
+}
+
+type GlpStat @entity {
+  id: ID!
+
+  glpSupply: BigInt!
+  aumInUsdg: BigInt!
+  period: Period!
 }
 
 type Swap @entity {
@@ -143,6 +152,7 @@ type Swap @entity {
 }
 
 type HourlyVolume @entity {
+  # deprecated
   id: ID!
 
   margin: BigInt!
@@ -191,6 +201,7 @@ type HourlyVolumeByToken @entity {
 }
 
 type HourlyFee @entity {
+  # deprecated
   id: ID!
 
   margin: BigInt!
@@ -205,7 +216,8 @@ type FeeStat @entity {
 
   margin: BigInt!
   swap: BigInt!
-  liquidation: BigInt!
+  marginAndLiquidation: BigInt!
+  liquidation: BigInt! # deprecated. it's calculated incorrectly
   mint: BigInt!
   burn: BigInt!
   period: Period!

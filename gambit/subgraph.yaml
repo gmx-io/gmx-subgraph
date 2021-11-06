@@ -104,9 +104,6 @@ dataSources:
           file: ./abis/Vault.json
         - name: Token
           file: ./abis/Token.json
-      # callHandlers:
-      #   - function: setFees(uint256,uint256,uint256,uint256)
-      #     handler: handleSetFees
       eventHandlers:
         - event: BuyUSDG(address,address,uint256,uint256)
           handler: handleBuyUSDG

@@ -29,6 +29,7 @@ import {
   HourlyVolume,
   Transaction,
   HourlyGlpStat,
+  GlpStat,
   HourlyVolumeBySource,
   HourlyVolumeByToken,
   UserData,
@@ -63,13 +64,12 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
   _storeUserAction(event.block.timestamp, event.transaction.from, "margin")
 }
 
-export function handleLiquidatePosition(event: LiquidatePositionEvent):void {
+export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   _storeVolume("liquidation", event.block.timestamp, event.params.size)
   _storeVolumeBySource("liquidation", event.block.timestamp, event.transaction.to, event.params.size)
 
-  // not very accurate way of calculating fees
-  // because in case collateral is not enough to cover liquidation expenses
-  // we charge whole collateral as fee
+  // liquidated collateral is not a fee. it's just traders pnl
+  // also size * rate incorrect as well because it doesn't consider borrow fee
   let fee = event.params.collateral
   _storeFees("liquidation", event.block.timestamp, fee)
 }
@@ -95,7 +95,10 @@ export function handleSellUSDG(event: SellUSDGEvent): void {
 }
 
 export function handleCollectMarginFees(event: CollectMarginFeesEvent): void {
-  // _storeFees("margin", event.block.timestamp, event.params.feeUsd)
+  // we can't distinguish margin fee from liquidation fee here
+  // using subgraph data it will be possible to calculate liquidation fee as:
+  // liquidationFee = entity.marginAndLiquidation - entity.margin
+  _storeFees("marginAndLiqudation", event.block.timestamp, event.params.feeUsd)
 }
 
 export function handleSwap(event: SwapEvent): void {
@@ -281,9 +284,9 @@ export function handleDistributeEthToGmx(event: Distribute): void {
   let entity = _getOrCreateGmxStat(id, "daily")
 
   entity.distributedEth += amount
-  entity.distributedEthCumulative = entity.distributedEthCumulative
+  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
   entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = entity.distributedUsdCumulative
+  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
 
   entity.save()
 }
@@ -342,6 +345,7 @@ function _getOrCreateFeeStat(id: string, period: string): FeeStat {
     entity.margin = ZERO
     entity.swap = ZERO
     entity.liquidation = ZERO
+    entity.marginAndLiquidation = ZERO
     entity.mint = ZERO
     entity.burn = ZERO
     entity.period = period
@@ -431,24 +435,47 @@ function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, t
   entity.save()
 }
 
-function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
-  let id = _getHourId(timestamp)
-  let entity = HourlyGlpStat.load(id)
-
+function _getOrCreateGlpStat(id: string, period: string): GlpStat {
+  let entity = GlpStat.load(id)
   if (entity == null) {
-    entity = new HourlyGlpStat(id)
+    entity = new GlpStat(id)
+    entity.period = period
     entity.glpSupply = ZERO
     entity.aumInUsdg = ZERO
   }
+  return entity as GlpStat
+}
 
+function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
+  let id = _getHourId(timestamp)
+  let deprecatedEntity = HourlyGlpStat.load(id)
+
+  if (deprecatedEntity == null) {
+    deprecatedEntity = new HourlyGlpStat(id)
+    deprecatedEntity.glpSupply = ZERO
+    deprecatedEntity.aumInUsdg = ZERO
+  }
+
+  deprecatedEntity.aumInUsdg = aumInUsdg
+  deprecatedEntity.glpSupply = glpSupply
+
+  deprecatedEntity.save()
+
+  //
+
+  let totalEntity = _getOrCreateGlpStat("total", "total")
+  totalEntity.aumInUsdg = aumInUsdg
+  totalEntity.glpSupply = glpSupply
+  totalEntity.save()
+
+  let entity = _getOrCreateGlpStat(id, "daily")
   entity.aumInUsdg = aumInUsdg
   entity.glpSupply = glpSupply
-
   entity.save()
 }
 
 function _getIdFromEvent(event: ethereum.Event): string {
-  return event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+  return event.transaction.hash.toHexString() + ':' + event.logIndex.toString()
 }
 
 function _getDayId(timestamp: BigInt): string {

@@ -155,19 +155,10 @@ export function handleBuyUSDG(event: BuyUSDG): void {
 
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
   _storeVolume("mint", event.block.timestamp, volume)
-  const basisPoints = getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
+  let basisPoints = getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
   let fee = volume * basisPoints / BASIS_POINTS_DIVISOR
   _storeFees("mint", event.block.timestamp, fee)
 }
-
-// function handleSetFees(call: SetFeesCall): void {
-  // let entity = new FeeBasisPoint("last")
-  // entity.swap = call.inputs._swapFeeBasisPoints
-  // entity.stableSwap = call.inputs._stableSwapFeeBasisPoints
-  // entity.margin = call.inputs._marginFeeBasisPoints
-  // entity.liquidation = call.inputs._liquidationFeeUsd
-  // entity.save()
-// }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
   let id = getDayId(timestamp)

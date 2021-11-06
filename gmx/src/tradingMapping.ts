@@ -59,6 +59,7 @@ export function handleIncreasePosition(event: IncreasePosition): void {
 
 export function handleLiquidatePosition(event: LiquidatePosition): void {
   _updateOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.size)
+  _storePnl(event.block.timestamp, -event.params.collateral)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
@@ -66,11 +67,15 @@ export function handleDecreasePosition(event: DecreasePosition): void {
 }
 
 export function handleClosePosition(event: ClosePosition): void {
-  let dayTimestamp = timestampToDay(event.block.timestamp)
+  _storePnl(event.block.timestamp, event.params.realisedPnl)
+}
+
+function _storePnl(timestamp: BigInt, realisedPnl: BigInt): void {
+  let dayTimestamp = timestampToDay(timestamp)
 
   let totalId = "total"
   let totalEntity = _loadOrCreateEntity(totalId, "total", dayTimestamp)
-  let pnl = event.params.realisedPnl
+  let pnl = realisedPnl
   if (pnl > ZERO) {
     totalEntity.profit += pnl
     totalEntity.cumulativeProfit += pnl
