@@ -1,0 +1,11 @@
+{
+  "name": "gambit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "graph deploy --product hosted-service gkrasulya/gambit --deploy-key $(cat .gkrasulya_access_token)"
+  },
+  "author": "",
+  "license": "ISC"
+}

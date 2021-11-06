@@ -1,9 +1,13 @@
 import { BigInt, Address, TypedMap, ethereum, store, log } from "@graphprotocol/graph-ts"
 import {
   GlpManager,
-  AddLiquidity as AddLiquidityEvent,
-  RemoveLiquidity as RemoveLiquidityEvent
+  AddLiquidity,
+  RemoveLiquidity
 } from "../generated/GlpManager/GlpManager"
+
+import {
+  Distribute
+} from "../generated/RewardDistributor/RewardDistributor"
 
 import {
   Vault,
@@ -18,10 +22,10 @@ import {
 } from "../generated/Vault/Vault"
 
 import {
-  AddLiquidity,
-  RemoveLiquidity,
   Swap,
   HourlyFee,
+  FeeStat,
+  VolumeStat,
   HourlyVolume,
   Transaction,
   HourlyGlpStat,
@@ -29,14 +33,19 @@ import {
   HourlyVolumeByToken,
   UserData,
   UserStat,
-  FundingRate
+  FundingRate,
+  GmxStat
 } from "../generated/schema"
 
 import {
+  WETH,
   BASIS_POINTS_DIVISOR,
   getTokenPrice,
-  getTokenDecimals
+  getTokenDecimals,
+  getTokenAmountUsd
 } from "./helpers"
+
+let ZERO = BigInt.fromI32(0)
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -177,7 +186,7 @@ function _storeUserActionByType(timestamp: BigInt, account: Address, actionType:
   // for (let i = 0; i < USER_ACTION_actionTypeS.length; i++) {
   //   let actionProp = "action" 
   //   let _actionType = USER_ACTION_actionTypeS[i]
-  //   entity.setBigInt(_actionType, BigInt.fromI32(0)) 
+  //   entity.setBigInt(_actionType, ZERO)
   // }
 
   if (actionType == "margin") {
@@ -204,39 +213,11 @@ function _storeUserActionByType(timestamp: BigInt, account: Address, actionType:
   userStat.save()
 }
 
-export function handleAddLiquidity(event: AddLiquidityEvent): void {
-  let id = _getIdFromEvent(event)
-  let entity = new AddLiquidity(id)
-
-  entity.account = event.params.account.toHexString()
-  entity.token = event.params.token.toHexString()
-  entity.amount = event.params.amount
-  entity.aumInUsdg = event.params.aumInUsdg
-  entity.glpSupply = event.params.glpSupply
-  entity.usdgAmount = event.params.usdgAmount
-  entity.mintAmount = event.params.mintAmount
-  entity.timestamp = event.block.timestamp.toI32()
-
-  entity.save()
-
+export function handleAddLiquidity(event: AddLiquidity): void {
   _storeGlpStat(event.block.timestamp, event.params.glpSupply, event.params.aumInUsdg)
 }
 
-export function handleRemoveLiquidity(event: RemoveLiquidityEvent): void {
-  let id = _getIdFromEvent(event)
-  let entity = new RemoveLiquidity(id)
-
-  entity.account = event.params.account.toHexString()
-  entity.token = event.params.token.toHexString()
-  entity.glpAmount = event.params.glpAmount
-  entity.aumInUsdg = event.params.aumInUsdg
-  entity.glpSupply = event.params.glpSupply
-  entity.usdgAmount = event.params.usdgAmount
-  entity.amountOut = event.params.amountOut
-  entity.timestamp = event.block.timestamp.toI32()
-
-  entity.save() 
-
+export function handleRemoveLiquidity(event: RemoveLiquidity): void {
   _storeGlpStat(event.block.timestamp, event.params.glpSupply, event.params.aumInUsdg)
 }
 
@@ -285,6 +266,41 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
   totalEntity.save()
 }
 
+export function handleDistributeEthToGmx(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(WETH, amount)
+  let totalEntity = _getOrCreateGmxStat("total", "total")
+  totalEntity.distributedEth += amount
+  totalEntity.distributedEthCumulative += amount
+  totalEntity.distributedUsd += amountUsd
+  totalEntity.distributedUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = _getDayId(event.block.timestamp)
+  let entity = _getOrCreateGmxStat(id, "daily")
+
+  entity.distributedEth += amount
+  entity.distributedEthCumulative = entity.distributedEthCumulative
+  entity.distributedUsd += amountUsd
+  entity.distributedUsdCumulative = entity.distributedUsdCumulative
+
+  entity.save()
+}
+
+function _getOrCreateGmxStat(id: string, period: string): GmxStat {
+  let entity = GmxStat.load(id)
+  if (entity == null) {
+    entity = new GmxStat(id)
+    entity.distributedEth = ZERO
+    entity.distributedEthCumulative = ZERO
+    entity.distributedUsd = ZERO
+    entity.distributedUsdCumulative = ZERO
+    entity.period = period
+  }
+  return entity as GmxStat
+}
+
 let TRADE_TYPES = new Array<string>(5)
 TRADE_TYPES[0] = "margin"
 TRADE_TYPES[1] = "swap"
@@ -293,35 +309,85 @@ TRADE_TYPES[3] = "burn"
 TRADE_TYPES[4] = "liquidation"
 
 function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
-  let id = _getHourId(timestamp)
-  let entity = HourlyFee.load(id)
+  let deprecatedId = _getHourId(timestamp)
+  let entityDeprecated = HourlyFee.load(deprecatedId)
 
-  if (entity == null) {
-    entity = new HourlyFee(id)
+  if (entityDeprecated == null) {
+    entityDeprecated = new HourlyFee(deprecatedId)
     for (let i = 0; i < TRADE_TYPES.length; i++) {
       let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, BigInt.fromI32(0)) 
+      entityDeprecated.setBigInt(_type, ZERO)
     }
   }
 
+  entityDeprecated.setBigInt(type, entityDeprecated.getBigInt(type) + fees)
+  entityDeprecated.save()
+
+  //
+
+  let id = _getDayId(timestamp)
+  let entity = _getOrCreateFeeStat(id, "daily")
   entity.setBigInt(type, entity.getBigInt(type) + fees)
   entity.save()
+
+  let totalEntity = _getOrCreateFeeStat("total", "total")
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
+  totalEntity.save()
+}
+
+function _getOrCreateFeeStat(id: string, period: string): FeeStat {
+  let entity = FeeStat.load(id)
+  if (entity === null) {
+    entity = new FeeStat(id)
+    entity.margin = ZERO
+    entity.swap = ZERO
+    entity.liquidation = ZERO
+    entity.mint = ZERO
+    entity.burn = ZERO
+    entity.period = period
+  }
+  return entity as FeeStat
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
-  let id = _getHourId(timestamp)
-  let entity = HourlyVolume.load(id)
+  let deprecatedId = _getHourId(timestamp)
+  let deprecatedEntity = HourlyVolume.load(deprecatedId)
 
-  if (entity == null) {
-    entity = new HourlyVolume(id)
+  if (deprecatedEntity == null) {
+    deprecatedEntity = new HourlyVolume(deprecatedId)
     for (let i = 0; i < TRADE_TYPES.length; i++) {
       let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, BigInt.fromI32(0)) 
+      deprecatedEntity.setBigInt(_type, ZERO)
     }
   }
 
+  deprecatedEntity.setBigInt(type, deprecatedEntity.getBigInt(type) + volume)
+  deprecatedEntity.save()
+
+  //
+
+  let id = _getDayId(timestamp)
+  let entity = _getOrCreateVolumeStat(id, "daily")
   entity.setBigInt(type, entity.getBigInt(type) + volume)
   entity.save()
+
+  let totalEntity = _getOrCreateVolumeStat("total", "total")
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
+  totalEntity.save()
+}
+
+function _getOrCreateVolumeStat(id: string, period: string): VolumeStat {
+  let entity = VolumeStat.load(id)
+  if (entity === null) {
+    entity = new VolumeStat(id)
+    entity.margin = ZERO
+    entity.swap = ZERO
+    entity.liquidation = ZERO
+    entity.mint = ZERO
+    entity.burn = ZERO
+    entity.period = period
+  }
+  return entity as VolumeStat
 }
 
 function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address | null, volume: BigInt): void {
@@ -338,7 +404,7 @@ function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address |
     entity.timestamp = timestamp.toI32() / 3600 * 3600
     for (let i = 0; i < TRADE_TYPES.length; i++) {
       let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, BigInt.fromI32(0)) 
+      entity.setBigInt(_type, ZERO)
     }
   }
 
@@ -357,7 +423,7 @@ function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, t
     entity.timestamp = timestamp.toI32() / 3600 * 3600
     for (let i = 0; i < TRADE_TYPES.length; i++) {
       let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, BigInt.fromI32(0)) 
+      entity.setBigInt(_type, ZERO)
     }
   }
 
@@ -371,8 +437,8 @@ function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt):
 
   if (entity == null) {
     entity = new HourlyGlpStat(id)
-    entity.glpSupply = BigInt.fromI32(0)
-    entity.aumInUsdg = BigInt.fromI32(0)
+    entity.glpSupply = ZERO
+    entity.aumInUsdg = ZERO
   }
 
   entity.aumInUsdg = aumInUsdg

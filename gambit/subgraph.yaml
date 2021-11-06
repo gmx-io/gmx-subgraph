@@ -1,0 +1,153 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorBTC
+    network: bsc
+    source:
+      address: "0x178bA789e24A1d51E9Ea3Cb1Db3B52917963D71D"
+      abi: ChainlinkAggregator
+      startBlock: 7346939
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedBTC
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: bsc
+    source:
+      address: "0xfC3069296a691250fFDf21fe51340fdD415a76ed"
+      abi: ChainlinkAggregator
+      startBlock: 7384787
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedETH
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorBNB
+    network: bsc
+    source:
+      address: "0x137924D7C36816E0DcAF016eB617Cc2C92C05782"
+      abi: ChainlinkAggregator
+      startBlock: 7347701
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedBNB
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: Vault
+    network: bsc
+    source:
+      address: "0xc73A8DcAc88498FD4b4B1b2AaA37b0a2614Ff67B"
+      abi: Vault
+      startBlock: 6900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - HourlyPoolStats
+        - FeeBasisPoints
+        # - BuyUSDG
+        # - ClosePosition
+        # - CollectMarginFees
+        # - CollectSwapFees
+        # - DecreaseGuaranteedUsd
+        # - DecreasePoolAmount
+        # - DecreasePosition
+        # - DecreaseReservedAmount
+        # - DecreaseUsdgAmount
+        # - DirectPoolDeposit
+        # - IncreaseGuaranteedUsd
+        # - IncreasePoolAmount
+        # - IncreasePosition
+        # - IncreaseReservedAmount
+        # - IncreaseUsdgAmount
+        # - LiquidatePosition
+        # - SellUSDG
+        # - Swap
+        # - UpdateFundingRate
+        # - UpdatePnl
+        # - UpdatePosition
+      abis:
+        - name: Vault
+          file: ./abis/Vault.json
+        - name: Token
+          file: ./abis/Token.json
+      # callHandlers:
+      #   - function: setFees(uint256,uint256,uint256,uint256)
+      #     handler: handleSetFees
+      eventHandlers:
+        - event: BuyUSDG(address,address,uint256,uint256)
+          handler: handleBuyUSDG
+        - event: SellUSDG(address,address,uint256,uint256)
+          handler: handleSellUSDG
+        # - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+        #   handler: handleClosePosition
+        # - event: CollectMarginFees(address,uint256,uint256)
+        #   handler: handleCollectMarginFees
+        # - event: CollectSwapFees(address,uint256)
+        #   handler: handleCollectSwapFees
+        # - event: DecreaseGuaranteedUsd(address,uint256)
+        #   handler: handleDecreaseGuaranteedUsd
+        # - event: DecreasePoolAmount(address,uint256)
+        #   handler: handleDecreasePoolAmount
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256)
+          handler: handleDecreasePosition
+        # - event: DecreaseReservedAmount(address,uint256)
+        #   handler: handleDecreaseReservedAmount
+        # - event: DecreaseUsdgAmount(address,uint256)
+        #   handler: handleDecreaseUsdgAmount
+        # - event: DirectPoolDeposit(address,uint256)
+        #   handler: handleDirectPoolDeposit
+        # - event: IncreaseGuaranteedUsd(address,uint256)
+        #   handler: handleIncreaseGuaranteedUsd
+        # - event: IncreasePoolAmount(address,uint256)
+        #   handler: handleIncreasePoolAmount
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256)
+          handler: handleIncreasePosition
+        # - event: IncreaseReservedAmount(address,uint256)
+        #   handler: handleIncreaseReservedAmount
+        # - event: IncreaseUsdgAmount(address,uint256)
+        #   handler: handleIncreaseUsdgAmount
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+        - event: Swap(address,address,address,uint256,uint256)
+          handler: handleSwap
+        # - event: UpdateFundingRate(address,uint256)
+        #   handler: handleUpdateFundingRate
+        # - event: UpdatePnl(bytes32,bool,uint256)
+        #   handler: handleUpdatePnl
+        # - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+        #   handler: handleUpdatePosition
+      file: ./src/mapping.ts

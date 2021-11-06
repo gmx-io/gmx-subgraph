@@ -116,36 +116,6 @@ type UserStat @entity {
   timestamp: Int
 }
 
-type AddLiquidity @entity {
-  id: ID!
-
-  account: String!
-  token: String!
-
-  amount: BigInt!
-  aumInUsdg: BigInt!
-  glpSupply: BigInt!
-  usdgAmount: BigInt!
-  mintAmount: BigInt!
-
-  timestamp: Int!
-}
-
-type RemoveLiquidity @entity {
-  id: ID!
-
-  account: String!
-  token: String!
-
-  glpAmount: BigInt!
-  aumInUsdg: BigInt!
-  glpSupply: BigInt!
-  usdgAmount: BigInt!
-  amountOut: BigInt!
-
-  timestamp: Int!
-}
-
 type HourlyGlpStat @entity {
   id: ID!
 
@@ -172,44 +142,6 @@ type Swap @entity {
   timestamp: Int!
 }
 
-type IncreasePosition @entity {
-  id: ID!
-
-  account: String!
-  collateralToken: String!
-  indexToken: String!
-
-  key: String!
-
-  isLong: Boolean!
-
-  collateralDelta: BigInt!
-  sizeDelta: BigInt!
-  price: BigInt!
-  fee: BigInt!
-
-  timestamp: Int!
-}
-
-type DecreasePosition @entity {
-  id: ID!
-
-  account: String!
-  collateralToken: String!
-  indexToken: String!
-
-  key: String!
-
-  isLong: Boolean!
-
-  collateralDelta: BigInt!
-  sizeDelta: BigInt!
-  price: BigInt!
-  fee: BigInt!
-
-  timestamp: Int!
-}
-
 type HourlyVolume @entity {
   id: ID!
 
@@ -218,6 +150,17 @@ type HourlyVolume @entity {
   liquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
+}
+
+type VolumeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
 }
 
 type HourlyVolumeBySource @entity {
@@ -257,9 +200,30 @@ type HourlyFee @entity {
   burn: BigInt!
 }
 
+type FeeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
+}
+
 type Transaction @entity {
   id: ID!
 
   from: String!
   to: String!
+}
+
+type GmxStat @entity {
+  id: ID!
+
+  distributedEth: BigInt!
+  distributedEthCumulative: BigInt!
+  distributedUsd: BigInt!
+  distributedUsdCumulative: BigInt!
+  period: Period!
 }

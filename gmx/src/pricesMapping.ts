@@ -67,6 +67,7 @@ export function handleSetPrice(event: SetPrice): void {
   entity.token = event.params.token.toHexString()
   entity.timestamp = event.block.timestamp.toI32()
   entity.period = "any"
+
   entity.save()
 
   let totalEntity = new FastPrice(event.params.token.toHexString())
@@ -74,5 +75,6 @@ export function handleSetPrice(event: SetPrice): void {
   totalEntity.value = event.params.price
   totalEntity.token = event.params.token.toHexString()
   totalEntity.timestamp = event.block.timestamp.toI32()
+
   totalEntity.save()
 }

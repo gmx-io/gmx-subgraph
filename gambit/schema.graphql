@@ -1,0 +1,64 @@
+enum Period {
+  daily
+  total
+}
+
+enum PricePeriod {
+  any
+  last
+}
+
+type FeeBasisPoint @entity {
+  id: ID!
+
+  swap: BigInt!
+  stableSwap: BigInt!
+  margin: BigInt!
+  liquidation: BigInt!
+
+  timestamp: Int!
+}
+
+type ChainlinkPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  period: PricePeriod!
+}
+
+type HourlyPoolStat @entity {
+  id: ID!
+
+  usdgSupply: BigInt!
+
+  BTC: BigInt!
+  ETH: BigInt!
+  BNB: BigInt!
+  BUSD: BigInt!
+  USDT: BigInt!
+  USDC: BigInt!
+}
+
+type FeeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
+}
+
+type VolumeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
+}
+
