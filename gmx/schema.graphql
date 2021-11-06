@@ -36,11 +36,14 @@ type TradingStat @entity {
 
   profit: BigInt!
   loss: BigInt!
-  cumulativeProfit: BigInt!
-  cumulativeLoss: BigInt!
+  profitCumulative: BigInt!
+  lossCumulative: BigInt!
 
   longOpenInterest: BigInt!
   shortOpenInterest: BigInt!
+
+  liquidatedCollateral: BigInt!
+  liquidatedCollateralCumulative: BigInt!
 
   timestamp: Int!
   period: Period!
@@ -206,6 +209,7 @@ type HourlyFee @entity {
 
   margin: BigInt!
   swap: BigInt!
+  marginAndLiquidation: BigInt!
   liquidation: BigInt!
   mint: BigInt!
   burn: BigInt!

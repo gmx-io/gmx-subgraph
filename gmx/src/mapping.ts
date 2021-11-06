@@ -98,7 +98,7 @@ export function handleCollectMarginFees(event: CollectMarginFeesEvent): void {
   // we can't distinguish margin fee from liquidation fee here
   // using subgraph data it will be possible to calculate liquidation fee as:
   // liquidationFee = entity.marginAndLiquidation - entity.margin
-  _storeFees("marginAndLiqudation", event.block.timestamp, event.params.feeUsd)
+  _storeFees("marginAndLiquidation", event.block.timestamp, event.params.feeUsd)
 }
 
 export function handleSwap(event: SwapEvent): void {
@@ -310,6 +310,7 @@ TRADE_TYPES[1] = "swap"
 TRADE_TYPES[2] = "mint"
 TRADE_TYPES[3] = "burn"
 TRADE_TYPES[4] = "liquidation"
+TRADE_TYPES[5] = "marginAndLiquidation"
 
 function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
   let deprecatedId = _getHourId(timestamp)
@@ -342,12 +343,10 @@ function _getOrCreateFeeStat(id: string, period: string): FeeStat {
   let entity = FeeStat.load(id)
   if (entity === null) {
     entity = new FeeStat(id)
-    entity.margin = ZERO
-    entity.swap = ZERO
-    entity.liquidation = ZERO
-    entity.marginAndLiquidation = ZERO
-    entity.mint = ZERO
-    entity.burn = ZERO
+    for (let i = 0; i < TRADE_TYPES.length; i++) {
+      let _type = TRADE_TYPES[i]
+      entity.setBigInt(_type, ZERO)
+    }
     entity.period = period
   }
   return entity as FeeStat

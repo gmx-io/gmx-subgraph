@@ -229,14 +229,14 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        # - Swap
-        # - IncreasePosition
-        # - DecreasePosition
-        # - HourlyVolume
-        # - HourlyVolumeBySource
-        # - HourlyVolumeByToken
-        # - HourlyFee
-        # - Transaction
+        - Swap
+        - IncreasePosition
+        - DecreasePosition
+        - HourlyVolume
+        - HourlyVolumeBySource
+        - HourlyVolumeByToken
+        - HourlyFee
+        - Transaction
         - FundingFee
       abis:
         - name: Vault
@@ -246,16 +246,16 @@ dataSources:
           handler: handleUpdateFundingRate
         - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
           handler: handleSwap
-        # - event: CollectMarginFees(address,uint256,uint256)
-        #   handler: handleCollectMarginFees
-        # - event: BuyUSDG(address,address,uint256,uint256,uint256)
-        #   handler: handleBuyUSDG
-        # - event: SellUSDG(address,address,uint256,uint256,uint256)
-        #   handler: handleSellUSDG
-        # - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-        #   handler: handleIncreasePosition
-        # - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-        #   handler: handleDecreasePosition
-        # - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
-        #   handler: handleLiquidatePosition
+        - event: CollectMarginFees(address,uint256,uint256)
+          handler: handleCollectMarginFees
+        - event: BuyUSDG(address,address,uint256,uint256,uint256)
+          handler: handleBuyUSDG
+        - event: SellUSDG(address,address,uint256,uint256,uint256)
+          handler: handleSellUSDG
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
       file: ./src/mapping.ts

@@ -24,10 +24,14 @@ function _loadOrCreateEntity(id: string, period: string, timestamp: BigInt): Tra
     entity.period = period
     entity.profit = BigInt.fromI32(0)
     entity.loss = BigInt.fromI32(0)
-    entity.cumulativeProfit = BigInt.fromI32(0)
-    entity.cumulativeLoss = BigInt.fromI32(0)
+    entity.profitCumulative = BigInt.fromI32(0)
+    entity.lossCumulative = BigInt.fromI32(0)
+
     entity.longOpenInterest = BigInt.fromI32(0)
     entity.shortOpenInterest = BigInt.fromI32(0)
+
+    entity.liquidatedCollateral = BigInt.fromI32(0)
+    entity.liquidatedCollateralCumulative = BigInt.fromI32(0)
   }
   entity.timestamp = timestamp.toI32()
   return entity as TradingStat
@@ -59,7 +63,7 @@ export function handleIncreasePosition(event: IncreasePosition): void {
 
 export function handleLiquidatePosition(event: LiquidatePosition): void {
   _updateOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.size)
-  _storePnl(event.block.timestamp, -event.params.collateral)
+  _storePnl(event.block.timestamp, -event.params.collateral, true)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
@@ -67,21 +71,24 @@ export function handleDecreasePosition(event: DecreasePosition): void {
 }
 
 export function handleClosePosition(event: ClosePosition): void {
-  _storePnl(event.block.timestamp, event.params.realisedPnl)
+  _storePnl(event.block.timestamp, event.params.realisedPnl, false)
 }
 
-function _storePnl(timestamp: BigInt, realisedPnl: BigInt): void {
+function _storePnl(timestamp: BigInt, pnl: BigInt, isLiquidated: boolean): void {
   let dayTimestamp = timestampToDay(timestamp)
 
   let totalId = "total"
   let totalEntity = _loadOrCreateEntity(totalId, "total", dayTimestamp)
-  let pnl = realisedPnl
   if (pnl > ZERO) {
     totalEntity.profit += pnl
-    totalEntity.cumulativeProfit += pnl
+    totalEntity.profitCumulative += pnl
   } else {
     totalEntity.loss -= pnl
-    totalEntity.cumulativeLoss -= pnl
+    totalEntity.lossCumulative -= pnl
+    if (isLiquidated) {
+      totalEntity.liquidatedCollateral -= pnl
+      totalEntity.liquidatedCollateralCumulative -= pnl
+    }
   }
   totalEntity.timestamp = dayTimestamp.toI32()
   totalEntity.save()
@@ -93,8 +100,12 @@ function _storePnl(timestamp: BigInt, realisedPnl: BigInt): void {
     entity.profit += pnl
   } else {
     entity.loss -= pnl
+    if (isLiquidated) {
+      entity.liquidatedCollateral -= pnl
+    }
   }
-  entity.cumulativeProfit = totalEntity.cumulativeProfit
-  entity.cumulativeLoss = totalEntity.cumulativeLoss
+  entity.profitCumulative = totalEntity.profitCumulative
+  entity.lossCumulative = totalEntity.lossCumulative
+  entity.liquidatedCollateralCumulative = totalEntity.liquidatedCollateralCumulative
   entity.save()
 }

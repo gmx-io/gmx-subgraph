@@ -99,24 +99,27 @@ export function handleAnswerUpdatedBNB(event: AnswerUpdatedEvent): void {
 export function handleIncreasePosition(event: IncreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
   let feeBasisPoints = _getFeeBasisPoints(event.block.timestamp)
-  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR // TODO use frmo contract
+  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("margin", event.block.timestamp, fee)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR // TODO use frmo contract
+  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("margin", event.block.timestamp, fee)
 }
 
 export function handleLiquidatePosition(event: LiquidatePosition):void {
   _storeVolume("liquidation", event.block.timestamp, event.params.size)
-  let fee = event.params.collateral
-  _storeFees("liquidation", event.block.timestamp, fee)
+
+  // it's incorrect
+  // let fee = event.params.collateral
+  // _storeFees("liquidation", event.block.timestamp, fee)
 }
 
 export function handleSellUSDG(event: SellUSDG): void {
-  let bar = 2
+  _updatePoolStats(event.block.timestamp, event.address)
+
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
   _storeVolume("burn", event.block.timestamp, volume)
 
@@ -125,6 +128,8 @@ export function handleSellUSDG(event: SellUSDG): void {
 }
 
 export function handleSwap(event: Swap): void {
+  _updatePoolStats(event.block.timestamp, event.address)
+
   let volume = getTokenAmountUsd(event.params.tokenIn.toHexString(), event.params.amountIn)
   _storeVolume("swap", event.block.timestamp, volume)
 
@@ -133,13 +138,35 @@ export function handleSwap(event: Swap): void {
 }
 
 export function handleBuyUSDG(event: BuyUSDG): void {
-  let id = getHourId(event.block.timestamp)
-  let entity = new HourlyPoolStat(id)
+  _updatePoolStats(event.block.timestamp, event.address)
+
+  let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
+  _storeVolume("mint", event.block.timestamp, volume)
+  let basisPoints = getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
+  let fee = volume * basisPoints / BASIS_POINTS_DIVISOR
+  _storeFees("mint", event.block.timestamp, fee)
+}
+
+function _updatePoolStats(timestamp: BigInt, vaultAddress: Address): void {
+  let id = getHourId(timestamp)
+  let entity = HourlyPoolStat.load(id)
+
+  if (entity) {
+    let entityTimestamp = BigInt.fromString(entity.id)
+    let THRESHOLD = BigInt.fromI32(86400 * 3)
+    if (entityTimestamp > timestamp - THRESHOLD) {
+      return
+    }
+  }
+
+  if (entity == null) {
+    entity = new HourlyPoolStat(id)
+  }
 
   let usdgContract = Token.bind(USDG_ADDRESS)
   entity.usdgSupply = usdgContract.totalSupply()
 
-  let contract = Vault.bind(event.address)
+  let contract = Vault.bind(vaultAddress)
   for (let i = 0; i < tokens.length; i++) {
     let tokenAddress = Address.fromString(tokens[i])
     let tokenName = tokenNames[i]
@@ -152,12 +179,6 @@ export function handleBuyUSDG(event: BuyUSDG): void {
   }
 
   entity.save()
-
-  let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
-  _storeVolume("mint", event.block.timestamp, volume)
-  let basisPoints = getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
-  let fee = volume * basisPoints / BASIS_POINTS_DIVISOR
-  _storeFees("mint", event.block.timestamp, fee)
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
