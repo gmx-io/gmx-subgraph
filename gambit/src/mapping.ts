@@ -7,11 +7,14 @@ import {
   IncreasePosition,
   DecreasePosition,
   LiquidatePosition,
-  Swap
+  Swap,
+  DecreasePoolAmount,
+  IncreasePoolAmount
 } from "../generated/Vault/Vault"
 import { Token } from "../generated/Vault/Token"
 import {
   HourlyPoolStat,
+  PoolStat,
   VolumeStat,
   FeeStat,
   ChainlinkPrice,
@@ -28,40 +31,33 @@ import {
   getDayId,
   getHourId,
   getTokenAmountUsd,
+  getTokenSymbol,
   isStable
 } from "./helpers"
+
+let tokenSymbols = new Array<string>(6)
+tokenSymbols[0] = 'BTC'
+tokenSymbols[1] = 'ETH'
+tokenSymbols[2] = 'BNB'
+tokenSymbols[3] = 'BUSD'
+tokenSymbols[4] = 'USDC'
+tokenSymbols[5] = 'USDT'
 
 let a = 1
 let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 let VAULT = "0xc73A8DcAc88498FD4b4B1b2AaA37b0a2614Ff67B"
 
-let tokens = new Array<string>(6)
-tokens[0] = '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c'
-tokens[1] = '0x2170Ed0880ac9A755fd29B2688956BD959F933F8'
-tokens[2] = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'
-tokens[3] = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56'
-tokens[4] = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'
-tokens[5] = '0x55d398326f99059fF775485246999027B3197955'
-
-let tokenNames = new Array<string>(6)
-tokenNames[0] = 'BTC'
-tokenNames[1] = 'ETH'
-tokenNames[2] = 'BNB'
-tokenNames[3] = 'BUSD'
-tokenNames[4] = 'USDC'
-tokenNames[5] = 'USDT'
-
 let ZERO = BigInt.fromI32(0)
 let USDG = "0x85E76cbf4893c1fbcB34dCF1239A91CE2A4CF5a7"
 let USDG_ADDRESS = Address.fromString(USDG)
 
-function getSwapFeeBasisPoints(tokenA: string, tokenB: string, timestamp: BigInt): BigInt {
+function _getSwapFeeBasisPoints(tokenA: string, tokenB: string, timestamp: BigInt): BigInt {
   let isStableSwap = isStable(tokenA) && isStable(tokenB)
   let feeBasisPointsEntity = _getFeeBasisPoints(timestamp)
   return isStableSwap ? feeBasisPointsEntity.stableSwap : feeBasisPointsEntity.swap
 }
 
-function getMarginFeeBasisPoints(timestamp: BigInt): BigInt {
+function _getMarginFeeBasisPoints(timestamp: BigInt): BigInt {
   let feeBasisPointsEntity = _getFeeBasisPoints(timestamp)
   return feeBasisPointsEntity.margin
 }
@@ -99,86 +95,134 @@ export function handleAnswerUpdatedBNB(event: AnswerUpdatedEvent): void {
 export function handleIncreasePosition(event: IncreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
   let feeBasisPoints = _getFeeBasisPoints(event.block.timestamp)
-  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
+  let fee = event.params.sizeDelta * _getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("margin", event.block.timestamp, fee)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  let fee = event.params.sizeDelta * getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
+  let fee = event.params.sizeDelta * _getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("margin", event.block.timestamp, fee)
 }
 
 export function handleLiquidatePosition(event: LiquidatePosition):void {
   _storeVolume("liquidation", event.block.timestamp, event.params.size)
 
-  // it's incorrect
-  // let fee = event.params.collateral
-  // _storeFees("liquidation", event.block.timestamp, fee)
+  // it's incorrect though it's close to correct
+  let fee = event.params.collateral
+  _storeFees("liquidation", event.block.timestamp, fee)
 }
 
 export function handleSellUSDG(event: SellUSDG): void {
-  _updatePoolStats(event.block.timestamp, event.address)
-
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
   _storeVolume("burn", event.block.timestamp, volume)
 
-  let fee = volume * getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp) / BASIS_POINTS_DIVISOR
+  let fee = volume * _getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("burn", event.block.timestamp, fee)
+
+  _updateUsdgSupply(event.block.timestamp, event.params.usdgAmount, false)
 }
 
 export function handleSwap(event: Swap): void {
-  _updatePoolStats(event.block.timestamp, event.address)
-
   let volume = getTokenAmountUsd(event.params.tokenIn.toHexString(), event.params.amountIn)
   _storeVolume("swap", event.block.timestamp, volume)
 
-  let fee = volume * getSwapFeeBasisPoints(event.params.tokenIn.toHexString(), event.params.tokenOut.toHexString(), event.block.timestamp) / BASIS_POINTS_DIVISOR
+  let fee = volume * _getSwapFeeBasisPoints(event.params.tokenIn.toHexString(), event.params.tokenOut.toHexString(), event.block.timestamp) / BASIS_POINTS_DIVISOR
   _storeFees("swap", event.block.timestamp, fee)
 }
 
 export function handleBuyUSDG(event: BuyUSDG): void {
-  _updatePoolStats(event.block.timestamp, event.address)
-
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
   _storeVolume("mint", event.block.timestamp, volume)
-  let basisPoints = getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
+  let basisPoints = _getSwapFeeBasisPoints(USDG, event.params.token.toHexString(), event.block.timestamp)
   let fee = volume * basisPoints / BASIS_POINTS_DIVISOR
   _storeFees("mint", event.block.timestamp, fee)
+
+  _updateUsdgSupply(event.block.timestamp, event.params.usdgAmount, true)
 }
 
-function _updatePoolStats(timestamp: BigInt, vaultAddress: Address): void {
-  let id = getHourId(timestamp)
-  let entity = HourlyPoolStat.load(id)
+export function handleDecreasePoolAmount(event: DecreasePoolAmount): void {
+  _updatePoolAmount(event.block.timestamp, event.params.token, event.params.amount, false)
+}
 
-  if (entity) {
-    let entityTimestamp = BigInt.fromString(entity.id)
-    let THRESHOLD = BigInt.fromI32(86400 * 3)
-    if (entityTimestamp > timestamp - THRESHOLD) {
-      return
-    }
-  }
+export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
+  _updatePoolAmount(event.block.timestamp, event.params.token, event.params.amount, true)
+}
+
+function _getOrCreatePoolStat(id: string, period: string): PoolStat {
+  let entity = PoolStat.load(id)
 
   if (entity == null) {
-    entity = new HourlyPoolStat(id)
+    entity = new PoolStat(id)
+    entity.BTC_amount = ZERO
+    entity.ETH_amount = ZERO
+    entity.BNB_amount = ZERO
+    entity.BUSD_amount = ZERO
+    entity.USDT_amount = ZERO
+    entity.USDC_amount = ZERO
+    entity.BTC_usd = ZERO
+    entity.ETH_usd = ZERO
+    entity.BNB_usd = ZERO
+    entity.BUSD_usd = ZERO
+    entity.USDT_usd = ZERO
+    entity.USDC_usd = ZERO
+    entity.usdgSupply = ZERO
+    entity.period = period
   }
 
-  let usdgContract = Token.bind(USDG_ADDRESS)
-  entity.usdgSupply = usdgContract.totalSupply()
+  return entity as PoolStat
+}
 
-  let contract = Vault.bind(vaultAddress)
-  for (let i = 0; i < tokens.length; i++) {
-    let tokenAddress = Address.fromString(tokens[i])
-    let tokenName = tokenNames[i]
-    let poolAmount = contract.poolAmounts(tokenAddress)
-    let price = contract.getMaxPrice(tokenAddress)
-    let decimals = contract.tokenDecimals(tokenAddress)
-    let denominator = BigInt.fromString("10").pow(decimals.toI32() as u8)
-    let tokenUsd = poolAmount * price / denominator
-    entity.setBigInt(tokenName, tokenUsd)
+function _updateUsdgSupply(timestamp: BigInt, amount: BigInt, increase: boolean): void {
+  let totalEntity = _getOrCreatePoolStat("total", "total")
+
+  if (increase) {
+    totalEntity.usdgSupply += amount
+  } else {
+    totalEntity.usdgSupply -= amount
   }
+  totalEntity.save()
 
+  let id = getDayId(timestamp)
+  let entity = _copyPoolStat(id, "daily", totalEntity)
   entity.save()
+}
+
+function _updatePoolAmount(timestamp: BigInt, token: Address, amount: BigInt, increase: boolean): void {
+  let totalEntity = _getOrCreatePoolStat("total", "total")
+
+  let tokenSymbol = getTokenSymbol(token.toHexString())
+  let amountProp = tokenSymbol + "_amount"
+  let usdProp = tokenSymbol + "_usd"
+  let newAmount: BigInt
+
+  if (increase) {
+    newAmount = totalEntity.getBigInt(amountProp) + amount
+  } else {
+    newAmount = totalEntity.getBigInt(amountProp) - amount
+  }
+  let usdValue = getTokenAmountUsd(token.toHexString(), newAmount)
+  totalEntity.setBigInt(amountProp, newAmount)
+  totalEntity.setBigInt(usdProp, usdValue)
+  totalEntity.save()
+
+  let id = getDayId(timestamp)
+  let entity = _copyPoolStat(id, "daily", totalEntity)
+  entity.save()
+}
+
+function _copyPoolStat(newId: string, newPeriod: string, fromEntity: PoolStat): PoolStat {
+  let entity = new PoolStat(newId)
+  entity.period = newPeriod
+  entity.usdgSupply = fromEntity.usdgSupply
+  for (let i = 0; i < tokenSymbols.length; i++) {
+    let tokenSymbol = tokenSymbols[i]
+    let usdProp = tokenSymbol + "_usd"
+    let amountProp = tokenSymbol + "_amount"
+    entity.setBigInt(amountProp, fromEntity.getBigInt(amountProp))
+    entity.setBigInt(usdProp, fromEntity.getBigInt(usdProp))
+  }
+  return entity
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {

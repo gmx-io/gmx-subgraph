@@ -30,7 +30,18 @@ export function isStable(token: string): boolean {
   return token == BUSD || token == USDC || token == USDT
 }
 
-export function getTokenDecimals(token: String): u8 {
+export function getTokenSymbol(tokenAddress: string): string {
+  let tokenSymbols = new Map<String, string>()
+  tokenSymbols.set(ETH, "ETH")
+  tokenSymbols.set(BTC, "BTC")
+  tokenSymbols.set(WBNB, "BNB")
+  tokenSymbols.set(BUSD, "BUSD")
+  tokenSymbols.set(USDC, "USDC")
+  tokenSymbols.set(USDT, "USDT")
+  return tokenSymbols.get(tokenAddress)
+}
+
+export function getTokenDecimals(tokenAddress: string): u8 {
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(ETH, 18)
   tokenDecimals.set(BTC, 18)
@@ -38,18 +49,18 @@ export function getTokenDecimals(token: String): u8 {
   tokenDecimals.set(BUSD, 18)
   tokenDecimals.set(USDC, 18)
   tokenDecimals.set(USDT, 18)
-  return tokenDecimals.get(token) as u8
+  return tokenDecimals.get(tokenAddress) as u8
 }
 
-export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
-  let decimals = getTokenDecimals(token)
+export function getTokenAmountUsd(tokenAddress: string, amount: BigInt): BigInt {
+  let decimals = getTokenDecimals(tokenAddress)
   let denominator = BigInt.fromString("10").pow(decimals)
-  let price = getTokenPrice(token)
+  let price = getTokenPrice(tokenAddress)
   return amount * price / denominator
 }
 
-export function getTokenPrice(token: String): BigInt {
-  let entity = ChainlinkPrice.load(token)
+export function getTokenPrice(tokenAddress: string): BigInt {
+  let entity = ChainlinkPrice.load(tokenAddress)
   if (entity != null) {
     // all chainlink prices have 8 decimals
     // adjusting them to fit GMX 30 decimals USD values
@@ -63,5 +74,5 @@ export function getTokenPrice(token: String): BigInt {
   defaultPrices.set(USDC, PRECISION)
   defaultPrices.set(USDT, PRECISION)
 
-  return defaultPrices.get(token) as BigInt
+  return defaultPrices.get(tokenAddress) as BigInt
 }

@@ -76,8 +76,11 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - HourlyPoolStats
-        - FeeBasisPoints
+        - HourlyPoolStat
+        - FeeBasisPoint
+        - PoolStat
+        - FeeStat
+        - VolumeStat
         # - BuyUSDG
         # - ClosePosition
         # - CollectMarginFees
@@ -117,8 +120,8 @@ dataSources:
         #   handler: handleCollectSwapFees
         # - event: DecreaseGuaranteedUsd(address,uint256)
         #   handler: handleDecreaseGuaranteedUsd
-        # - event: DecreasePoolAmount(address,uint256)
-        #   handler: handleDecreasePoolAmount
+        - event: DecreasePoolAmount(address,uint256)
+          handler: handleDecreasePoolAmount
         - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256)
           handler: handleDecreasePosition
         # - event: DecreaseReservedAmount(address,uint256)
@@ -129,8 +132,8 @@ dataSources:
         #   handler: handleDirectPoolDeposit
         # - event: IncreaseGuaranteedUsd(address,uint256)
         #   handler: handleIncreaseGuaranteedUsd
-        # - event: IncreasePoolAmount(address,uint256)
-        #   handler: handleIncreasePoolAmount
+        - event: IncreasePoolAmount(address,uint256)
+          handler: handleIncreasePoolAmount
         - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256)
           handler: handleIncreasePosition
         # - event: IncreaseReservedAmount(address,uint256)

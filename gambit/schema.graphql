@@ -40,6 +40,28 @@ type HourlyPoolStat @entity {
   USDC: BigInt!
 }
 
+type PoolStat @entity {
+  id: ID!
+
+  usdgSupply: BigInt!
+
+  BTC_amount: BigInt!
+  ETH_amount: BigInt!
+  BNB_amount: BigInt!
+  BUSD_amount: BigInt!
+  USDT_amount: BigInt!
+  USDC_amount: BigInt!
+
+  BTC_usd: BigInt!
+  ETH_usd: BigInt!
+  BNB_usd: BigInt!
+  BUSD_usd: BigInt!
+  USDT_usd: BigInt!
+  USDC_usd: BigInt!
+
+  period: Period!
+}
+
 type FeeStat @entity {
   id: ID!
 
