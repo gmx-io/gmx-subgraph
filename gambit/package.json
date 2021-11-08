@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "graph deploy --product hosted-service gkrasulya/gambit --deploy-key $(cat .gkrasulya_access_token)"
+    "deploy-test": "graph deploy --product hosted-service gkrasulya/gambit --deploy-key $(cat .gkrasulya_access_token)",
+    "deploy": "graph deploy --product hosted-service gmx-io/gmx-bsc-stats"
   },
   "author": "",
   "license": "ISC"
