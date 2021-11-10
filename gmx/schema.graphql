@@ -89,6 +89,7 @@ type OrderStat @entity {
 
 enum Period {
   daily
+  weekly
   total
 }
 
@@ -109,6 +110,11 @@ type UserStat @entity {
   uniqueSwapCount: Int!
   uniqueMarginCount: Int!
   uniqueMintBurnCount: Int!
+
+  uniqueCountCumulative: Int!
+  uniqueSwapCountCumulative: Int!
+  uniqueMarginCountCumulative: Int!
+  uniqueMintBurnCountCumulative: Int!
 
   actionCount: Int!
   actionSwapCount: Int!
@@ -132,6 +138,12 @@ type GlpStat @entity {
 
   glpSupply: BigInt!
   aumInUsdg: BigInt!
+
+  distributedEth: BigInt!
+  distributedEthCumulative: BigInt!
+  distributedUsd: BigInt!
+  distributedUsdCumulative: BigInt!
+
   period: Period!
 }
 

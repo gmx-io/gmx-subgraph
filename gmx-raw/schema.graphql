@@ -1,0 +1,126 @@
+type CollectMarginFee @entity {
+  id: ID!
+  token: Bytes!
+  feeUsd: BigInt!
+  feeTokens: BigInt!
+
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type CollectSwapFee @entity {
+  id: ID!
+  token: Bytes!
+  feeUsd: BigInt!
+  feeTokens: BigInt!
+
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type ClosePosition @entity {
+  id: ID!
+
+  key: String!
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+
+  timestamp: Int!
+  txHash: String!
+}
+
+type LiquidatePosition @entity {
+  id: ID!
+
+  key: String!
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+
+  isLong: Boolean!
+
+  size: BigInt!
+  collateral: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  markPrice: BigInt!
+
+  timestamp: Int!
+  txHash: String!
+}
+
+type IncreasePosition @entity {
+  id: ID!
+
+  key: String!
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+
+  isLong: Boolean!
+
+  price: BigInt!
+  fee: BigInt!
+
+  timestamp: Int!
+  txHash: String!
+}
+
+type DecreasePosition @entity {
+  id: ID!
+
+  key: String!
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+
+  isLong: Boolean!
+
+  price: BigInt!
+  fee: BigInt!
+
+  timestamp: Int!
+  txHash: String!
+}
+
+type AddLiquidity @entity {
+  id: ID!
+
+  account: String!
+  token: String!
+
+  amount: BigInt!
+  aumInUsdg: BigInt!
+  glpSupply: BigInt!
+  usdgAmount: BigInt!
+  mintAmount: BigInt!
+
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type RemoveLiquidity @entity {
+  id: ID!
+
+  account: String!
+  token: String!
+
+  glpAmount: BigInt!
+  aumInUsdg: BigInt!
+  glpSupply: BigInt!
+  usdgAmount: BigInt!
+  amountOut: BigInt!
+
+  timestamp: BigInt!
+  txHash: String!
+}

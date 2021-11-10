@@ -7,7 +7,7 @@ import {
 
 import {
   Distribute
-} from "../generated/RewardDistributor/RewardDistributor"
+} from "../generated/FeeGmxRewardDistributor/RewardDistributor"
 
 import {
   Vault,
@@ -146,25 +146,39 @@ export function handleSwap(event: SwapEvent): void {
 }
 
 function _storeUserAction(timestamp: BigInt, account: Address, actionType: String): void {
-  _storeUserActionByType(timestamp, account, actionType, "total")
-  _storeUserActionByType(timestamp, account, actionType, "daily")
+  let totalEntity = _storeUserActionByType(timestamp, account, actionType, "total", null)
+
+  _storeUserActionByType(timestamp, account, actionType, "daily", totalEntity)
+  _storeUserActionByType(timestamp, account, actionType, "weekly", totalEntity)
 }
 
-function _storeUserActionByType(timestamp: BigInt, account: Address, actionType: String, period: String): void {
-  let userId = period == "total" ? account.toHexString() : _getDayId(timestamp) + ":" + account.toHexString()
+function _storeUserActionByType(
+  timestamp: BigInt,
+  account: Address,
+  actionType: string,
+  period: string,
+  userStatTotal: UserStat | null
+): UserStat {
+  let timestampId = period == "weekly" ? _getWeekId(timestamp) : _getDayId(timestamp)
+  let userId = period == "total" ? account.toHexString() : period + ":" + timestampId + ":" + account.toHexString()
   let user = UserData.load(userId)
 
-  let statId = period == "total" ? "total" : _getDayId(timestamp)
+  let statId = period == "total" ? account.toHexString() : period + ":" + timestampId
   let userStat = UserStat.load(statId)
   if (userStat == null) {
     userStat = new UserStat(statId)
     userStat.period = period
-    userStat.timestamp = timestamp.toI32() / 86400 * 86400
+    userStat.timestamp = timestampId as i32
 
     userStat.uniqueCount = 0
     userStat.uniqueMarginCount = 0
     userStat.uniqueSwapCount = 0
     userStat.uniqueMintBurnCount = 0
+
+    userStat.uniqueCountCumulative = 0
+    userStat.uniqueMarginCountCumulative = 0
+    userStat.uniqueSwapCountCumulative = 0
+    userStat.uniqueMintBurnCountCumulative = 0
 
     userStat.actionCount = 0
     userStat.actionMarginCount = 0
@@ -175,45 +189,53 @@ function _storeUserActionByType(timestamp: BigInt, account: Address, actionType:
   if (user == null) {
     user = new UserData(userId) 
     user.period = period
-    user.timestamp = timestamp.toI32() / 86400 * 86400
+    user.timestamp = timestampId as i32
 
     user.actionSwapCount = 0
     user.actionMarginCount = 0
     user.actionMintBurnCount = 0
 
     userStat.uniqueCount = userStat.uniqueCount + 1
+
+    if (period == "total") {
+      userStat.uniqueCountCumulative = userStat.uniqueCount
+    } else if (userStatTotal != null) {
+      userStat.uniqueCountCumulative = userStatTotal.uniqueCount
+    }
   }
 
   userStat.actionCount += 1
 
-  // for (let i = 0; i < USER_ACTION_actionTypeS.length; i++) {
-  //   let actionProp = "action" 
-  //   let _actionType = USER_ACTION_actionTypeS[i]
-  //   entity.setBigInt(_actionType, ZERO)
-  // }
-
+  let actionCountProp: string
+  let uniqueCountProp: string
   if (actionType == "margin") {
-    if (user.actionMarginCount == 0) {
-      userStat.uniqueMarginCount += 1
-    }
-    user.actionMarginCount += 1
-    userStat.actionMarginCount += 1
+    actionCountProp = "actionMarginCount"
+    uniqueCountProp = "uniqueMarginCount"
   } else if (actionType == "swap") {
-    if (user.actionSwapCount == 0) {
-      userStat.uniqueSwapCount += 1
-    }
-    user.actionSwapCount += 1
-    userStat.actionSwapCount += 1
+    actionCountProp = "actionSwapCount"
+    uniqueCountProp = "uniqueSwapCount"
   } else if (actionType == "mintBurn") {
-    if (user.actionMintBurnCount == 0) {
-      userStat.uniqueMintBurnCount += 1
-    }
-    user.actionMintBurnCount += 1
-    userStat.actionMintBurnCount += 1
+    actionCountProp = "actionMintBurnCount"
+    uniqueCountProp = "uniqueMintBurnCount"
+  }
+  let uniqueCountCumulativeProp = uniqueCountProp + "Cumulative"
+
+  if (user.getI32(actionCountProp) == 0) {
+    userStat.setI32(uniqueCountProp, userStat.getI32(uniqueCountProp) + 1)
+  }
+  user.setI32(actionCountProp, user.getI32(actionCountProp) + 1)
+  userStat.setI32(actionCountProp, userStat.getI32(actionCountProp) + 1)
+
+  if (period == "total") {
+    userStat.setI32(uniqueCountCumulativeProp, userStat.getI32(uniqueCountProp))
+  } else if (userStatTotal != null) {
+    userStat.setI32(uniqueCountCumulativeProp, userStatTotal.getI32(uniqueCountProp))
   }
 
   user.save()
   userStat.save()
+
+  return userStat as UserStat
 }
 
 export function handleAddLiquidity(event: AddLiquidity): void {
@@ -441,16 +463,43 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
     entity.period = period
     entity.glpSupply = ZERO
     entity.aumInUsdg = ZERO
+    entity.distributedEth = ZERO
+    entity.distributedEthCumulative = ZERO
+    entity.distributedUsd = ZERO
+    entity.distributedUsdCumulative = ZERO
   }
   return entity as GlpStat
 }
 
+export function handleDistributeEthToGlp(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(WETH, amount)
+
+  let totalEntity = _getOrCreateGlpStat("total", "total")
+  totalEntity.distributedEth += amount
+  totalEntity.distributedEthCumulative += amount
+  totalEntity.distributedUsd += amountUsd
+  totalEntity.distributedUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = _getDayId(event.block.timestamp)
+  let entity = _getOrCreateGlpStat(id, "daily")
+
+  entity.distributedEth += amount
+  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
+  entity.distributedUsd += amountUsd
+  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
+
+  entity.save()
+}
+
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
-  let id = _getHourId(timestamp)
-  let deprecatedEntity = HourlyGlpStat.load(id)
+  let deprecatedId = _getHourId(timestamp)
+  let deprecatedEntity = HourlyGlpStat.load(deprecatedId)
 
   if (deprecatedEntity == null) {
-    deprecatedEntity = new HourlyGlpStat(id)
+    deprecatedEntity = new HourlyGlpStat(deprecatedId)
     deprecatedEntity.glpSupply = ZERO
     deprecatedEntity.aumInUsdg = ZERO
   }
@@ -462,6 +511,7 @@ function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt):
 
   //
 
+  let id = _getDayId(timestamp)
   let totalEntity = _getOrCreateGlpStat("total", "total")
   totalEntity.aumInUsdg = aumInUsdg
   totalEntity.glpSupply = glpSupply
@@ -477,9 +527,16 @@ function _getIdFromEvent(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + ':' + event.logIndex.toString()
 }
 
+function _getWeekId(timestamp: BigInt): string {
+  let day = 86400
+  let week = day * 7
+  let weekTimestamp = timestamp.toI32() / week * week - 3 * day
+  return weekTimestamp.toString()
+}
+
 function _getDayId(timestamp: BigInt): string {
-  let hourTimestamp = timestamp.toI32() / 86400 * 86400
-  return hourTimestamp.toString()
+  let dayTimestamp = timestamp.toI32() / 86400 * 86400
+  return dayTimestamp.toString()
 }
 
 function _getHourId(timestamp: BigInt): string {

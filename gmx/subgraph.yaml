@@ -170,7 +170,7 @@ dataSources:
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
-    name: RewardDistributor
+    name: FeeGmxRewardDistributor
     network: arbitrum-one
     source:
       address: "0x1DE098faF30bD74F22753c28DB17A2560D4F5554"
@@ -188,6 +188,27 @@ dataSources:
       eventHandlers:
         - event: Distribute(uint256)
           handler: handleDistributeEthToGmx
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: FeeGlpRewardDistributor
+    network: arbitrum-one
+    source:
+      address: "0x5C04a12EB54A093c396f61355c6dA0B15890150d"
+      abi: RewardDistributor
+      startBlock: 218204
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - GmxStat
+      abis:
+        - name: RewardDistributor
+          file: ./abis/RewardDistributor.json
+      eventHandlers:
+        - event: Distribute(uint256)
+          handler: handleDistributeEthToGlp
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
