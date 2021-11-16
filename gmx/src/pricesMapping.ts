@@ -14,6 +14,10 @@ import {
   UNI,
   USDT,
   USDC,
+  MIM,
+  SPELL,
+  SUSHI,
+  DAI,
   getTokenPrice,
   getTokenDecimals
 } from "./helpers"
@@ -58,6 +62,22 @@ export function handleAnswerUpdatedUNI(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedLINK(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(LINK, event.params.current, event.block.timestamp)
+}
+
+export function handleAnswerUpdatedSPELL(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(SPELL, event.params.current, event.block.timestamp)
+}
+
+export function handleAnswerUpdatedMIM(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(MIM, event.params.current, event.block.timestamp)
+}
+
+export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp)
+}
+
+export function handleAnswerUpdatedSUSHI(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(SUSHI, event.params.current, event.block.timestamp)
 }
 
 export function handleSetPrice(event: SetPrice): void {

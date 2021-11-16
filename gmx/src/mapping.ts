@@ -163,12 +163,12 @@ function _storeUserActionByType(
   let userId = period == "total" ? account.toHexString() : period + ":" + timestampId + ":" + account.toHexString()
   let user = UserData.load(userId)
 
-  let statId = period == "total" ? account.toHexString() : period + ":" + timestampId
+  let statId = period == "total" ? "total" : period + ":" + timestampId
   let userStat = UserStat.load(statId)
   if (userStat == null) {
     userStat = new UserStat(statId)
     userStat.period = period
-    userStat.timestamp = timestampId as i32
+    userStat.timestamp = parseInt(timestampId) as i32
 
     userStat.uniqueCount = 0
     userStat.uniqueMarginCount = 0
@@ -189,7 +189,7 @@ function _storeUserActionByType(
   if (user == null) {
     user = new UserData(userId) 
     user.period = period
-    user.timestamp = timestampId as i32
+    user.timestamp = parseInt(timestampId) as i32
 
     user.actionSwapCount = 0
     user.actionMarginCount = 0
@@ -311,6 +311,8 @@ export function handleDistributeEthToGmx(event: Distribute): void {
   entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
 
   entity.save()
+}
+export function handleDistributeEsgmxToGmx(event: Distribute): void {
 }
 
 function _getOrCreateGmxStat(id: string, period: string): GmxStat {
@@ -492,6 +494,8 @@ export function handleDistributeEthToGlp(event: Distribute): void {
   entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
 
   entity.save()
+}
+export function handleDistributeEsgmxToGlp(event: Distribute): void {
 }
 
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {

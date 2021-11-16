@@ -70,6 +70,13 @@ type FeeStat @entity {
   liquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
+
+  marginCumulative: BigInt!
+  swapCumulative: BigInt!
+  liquidationCumulative: BigInt!
+  mintCumulative: BigInt!
+  burnCumulative: BigInt!
+
   period: Period!
 }
 
@@ -81,6 +88,13 @@ type VolumeStat @entity {
   liquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
+
+  marginCumulative: BigInt!
+  swapCumulative: BigInt!
+  liquidationCumulative: BigInt!
+  mintCumulative: BigInt!
+  burnCumulative: BigInt!
+
   period: Period!
 }
 

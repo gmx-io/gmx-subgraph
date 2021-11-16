@@ -226,25 +226,33 @@ function _copyPoolStat(newId: string, newPeriod: string, fromEntity: PoolStat): 
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
-  let id = getDayId(timestamp)
-  let entity = _getOrCreateVolumeStat(id, "daily")
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
+  let cumulativeProp = type + "Cumulative"
 
   let totalEntity = _getOrCreateVolumeStat("total", "total")
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
+  totalEntity.setBigInt(cumulativeProp, totalEntity.getBigInt(cumulativeProp) + volume)
   totalEntity.save()
+
+  let id = getDayId(timestamp)
+  let entity = _getOrCreateVolumeStat(id, "daily")
+  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.setBigInt(cumulativeProp, totalEntity.getBigInt(cumulativeProp))
+  entity.save()
 }
 
 function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
-  let id = getDayId(timestamp)
-  let entity = _getOrCreateFeeStat(id, "daily")
-  entity.setBigInt(type, entity.getBigInt(type) + fees)
-  entity.save()
+  let cumulativeProp = type + "Cumulative"
 
   let totalEntity = _getOrCreateFeeStat("total", "total")
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
+  totalEntity.setBigInt(cumulativeProp, totalEntity.getBigInt(cumulativeProp) + fees)
   totalEntity.save()
+
+  let id = getDayId(timestamp)
+  let entity = _getOrCreateFeeStat(id, "daily")
+  entity.setBigInt(type, entity.getBigInt(type) + fees)
+  entity.setBigInt(cumulativeProp, totalEntity.getBigInt(cumulativeProp))
+  entity.save()
 }
 
 function _getFeeBasisPoints(timestamp: BigInt): FeeBasisPoint {
@@ -275,6 +283,11 @@ function _getOrCreateFeeStat(id: string, period: string): FeeStat {
     entity.liquidation = ZERO
     entity.mint = ZERO
     entity.burn = ZERO
+    entity.marginCumulative = ZERO
+    entity.swapCumulative = ZERO
+    entity.liquidationCumulative = ZERO
+    entity.mintCumulative = ZERO
+    entity.burnCumulative = ZERO
     entity.period = period
   }
   return entity as FeeStat
@@ -289,6 +302,11 @@ function _getOrCreateVolumeStat(id: string, period: string): VolumeStat {
     entity.liquidation = ZERO
     entity.mint = ZERO
     entity.burn = ZERO
+    entity.marginCumulative = ZERO
+    entity.swapCumulative = ZERO
+    entity.liquidationCumulative = ZERO
+    entity.mintCumulative = ZERO
+    entity.burnCumulative = ZERO
     entity.period = period
   }
   return entity as VolumeStat

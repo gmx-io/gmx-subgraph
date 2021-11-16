@@ -85,6 +85,86 @@ dataSources:
         - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
           handler: handleAnswerUpdatedLINK
       file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorSPELL
+    network: arbitrum-one
+    source:
+      address: "0x4b3f43e086790a71270750192472fb61df7e8566"
+      abi: ChainlinkAggregator
+      startBlock: 2372599
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedSPELL
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorSUSHI
+    network: arbitrum-one
+    source:
+      address: "0x0d02b6eba98bda364953d9b1def8eedc19ffd516"
+      abi: ChainlinkAggregator
+      startBlock: 226756
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedSUSHI
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorDAI
+    network: arbitrum-one
+    source:
+      address: "0xfc06bb03a9e1d8033f87ea6a682cbd65477a43b9"
+      abi: ChainlinkAggregator
+      startBlock: 226756
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedDAI
+      file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorMIM
+    network: arbitrum-one
+    source:
+      address: "0x0ae17556f9698fc47c365a746ab9cddcb17f3809"
+      abi: ChainlinkAggregator
+      startBlock: 226756
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedMIM
+      file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
     name: GlpManager
@@ -191,6 +271,27 @@ dataSources:
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
+    name: EsgmxGmxRewardDistributor
+    network: arbitrum-one
+    source:
+      address: "0x23208B91A98c7C1CD9FE63085BFf68311494F193"
+      abi: RewardDistributor
+      startBlock: 147909
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - GmxStat
+      abis:
+        - name: RewardDistributor
+          file: ./abis/RewardDistributor.json
+      eventHandlers:
+        - event: Distribute(uint256)
+          handler: handleDistributeEsgmxToGmx
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
     name: FeeGlpRewardDistributor
     network: arbitrum-one
     source:
@@ -209,6 +310,27 @@ dataSources:
       eventHandlers:
         - event: Distribute(uint256)
           handler: handleDistributeEthToGlp
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: EsgmxGlpRewardDistributor
+    network: arbitrum-one
+    source:
+      address: "0x60519b48ec4183a61ca2B8e37869E675FD203b34"
+      abi: RewardDistributor
+      startBlock: 218208
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - GmxStat
+      abis:
+        - name: RewardDistributor
+          file: ./abis/RewardDistributor.json
+      eventHandlers:
+        - event: Distribute(uint256)
+          handler: handleDistributeEsgmxToGlp
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
