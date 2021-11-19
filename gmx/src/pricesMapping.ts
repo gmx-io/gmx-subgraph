@@ -2,7 +2,8 @@ import { BigInt } from "@graphprotocol/graph-ts"
 
 import {
   ChainlinkPrice,
-  FastPrice
+  FastPrice,
+  UniswapPrice
 } from "../generated/schema"
 
 import {
@@ -18,8 +19,8 @@ import {
   SPELL,
   SUSHI,
   DAI,
-  getTokenPrice,
-  getTokenDecimals
+  GMX,
+  getTokenAmountUsd
 } from "./helpers"
 
 import {
@@ -29,6 +30,10 @@ import {
 import {
   SetPrice
 } from '../generated/FastPriceFeed/FastPriceFeed'
+
+import {
+  Swap as UniswapSwap
+} from '../generated/UniswapPool/UniswapPoolV3'
 
 function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt): void {
   let id = token + ":" + timestamp.toString()
@@ -80,9 +85,34 @@ export function handleAnswerUpdatedSUSHI(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(SUSHI, event.params.current, event.block.timestamp)
 }
 
+function _storeUniswapPrice(id: string, token: string, price: BigInt, period: string, timestamp: BigInt): void {
+  let entity = UniswapPrice.load(id)
+  if (entity == null) {
+    entity = new UniswapPrice(id)
+  }
+
+  entity.timestamp = timestamp.toI32()
+  entity.value = price
+  entity.token = token
+  entity.period = period
+  entity.save()
+}
+
+export function handleUniswapGmxEthSwap(event: UniswapSwap): void {
+  let ethPerGmx = -(event.params.amount0 * BigInt.fromI32(10).pow(18) / event.params.amount1) * BigInt.fromI32(100) / BigInt.fromI32(99)
+  let gmxPrice = getTokenAmountUsd(WETH, ethPerGmx)
+
+  let totalId = GMX
+  _storeUniswapPrice(totalId, GMX, gmxPrice, "last", event.block.timestamp)
+
+  let id = GMX + ":" + event.block.timestamp.toString()
+  _storeUniswapPrice(id, GMX, gmxPrice, "any", event.block.timestamp)
+}
+
 export function handleSetPrice(event: SetPrice): void {
   let id = event.params.token.toHexString() + ":" + event.block.timestamp.toString()
   let entity = new FastPrice(id)
+
   entity.value = event.params.price
   entity.token = event.params.token.toHexString()
   entity.timestamp = event.block.timestamp.toI32()

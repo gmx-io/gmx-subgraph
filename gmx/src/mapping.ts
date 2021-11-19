@@ -1,4 +1,4 @@
-import { BigInt, Address, TypedMap, ethereum, store, log } from "@graphprotocol/graph-ts"
+import { BigInt, Address, Bytes, TypedMap, ethereum, store, log } from "@graphprotocol/graph-ts"
 import {
   GlpManager,
   AddLiquidity,
@@ -15,10 +15,12 @@ import {
   IncreasePosition as IncreasePositionEvent,
   DecreasePosition as DecreasePositionEvent,
   LiquidatePosition as LiquidatePositionEvent,
+  UpdatePosition as UpdatePositionEvent,
   BuyUSDG as BuyUSDGEvent,
   SellUSDG as SellUSDGEvent,
   CollectMarginFees as CollectMarginFeesEvent,
-  UpdateFundingRate
+  UpdateFundingRate,
+  SetTokenConfigCall
 } from "../generated/Vault/Vault"
 
 import {
@@ -35,11 +37,14 @@ import {
   UserData,
   UserStat,
   FundingRate,
-  GmxStat
+  GmxStat,
+  LiquidatedPosition,
+  Position
 } from "../generated/schema"
 
 import {
   WETH,
+  GMX,
   BASIS_POINTS_DIVISOR,
   getTokenPrice,
   getTokenDecimals,
@@ -47,6 +52,9 @@ import {
 } from "./helpers"
 
 let ZERO = BigInt.fromI32(0)
+let FUNDING_PRECISION = BigInt.fromI32(1000000)
+
+const LIQUIDATOR_ADDRESS = "0x44311c91008dde73de521cd25136fd37d616802c"
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -62,6 +70,28 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
   _storeVolumeByToken("margin", event.block.timestamp, event.params.collateralToken, event.params.indexToken, event.params.sizeDelta)
   _storeFees("margin", event.block.timestamp, event.params.fee)
   _storeUserAction(event.block.timestamp, event.transaction.from, "margin")
+
+  if (event.transaction.from.toHexString() == LIQUIDATOR_ADDRESS) {
+    _storeLiquidatedPosition(
+      event.params.key,
+      event.block.timestamp,
+      event.params.account,
+      event.params.indexToken,
+      event.params.sizeDelta,
+      event.params.collateralToken,
+      event.params.collateralDelta,
+      event.params.isLong,
+      "partial",
+      event.params.price
+    )
+  }
+}
+
+export function handleUpdatePosition(event: UpdatePositionEvent): void {
+  let entity = new Position(event.params.key.toHexString())
+  entity.averagePrice = event.params.averagePrice
+  entity.entryFundingRate = event.params.entryFundingRate
+  entity.save()
 }
 
 export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
@@ -72,6 +102,60 @@ export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   // also size * rate incorrect as well because it doesn't consider borrow fee
   let fee = event.params.collateral
   _storeFees("liquidation", event.block.timestamp, fee)
+
+  _storeLiquidatedPosition(
+    event.params.key,
+    event.block.timestamp,
+    event.params.account,
+    event.params.indexToken,
+    event.params.size,
+    event.params.collateralToken,
+    event.params.collateral,
+    event.params.isLong,
+    "full",
+    event.params.markPrice
+  )
+}
+
+function _storeLiquidatedPosition(
+  keyBytes: Bytes,
+  timestamp: BigInt,
+  account: Address,
+  indexToken: Address,
+  size: BigInt,
+  collateralToken: Address,
+  collateral: BigInt,
+  isLong: boolean,
+  type: string,
+  markPrice: BigInt
+): void {
+  let key = keyBytes.toHexString()
+  let position = Position.load(key)
+  let averagePrice = position.averagePrice
+
+  let id = key + ":" + timestamp.toString()
+  let liquidatedPosition = new LiquidatedPosition(id)
+  liquidatedPosition.account = account.toHexString()
+  liquidatedPosition.timestamp = timestamp.toI32()
+  liquidatedPosition.indexToken = indexToken.toHexString()
+  liquidatedPosition.size = size
+  liquidatedPosition.collateralToken = collateralToken.toHexString()
+  liquidatedPosition.collateral = collateral
+  liquidatedPosition.isLong = isLong
+  liquidatedPosition.type = type
+  liquidatedPosition.key = key
+
+  liquidatedPosition.markPrice = markPrice
+  liquidatedPosition.averagePrice = averagePrice
+  let priceDelta = isLong ? averagePrice - markPrice : markPrice - averagePrice
+  liquidatedPosition.loss = size * priceDelta / averagePrice
+
+  let fundingRateId = _getFundingRateId("total", collateralToken)
+  let fundingRateEntity = FundingRate.load(fundingRateId)
+  let accruedFundingRate = BigInt.fromI32(fundingRateEntity.endFundingRate) - position.entryFundingRate
+  liquidatedPosition.borrowFee = accruedFundingRate * size / FUNDING_PRECISION
+
+  liquidatedPosition.save()
 }
 
 export function handleBuyUSDG(event: BuyUSDGEvent): void {
@@ -313,6 +397,25 @@ export function handleDistributeEthToGmx(event: Distribute): void {
   entity.save()
 }
 export function handleDistributeEsgmxToGmx(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(WETH, amount)
+  let totalEntity = _getOrCreateGmxStat("total", "total")
+  totalEntity.distributedEsgmx += amount
+  totalEntity.distributedEsgmxCumulative += amount
+  totalEntity.distributedEsgmxUsd += amountUsd
+  totalEntity.distributedEsgmxUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = _getDayId(event.block.timestamp)
+  let entity = _getOrCreateGmxStat(id, "daily")
+
+  entity.distributedEsgmx += amount
+  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
+  entity.distributedEsgmxUsd += amountUsd
+  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
+
+  entity.save()
 }
 
 function _getOrCreateGmxStat(id: string, period: string): GmxStat {
@@ -323,6 +426,10 @@ function _getOrCreateGmxStat(id: string, period: string): GmxStat {
     entity.distributedEthCumulative = ZERO
     entity.distributedUsd = ZERO
     entity.distributedUsdCumulative = ZERO
+    entity.distributedEsgmx = ZERO
+    entity.distributedEsgmxCumulative = ZERO
+    entity.distributedEsgmxUsd = ZERO
+    entity.distributedEsgmxUsdCumulative = ZERO
     entity.period = period
   }
   return entity as GmxStat
@@ -469,8 +576,16 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
     entity.distributedEthCumulative = ZERO
     entity.distributedUsd = ZERO
     entity.distributedUsdCumulative = ZERO
+    entity.distributedEsgmx = ZERO
+    entity.distributedEsgmxCumulative = ZERO
+    entity.distributedEsgmxUsd = ZERO
+    entity.distributedEsgmxUsdCumulative = ZERO
   }
   return entity as GlpStat
+}
+
+export function handleSetTokenConfig(call: SetTokenConfigCall): void {
+
 }
 
 export function handleDistributeEthToGlp(event: Distribute): void {
@@ -495,7 +610,28 @@ export function handleDistributeEthToGlp(event: Distribute): void {
 
   entity.save()
 }
+
 export function handleDistributeEsgmxToGlp(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(GMX, amount)
+
+  let totalEntity = _getOrCreateGlpStat("total", "total")
+  totalEntity.distributedEsgmx += amount
+  totalEntity.distributedEsgmxCumulative += amount
+  totalEntity.distributedEsgmxUsd += amountUsd
+  totalEntity.distributedEsgmxUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = _getDayId(event.block.timestamp)
+  let entity = _getOrCreateGlpStat(id, "daily")
+
+  entity.distributedEsgmx += amount
+  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
+  entity.distributedEsgmxUsd += amountUsd
+  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
+
+  entity.save()
 }
 
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {

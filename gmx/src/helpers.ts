@@ -1,6 +1,7 @@
 import { BigInt, TypedMap } from "@graphprotocol/graph-ts"
 import {
-  ChainlinkPrice
+  ChainlinkPrice,
+  UniswapPrice
 } from "../generated/schema"
 
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
@@ -17,6 +18,7 @@ export let SPELL = "0x3e6648c5a70a150a88bce65f4ad4d506fe15d2af"
 export let SUSHI = "0xd4d42f0b6def4ce0383636770ef773390d85c61a"
 export let FRAX = "0x17fc002b466eec40dae837fc4be5c67993ddbd6f"
 export let DAI = "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+export let GMX = "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a"
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestamp / BigInt.fromI32(86400) * BigInt.fromI32(86400)
@@ -35,6 +37,7 @@ export function getTokenDecimals(token: String): u8 {
   tokenDecimals.set(SUSHI, 18)
   tokenDecimals.set(FRAX, 18)
   tokenDecimals.set(DAI, 18)
+  tokenDecimals.set(GMX, 18)
 
   return tokenDecimals.get(token) as u8
 }
@@ -47,11 +50,21 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
-  let chainlinkPriceEntity = ChainlinkPrice.load(token)
-  if (chainlinkPriceEntity != null) {
-    // all chainlink prices have 8 decimals
-    // adjusting them to fit GMX 30 decimals USD values
-    return chainlinkPriceEntity.value * BigInt.fromI32(10).pow(22)
+  if (token != GMX) {
+    let chainlinkPriceEntity = ChainlinkPrice.load(token)
+    if (chainlinkPriceEntity != null) {
+      // all chainlink prices have 8 decimals
+      // adjusting them to fit GMX 30 decimals USD values
+      return chainlinkPriceEntity.value * BigInt.fromI32(10).pow(22)
+    }
+  }
+
+  if (token == GMX) {
+    let uniswapPriceEntity = UniswapPrice.load(GMX)
+
+    if (uniswapPriceEntity != null) {
+      return uniswapPriceEntity.value
+    }
   }
 
   let prices = new TypedMap<String, BigInt>()
@@ -66,6 +79,7 @@ export function getTokenPrice(token: String): BigInt {
   prices.set(SUSHI, BigInt.fromI32(10) * PRECISION)
   prices.set(FRAX, PRECISION)
   prices.set(DAI, PRECISION)
+  prices.set(GMX, BigInt.fromI32(30) * PRECISION)
 
   return prices.get(token) as BigInt
 }

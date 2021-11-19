@@ -3,7 +3,43 @@ enum PricePeriod {
   last
 }
 
+type Position @entity {
+  id: ID! # key
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+}
+
+enum LiquidationType {
+  full
+  partial
+}
+
+type LiquidatedPosition @entity {
+  id: ID!
+  key: String!
+  account: String!
+  timestamp: Int!
+  indexToken: String!
+  size: BigInt!
+  isLong: Boolean!
+  collateralToken: String!
+  collateral: BigInt!
+  markPrice: BigInt!
+  averagePrice: BigInt!
+  loss: BigInt!
+  type: LiquidationType!
+  borrowFee: BigInt!
+}
+
 type ChainlinkPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  period: PricePeriod!
+}
+
+type UniswapPrice @entity {
   id: ID!
   token: String!
   value: BigInt!
@@ -144,6 +180,11 @@ type GlpStat @entity {
   distributedUsd: BigInt!
   distributedUsdCumulative: BigInt!
 
+  distributedEsgmx: BigInt!
+  distributedEsgmxCumulative: BigInt!
+  distributedEsgmxUsd: BigInt!
+  distributedEsgmxUsdCumulative: BigInt!
+
   period: Period!
 }
 
@@ -253,5 +294,11 @@ type GmxStat @entity {
   distributedEthCumulative: BigInt!
   distributedUsd: BigInt!
   distributedUsdCumulative: BigInt!
+
+  distributedEsgmx: BigInt!
+  distributedEsgmxCumulative: BigInt!
+  distributedEsgmxUsd: BigInt!
+  distributedEsgmxUsdCumulative: BigInt!
+
   period: Period!
 }
