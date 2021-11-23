@@ -114,8 +114,8 @@ dataSources:
           handler: handleSellUSDG
         # - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
         #   handler: handleClosePosition
-        # - event: CollectMarginFees(address,uint256,uint256)
-        #   handler: handleCollectMarginFees
+        - event: CollectMarginFees(address,uint256,uint256)
+          handler: handleCollectMarginFees
         # - event: CollectSwapFees(address,uint256)
         #   handler: handleCollectSwapFees
         # - event: DecreaseGuaranteedUsd(address,uint256)

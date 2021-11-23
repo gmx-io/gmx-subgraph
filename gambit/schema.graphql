@@ -65,15 +65,17 @@ type PoolStat @entity {
 type FeeStat @entity {
   id: ID!
 
-  margin: BigInt!
+  marginAndLiquidation: BigInt!
+  margin: BigInt! # deprecated
+  liquidation: BigInt! # deprecated
   swap: BigInt!
-  liquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
 
-  marginCumulative: BigInt!
+  marginAndLiquidationCumulative: BigInt!
+  marginCumulative: BigInt! # deprecated
+  liquidationCumulative: BigInt! # deprecated
   swapCumulative: BigInt!
-  liquidationCumulative: BigInt!
   mintCumulative: BigInt!
   burnCumulative: BigInt!
 

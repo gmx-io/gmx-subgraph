@@ -9,7 +9,8 @@ import {
   LiquidatePosition,
   Swap,
   DecreasePoolAmount,
-  IncreasePoolAmount
+  IncreasePoolAmount,
+  CollectMarginFees
 } from "../generated/Vault/Vault"
 import { Token } from "../generated/Vault/Token"
 import {
@@ -57,11 +58,6 @@ function _getSwapFeeBasisPoints(tokenA: string, tokenB: string, timestamp: BigIn
   return isStableSwap ? feeBasisPointsEntity.stableSwap : feeBasisPointsEntity.swap
 }
 
-function _getMarginFeeBasisPoints(timestamp: BigInt): BigInt {
-  let feeBasisPointsEntity = _getFeeBasisPoints(timestamp)
-  return feeBasisPointsEntity.margin
-}
-
 function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt): void {
   let id = token + ":" + timestamp.toString()
   let entity = new ChainlinkPrice(id)
@@ -94,15 +90,15 @@ export function handleAnswerUpdatedBNB(event: AnswerUpdatedEvent): void {
 
 export function handleIncreasePosition(event: IncreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  let feeBasisPoints = _getFeeBasisPoints(event.block.timestamp)
-  let fee = event.params.sizeDelta * _getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
-  _storeFees("margin", event.block.timestamp, fee)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  let fee = event.params.sizeDelta * _getMarginFeeBasisPoints(event.block.timestamp) / BASIS_POINTS_DIVISOR
-  _storeFees("margin", event.block.timestamp, fee)
+}
+
+export function handleCollectMarginFees(event: CollectMarginFees): void {
+  _storeFees("margin", event.block.timestamp, event.params.feeUsd)
+  _storeFees("marginAndLiquidation", event.block.timestamp, event.params.feeUsd)
 }
 
 export function handleLiquidatePosition(event: LiquidatePosition):void {
@@ -282,11 +278,13 @@ function _getOrCreateFeeStat(id: string, period: string): FeeStat {
   if (entity === null) {
     entity = new FeeStat(id)
     entity.margin = ZERO
+    entity.marginAndLiquidation = ZERO
     entity.swap = ZERO
     entity.liquidation = ZERO
     entity.mint = ZERO
     entity.burn = ZERO
     entity.marginCumulative = ZERO
+    entity.marginAndLiquidationCumulative = ZERO
     entity.swapCumulative = ZERO
     entity.liquidationCumulative = ZERO
     entity.mintCumulative = ZERO
