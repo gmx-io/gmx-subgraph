@@ -3,10 +3,17 @@ enum PricePeriod {
   last
 }
 
-type Position @entity {
+type WhitelistedToken @entity {
+  id: ID!
+  foo: String!
+}
+
+type ActivePosition @entity {
   id: ID! # key
   averagePrice: BigInt!
   entryFundingRate: BigInt!
+  collateral: BigInt!
+  size: BigInt!
 }
 
 enum LiquidationType {

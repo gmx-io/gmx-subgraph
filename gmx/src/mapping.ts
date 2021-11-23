@@ -19,8 +19,7 @@ import {
   BuyUSDG as BuyUSDGEvent,
   SellUSDG as SellUSDGEvent,
   CollectMarginFees as CollectMarginFeesEvent,
-  UpdateFundingRate,
-  SetTokenConfigCall
+  UpdateFundingRate
 } from "../generated/Vault/Vault"
 
 import {
@@ -39,7 +38,8 @@ import {
   FundingRate,
   GmxStat,
   LiquidatedPosition,
-  Position
+  ActivePosition,
+  WhitelistedToken
 } from "../generated/schema"
 
 import {
@@ -88,9 +88,11 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
 }
 
 export function handleUpdatePosition(event: UpdatePositionEvent): void {
-  let entity = new Position(event.params.key.toHexString())
+  let entity = new ActivePosition(event.params.key.toHexString())
   entity.averagePrice = event.params.averagePrice
   entity.entryFundingRate = event.params.entryFundingRate
+  entity.collateral = event.params.collateral
+  entity.size = event.params.size
   entity.save()
 }
 
@@ -130,7 +132,7 @@ function _storeLiquidatedPosition(
   markPrice: BigInt
 ): void {
   let key = keyBytes.toHexString()
-  let position = Position.load(key)
+  let position = ActivePosition.load(key)
   let averagePrice = position.averagePrice
 
   let id = key + ":" + timestamp.toString()
@@ -140,7 +142,7 @@ function _storeLiquidatedPosition(
   liquidatedPosition.indexToken = indexToken.toHexString()
   liquidatedPosition.size = size
   liquidatedPosition.collateralToken = collateralToken.toHexString()
-  liquidatedPosition.collateral = collateral
+  liquidatedPosition.collateral = position.collateral
   liquidatedPosition.isLong = isLong
   liquidatedPosition.type = type
   liquidatedPosition.key = key
@@ -398,7 +400,8 @@ export function handleDistributeEthToGmx(event: Distribute): void {
 }
 export function handleDistributeEsgmxToGmx(event: Distribute): void {
   let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
+  let amountUsd = getTokenAmountUsd(GMX, amount)
+
   let totalEntity = _getOrCreateGmxStat("total", "total")
   totalEntity.distributedEsgmx += amount
   totalEntity.distributedEsgmxCumulative += amount
@@ -582,10 +585,6 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
     entity.distributedEsgmxUsdCumulative = ZERO
   }
   return entity as GlpStat
-}
-
-export function handleSetTokenConfig(call: SetTokenConfigCall): void {
-
 }
 
 export function handleDistributeEthToGlp(event: Distribute): void {

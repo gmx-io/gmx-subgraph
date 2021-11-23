@@ -108,9 +108,12 @@ export function handleDecreasePosition(event: DecreasePosition): void {
 export function handleLiquidatePosition(event: LiquidatePosition):void {
   _storeVolume("liquidation", event.block.timestamp, event.params.size)
 
-  // it's incorrect though it's close to correct
-  let fee = event.params.collateral
-  _storeFees("liquidation", event.block.timestamp, fee)
+  // we don't collect any fees during liquidation
+  // charged collateral may be considered as a protocol income (or GLP income)
+  // but not a fee
+
+  // let fee = event.params.collateral
+  // _storeFees("liquidation", event.block.timestamp, fee)
 }
 
 export function handleSellUSDG(event: SellUSDG): void {

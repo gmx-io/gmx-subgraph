@@ -405,9 +405,9 @@ dataSources:
       abis:
         - name: Vault
           file: ./abis/VaultV2.json
-      callHandlers:
-        - function: setTokenConfig(address,uint256,uint256,uint256,uint256,bool,bool)
-          handler: handleSetTokenConfig
+      # callHandlers: # doesn't work on Arbitrum
+      #   - function: setTokenConfig(address,uint256,uint256,uint256,uint256,bool,bool)
+      #     handler: handleSetTokenConfig
       eventHandlers:
         - event: UpdateFundingRate(address,uint256)
           handler: handleUpdateFundingRate
