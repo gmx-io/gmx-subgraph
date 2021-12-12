@@ -1,11 +1,61 @@
+type Transaction @entity {
+  id: ID!
+  blockNumber: Int!
+  timestamp: Int!
+  from: String!
+  to: String!
+}
+
+type StakeGmx @entity {
+  id: ID!
+
+  account: String!
+  token: String!
+  amount: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+type UnstakeGmx @entity {
+  id: ID!
+
+  account: String!
+  token: String!
+  amount: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+type StakeGlp @entity {
+  id: ID!
+
+  account: String!
+  amount: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+type UnstakeGlp @entity {
+  id: ID!
+
+  account: String!
+  amount: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
 type CollectMarginFee @entity {
   id: ID!
   token: Bytes!
   feeUsd: BigInt!
   feeTokens: BigInt!
 
-  timestamp: BigInt!
-  txHash: String!
+  transaction: Transaction!
+  timestamp: Int!
 }
 
 type CollectSwapFee @entity {
@@ -14,8 +64,8 @@ type CollectSwapFee @entity {
   feeUsd: BigInt!
   feeTokens: BigInt!
 
-  timestamp: BigInt!
-  txHash: String!
+  transaction: Transaction!
+  timestamp: Int!
 }
 
 type ClosePosition @entity {
@@ -29,8 +79,8 @@ type ClosePosition @entity {
   reserveAmount: BigInt!
   realisedPnl: BigInt!
 
+  transaction: Transaction!
   timestamp: Int!
-  txHash: String!
 }
 
 type LiquidatePosition @entity {
@@ -49,8 +99,8 @@ type LiquidatePosition @entity {
   realisedPnl: BigInt!
   markPrice: BigInt!
 
+  transaction: Transaction!
   timestamp: Int!
-  txHash: String!
 }
 
 type IncreasePosition @entity {
@@ -69,8 +119,8 @@ type IncreasePosition @entity {
   price: BigInt!
   fee: BigInt!
 
+  transaction: Transaction!
   timestamp: Int!
-  txHash: String!
 }
 
 type DecreasePosition @entity {
@@ -89,8 +139,8 @@ type DecreasePosition @entity {
   price: BigInt!
   fee: BigInt!
 
+  transaction: Transaction!
   timestamp: Int!
-  txHash: String!
 }
 
 type AddLiquidity @entity {
@@ -105,8 +155,8 @@ type AddLiquidity @entity {
   usdgAmount: BigInt!
   mintAmount: BigInt!
 
-  timestamp: BigInt!
-  txHash: String!
+  transaction: Transaction!
+  timestamp: Int!
 }
 
 type RemoveLiquidity @entity {
@@ -121,6 +171,21 @@ type RemoveLiquidity @entity {
   usdgAmount: BigInt!
   amountOut: BigInt!
 
-  timestamp: BigInt!
-  txHash: String!
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+type Swap @entity {
+  id: ID!
+
+  account: String!
+  tokenIn: String!
+  tokenOut: String!
+  amountIn: BigInt!
+  amountOut: BigInt!
+  amountOutAfterFees: BigInt!
+  feeBasisPoints: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
 }

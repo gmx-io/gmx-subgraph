@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, Address } from "@graphprotocol/graph-ts"
 
 import {
   ChainlinkPrice,
@@ -30,6 +30,10 @@ import {
 import {
   SetPrice
 } from '../generated/FastPriceFeed/FastPriceFeed'
+
+import {
+  PriceUpdate
+} from '../generated/FastPriceEvents/FastPriceEvents'
 
 import {
   Swap as UniswapSwap
@@ -109,22 +113,30 @@ export function handleUniswapGmxEthSwap(event: UniswapSwap): void {
   _storeUniswapPrice(id, GMX, gmxPrice, "any", event.block.timestamp)
 }
 
-export function handleSetPrice(event: SetPrice): void {
-  let id = event.params.token.toHexString() + ":" + event.block.timestamp.toString()
+function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt): void {
+  let id = token.toHexString() + ":" + timestamp.toString()
   let entity = new FastPrice(id)
 
-  entity.value = event.params.price
-  entity.token = event.params.token.toHexString()
-  entity.timestamp = event.block.timestamp.toI32()
+  entity.value = price
+  entity.token = token.toHexString()
+  entity.timestamp = timestamp.toI32()
   entity.period = "any"
 
   entity.save()
 
-  let totalEntity = new FastPrice(event.params.token.toHexString())
+  let totalEntity = new FastPrice(token.toHexString())
   totalEntity.period = "last"
-  totalEntity.value = event.params.price
-  totalEntity.token = event.params.token.toHexString()
-  totalEntity.timestamp = event.block.timestamp.toI32()
+  totalEntity.value = price
+  totalEntity.token = token.toHexString()
+  totalEntity.timestamp = timestamp.toI32()
 
   totalEntity.save()
+}
+
+export function handlePriceUpdate(event: PriceUpdate): void {
+  _handleFastPriceUpdate(event.params.token, event.params.price, event.block.timestamp)
+}
+
+export function handleSetPrice(event: SetPrice): void {
+  _handleFastPriceUpdate(event.params.token, event.params.price, event.block.timestamp)
 }

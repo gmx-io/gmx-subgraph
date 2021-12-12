@@ -3,28 +3,35 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: GlpManager
+    name: RewardRouterV2
     network: arbitrum-one
     source:
-      address: "0x321F653eED006AD1C29D174e17d96351BDe22649"
-      abi: GlpManager
+      address: "0xA906F338CB21815cBc4Bc87ace9e68c87eF8d8F1"
+      abi: RewardRouterV2
       startBlock: 227000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - AddLiquidity
-        - RemoveLiquidity
+        - StakeGmx
+        - UnstakeGmx
+        - StakeGlp
+        - UnstakeGlp
       abis:
-        - name: GlpManager
-          file: ./abis/GlpManager.json
+        - name: RewardRouterV2
+          file: ./abis/RewardRouterV2.json
       eventHandlers:
-        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleAddLiquidity
-        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleRemoveLiquidity
+        - event: StakeGmx(address,address,uint256)
+          handler: handleStakeGmx
+        - event: UnstakeGmx(address,address,uint256)
+          handler: handleUnstakeGmx
+        - event: StakeGlp(address,uint256)
+          handler: handleStakeGlp
+        - event: UnstakeGlp(address,uint256)
+          handler: handleUnstakeGlp
       file: ./src/mapping.ts
+
   - kind: ethereum/contract
     name: Vault
     network: arbitrum-one
@@ -42,18 +49,18 @@ dataSources:
         # - CollectSwapFees
         # - DecreaseGuaranteedUsd
         # - DecreasePoolAmount
-        # - DecreasePosition
+        - DecreasePosition
         # - DecreaseReservedAmount
         # - DecreaseUsdgAmount
         # - DirectPoolDeposit
         # - IncreaseGuaranteedUsd
         # - IncreasePoolAmount
-        # - IncreasePosition
+        - IncreasePosition
         # - IncreaseReservedAmount
         # - IncreaseUsdgAmount
-        # - LiquidatePosition
+        - LiquidatePosition
         # - SellUSDG
-        # - Swap
+        - Swap
         # - UpdateFundingRate
         # - UpdatePnl
         # - UpdatePosition
@@ -95,8 +102,8 @@ dataSources:
           handler: handleLiquidatePosition
         # - event: SellUSDG(address,address,uint256,uint256,uint256)
         #   handler: handleSellUSDG
-        # - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
-        #   handler: handleSwap
+        - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
+          handler: handleSwap
         # - event: UpdateFundingRate(address,uint256)
         #   handler: handleUpdateFundingRate
         # - event: UpdatePnl(bytes32,bool,uint256)
