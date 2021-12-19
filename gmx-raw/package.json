@@ -4,10 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx-raw --deploy-key $(cat .gkrasulya_access_token)",
-    "create-local": "graph create --node http://localhost:8020/ gkrasulya/gmx-raw",
-    "remove-local": "graph remove --node http://localhost:8020/ gkrasulya/gmx-raw",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 gkrasulya/gmx-raw"
+    "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx-raw --deploy-key $(cat .access_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
