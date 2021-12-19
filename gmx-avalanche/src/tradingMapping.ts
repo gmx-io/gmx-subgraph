@@ -49,7 +49,7 @@ function _updateOpenInterest(timestamp: BigInt, increase: boolean, isLong: boole
   }
   totalEntity.save()
 
-  let id = dayTimestamp.toString()
+  let id = dayTimestamp.toString() + ":daily"
   let entity = _loadOrCreateEntity(id, "daily", dayTimestamp)
 
   entity.longOpenInterest = totalEntity.longOpenInterest
@@ -93,7 +93,7 @@ function _storePnl(timestamp: BigInt, pnl: BigInt, isLiquidated: boolean): void 
   totalEntity.timestamp = dayTimestamp.toI32()
   totalEntity.save()
 
-  let id = dayTimestamp.toString()
+  let id = dayTimestamp.toString() + ":daily"
   let entity = _loadOrCreateEntity(id, "daily", dayTimestamp)
 
   if (pnl > ZERO) {

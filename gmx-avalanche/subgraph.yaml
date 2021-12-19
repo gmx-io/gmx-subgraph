@@ -256,32 +256,32 @@ dataSources:
   #         handler: handleDistributeEsgmxToGlp
   #     file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: Vault2
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x489ee077994B6658eAfA855C308275EAd8097C4A"
-  #     abi: Vault
-  #     startBlock: 225000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - TradingStat
-  #     abis:
-  #       - name: Vault
-  #         file: ./abis/VaultV2.json
-  #     eventHandlers:
-  #       - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
-  #         handler: handleClosePosition
-  #       - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-  #         handler: handleIncreasePosition
-  #       - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-  #         handler: handleDecreasePosition
-  #       - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
-  #         handler: handleLiquidatePosition
-  #     file: ./src/tradingMapping.ts
+  - kind: ethereum/contract
+    name: Vault2
+    network: avalanche
+    source:
+      address: "0x9ab2De34A33fB459b538c43f251eB825645e8595"
+      abi: Vault
+      startBlock: 8231150
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - TradingStat
+      abis:
+        - name: Vault
+          file: ./abis/VaultV2.json
+      eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+      file: ./src/tradingMapping.ts
 
   - kind: ethereum/contract
     name: Vault

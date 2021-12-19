@@ -75,23 +75,23 @@ type FundingRate @entity {
   period: Period!
 }
 
-# type TradingStat @entity {
-#   id: ID!
+type TradingStat @entity {
+  id: ID!
 
-#   profit: BigInt!
-#   loss: BigInt!
-#   profitCumulative: BigInt!
-#   lossCumulative: BigInt!
+  profit: BigInt!
+  loss: BigInt!
+  profitCumulative: BigInt!
+  lossCumulative: BigInt!
 
-#   longOpenInterest: BigInt!
-#   shortOpenInterest: BigInt!
+  longOpenInterest: BigInt!
+  shortOpenInterest: BigInt!
 
-#   liquidatedCollateral: BigInt!
-#   liquidatedCollateralCumulative: BigInt!
+  liquidatedCollateral: BigInt!
+  liquidatedCollateralCumulative: BigInt!
 
-#   timestamp: Int!
-#   period: Period!
-# }
+  timestamp: Int!
+  period: Period!
+}
 
 # enum OrderStatus {
 #   open
