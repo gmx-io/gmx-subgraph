@@ -7,19 +7,19 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let WETH = "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB"
-export let BTC = "0x50b7545627a5162F82A992c33b87aDc75187B218"
-export let AVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
+export let WETH = "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab"
+export let BTC = "0x50b7545627a5162f82a992c33b87adc75187b218"
+export let AVAX = "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7"
 // export let LINK = ""
 // export let UNI = ""
 // export let USDT = ""
 // export let USDC = ""
-export let MIM = "0x130966628846BFd36ff31a822705796e8cb8C18D"
+export let MIM = "0x130966628846bfd36ff31a822705796e8cb8c18d"
 // export let SPELL = ""
 // export let SUSHI = ""
 // export let FRAX = ""
 // export let DAI = ""
-export let GMX = "0x62edc0692BD897D2295872a9FFCac5425011c661"
+export let GMX = "0x62edc0692bd897d2295872a9ffcac5425011c661"
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestamp / BigInt.fromI32(86400) * BigInt.fromI32(86400)
