@@ -443,17 +443,18 @@ TRADE_TYPES[4] = "liquidation"
 TRADE_TYPES[5] = "marginAndLiquidation"
 
 function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
-  let id = _getDayId(timestamp) + ":daily"
-  let entity = _getOrCreateFeeStat(id, "daily")
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateFeeStat(id, "daily", periodTimestamp)
   entity.setBigInt(type, entity.getBigInt(type) + fees)
   entity.save()
 
-  let totalEntity = _getOrCreateFeeStat("total", "total")
+  let totalEntity = _getOrCreateFeeStat("total", "total", periodTimestamp)
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
   totalEntity.save()
 }
 
-function _getOrCreateFeeStat(id: string, period: string): FeeStat {
+function _getOrCreateFeeStat(id: string, period: string, periodTimestmap: i32): FeeStat {
   let entity = FeeStat.load(id)
   if (entity === null) {
     entity = new FeeStat(id)
@@ -461,23 +462,25 @@ function _getOrCreateFeeStat(id: string, period: string): FeeStat {
       let _type = TRADE_TYPES[i]
       entity.setBigInt(_type, ZERO)
     }
+    entity.timestamp = periodTimestmap
     entity.period = period
   }
   return entity as FeeStat
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
-  let id = _getDayId(timestamp) + ":daily"
-  let entity = _getOrCreateVolumeStat(id, "daily")
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateVolumeStat(id, "daily", periodTimestamp)
   entity.setBigInt(type, entity.getBigInt(type) + volume)
   entity.save()
 
-  let totalEntity = _getOrCreateVolumeStat("total", "total")
+  let totalEntity = _getOrCreateVolumeStat("total", "total", periodTimestamp)
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
   totalEntity.save()
 }
 
-function _getOrCreateVolumeStat(id: string, period: string): VolumeStat {
+function _getOrCreateVolumeStat(id: string, period: string, periodTimestmap: i32): VolumeStat {
   let entity = VolumeStat.load(id)
   if (entity === null) {
     entity = new VolumeStat(id)
@@ -487,6 +490,7 @@ function _getOrCreateVolumeStat(id: string, period: string): VolumeStat {
     entity.mint = ZERO
     entity.burn = ZERO
     entity.period = period
+    entity.timestamp = periodTimestmap
   }
   return entity as VolumeStat
 }
