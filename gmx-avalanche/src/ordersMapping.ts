@@ -1,10 +1,6 @@
 import {
   BigInt,
-  Address,
-  // TypedMap,
-  // ethereum,
-  // store,
-  // log
+  Address
 } from "@graphprotocol/graph-ts"
 import {
   CreateIncreaseOrder,

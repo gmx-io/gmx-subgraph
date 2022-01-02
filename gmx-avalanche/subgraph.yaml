@@ -91,69 +91,69 @@ dataSources:
           handler: handleRemoveLiquidity
       file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: OrderBook
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x09f77E8A13De9a35a7231028187e9fD5DB8a2ACB"
-  #     abi: OrderBook
-  #     startBlock: 2329453
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Order
-  #     abis:
-  #       - name: OrderBook
-  #         file: ./abis/OrderBook.json
-  #     eventHandlers:
-  #       - event: CreateIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256)
-  #         handler: handleCreateIncreaseOrder
-  #       - event: CancelIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256)
-  #         handler: handleCancelIncreaseOrder
-  #       - event: ExecuteIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256,uint256)
-  #         handler: handleExecuteIncreaseOrder
+  - kind: ethereum/contract
+    name: OrderBook
+    network: avalanche
+    source:
+      address: "0x4296e307f108B2f583FF2F7B7270ee7831574Ae5"
+      abi: OrderBook
+      startBlock: 8353975
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Order
+      abis:
+        - name: OrderBook
+          file: ./abis/OrderBook.json
+      eventHandlers:
+        - event: CreateIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256)
+          handler: handleCreateIncreaseOrder
+        - event: CancelIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256)
+          handler: handleCancelIncreaseOrder
+        - event: ExecuteIncreaseOrder(indexed address,uint256,address,uint256,address,address,uint256,bool,uint256,bool,uint256,uint256)
+          handler: handleExecuteIncreaseOrder
 
-  #       - event: CreateDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256)
-  #         handler: handleCreateDecreaseOrder
-  #       - event: CancelDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256)
-  #         handler: handleCancelDecreaseOrder
-  #       - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
-  #         handler: handleExecuteDecreaseOrder
+        - event: CreateDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256)
+          handler: handleCreateDecreaseOrder
+        - event: CancelDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256)
+          handler: handleCancelDecreaseOrder
+        - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
+          handler: handleExecuteDecreaseOrder
 
-  #       - event: CreateSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,bool,bool,uint256)
-  #         handler: handleCreateSwapOrder
-  #       - event: CancelSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,bool,bool,uint256)
-  #         handler: handleCancelSwapOrder
-  #       - event: ExecuteSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,uint256,bool,bool,uint256)
-  #         handler: handleExecuteSwapOrder
-  #     file: ./src/ordersMapping.ts
+        - event: CreateSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,bool,bool,uint256)
+          handler: handleCreateSwapOrder
+        - event: CancelSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,bool,bool,uint256)
+          handler: handleCancelSwapOrder
+        - event: ExecuteSwapOrder(indexed address,uint256,address[],uint256,uint256,uint256,uint256,bool,bool,uint256)
+          handler: handleExecuteSwapOrder
+      file: ./src/ordersMapping.ts
 
-  # - kind: ethereum/contract
-  #   name: FastPriceEvents
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x4530b7DE1958270A2376be192a24175D795e1b07"
-  #     abi: FastPriceEvents
-  #     startBlock: 3716732
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - FastPrice
-  #     abis:
-  #       - name: FastPriceEvents
-  #         file: ./abis/FastPriceEvents.json
-  #     eventHandlers:
-  #       - event: PriceUpdate(address,uint256,address)
-  #         handler: handlePriceUpdate
-  #     file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: FastPriceEvents
+    network: avalanche
+    source:
+      address: "0x02b7023D43bc52bFf8a0C54A9F2ecec053523Bf6"
+      abi: FastPriceEvents
+      startBlock: 8520800
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - FastPrice
+      abis:
+        - name: FastPriceEvents
+          file: ./abis/FastPriceEvents.json
+      eventHandlers:
+        - event: PriceUpdate(address,uint256,address)
+          handler: handlePriceUpdate
+      file: ./src/pricesMapping.ts
 
   # - kind: ethereum/contract
   #   name: UniswapPool
-  #   network: arbitrum-one
+  #   network: avalanche
   #   source:
   #     address: "0x80A9ae39310abf666A87C743d6ebBD0E8C42158E"
   #     abi: UniswapPoolV3
@@ -174,7 +174,7 @@ dataSources:
 
   # - kind: ethereum/contract
   #   name: FeeGmxRewardDistributor
-  #   network: arbitrum-one
+  #   network: avalanche
   #   source:
   #     address: "0x1DE098faF30bD74F22753c28DB17A2560D4F5554"
   #     abi: RewardDistributor
@@ -195,7 +195,7 @@ dataSources:
 
   # - kind: ethereum/contract
   #   name: EsgmxGmxRewardDistributor
-  #   network: arbitrum-one
+  #   network: avalanche
   #   source:
   #     address: "0x23208B91A98c7C1CD9FE63085BFf68311494F193"
   #     abi: RewardDistributor
@@ -216,7 +216,7 @@ dataSources:
 
   # - kind: ethereum/contract
   #   name: FeeGlpRewardDistributor
-  #   network: arbitrum-one
+  #   network: avalanche
   #   source:
   #     address: "0x5C04a12EB54A093c396f61355c6dA0B15890150d"
   #     abi: RewardDistributor
@@ -237,7 +237,7 @@ dataSources:
 
   # - kind: ethereum/contract
   #   name: EsgmxGlpRewardDistributor
-  #   network: arbitrum-one
+  #   network: avalanche
   #   source:
   #     address: "0x60519b48ec4183a61ca2B8e37869E675FD203b34"
   #     abi: RewardDistributor

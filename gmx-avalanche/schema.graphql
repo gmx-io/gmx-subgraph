@@ -93,43 +93,43 @@ type TradingStat @entity {
   period: Period!
 }
 
-# enum OrderStatus {
-#   open
-#   cancelled
-#   executed
-# }
+enum OrderStatus {
+  open
+  cancelled
+  executed
+}
 
-# type Order @entity {
-#   id: ID!
+type Order @entity {
+  id: ID!
 
-#   type: String!
-#   account: String!
-#   status: OrderStatus!
-#   index: BigInt!
-#   size: BigInt!
+  type: String!
+  account: String!
+  status: OrderStatus!
+  index: BigInt!
+  size: BigInt!
 
-#   createdTimestamp: Int!
-#   cancelledTimestamp: Int
-#   executedTimestamp: Int
-# }
+  createdTimestamp: Int!
+  cancelledTimestamp: Int
+  executedTimestamp: Int
+}
 
-# type OrderStat @entity {
-#   id: ID!
+type OrderStat @entity {
+  id: ID!
 
-#   openSwap: Int!
-#   openIncrease: Int!
-#   openDecrease: Int!
+  openSwap: Int!
+  openIncrease: Int!
+  openDecrease: Int!
 
-#   cancelledSwap: Int!
-#   cancelledIncrease: Int!
-#   cancelledDecrease: Int!
+  cancelledSwap: Int!
+  cancelledIncrease: Int!
+  cancelledDecrease: Int!
 
-#   executedSwap: Int!
-#   executedIncrease: Int!
-#   executedDecrease: Int!
+  executedSwap: Int!
+  executedIncrease: Int!
+  executedDecrease: Int!
 
-#   period: Period!
-# }
+  period: Period!
+}
 
 type UserData @entity {
   id: ID!
