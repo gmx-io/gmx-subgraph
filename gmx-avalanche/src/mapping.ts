@@ -50,7 +50,7 @@ import {
 let ZERO = BigInt.fromI32(0)
 let FUNDING_PRECISION = BigInt.fromI32(1000000)
 
-const LIQUIDATOR_ADDRESS = "0x44311c91008dde73de521cd25136fd37d616802c"
+const LIQUIDATOR_ADDRESS = "0x7858a4c42c619a68df6e95df7235a9ec6f0308b9"
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -536,7 +536,7 @@ function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, t
   entity.save()
 }
 
-function _getOrCreateGlpStat(id: string, period: string): GlpStat {
+function _getOrCreateGlpStat(id: string, period: string, periodTimestmap: i32): GlpStat {
   let entity = GlpStat.load(id)
   if (entity == null) {
     entity = new GlpStat(id)
@@ -551,6 +551,7 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
     entity.distributedEsgmxCumulative = ZERO
     entity.distributedEsgmxUsd = ZERO
     entity.distributedEsgmxUsdCumulative = ZERO
+    entity.timestamp = periodTimestmap
   }
   return entity as GlpStat
 }
@@ -558,8 +559,9 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
 export function handleDistributeEthToGlp(event: Distribute): void {
   let amount = event.params.amount
   let amountUsd = getTokenAmountUsd(WETH, amount)
+  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
 
-  let totalEntity = _getOrCreateGlpStat("total", "total")
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
   totalEntity.distributedEth += amount
   totalEntity.distributedEthCumulative += amount
   totalEntity.distributedUsd += amountUsd
@@ -567,8 +569,8 @@ export function handleDistributeEthToGlp(event: Distribute): void {
 
   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily")
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
 
   entity.distributedEth += amount
   entity.distributedEthCumulative = totalEntity.distributedEthCumulative
@@ -581,8 +583,9 @@ export function handleDistributeEthToGlp(event: Distribute): void {
 export function handleDistributeEsgmxToGlp(event: Distribute): void {
   let amount = event.params.amount
   let amountUsd = getTokenAmountUsd(GMX, amount)
+  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
 
-  let totalEntity = _getOrCreateGlpStat("total", "total")
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
   totalEntity.distributedEsgmx += amount
   totalEntity.distributedEsgmxCumulative += amount
   totalEntity.distributedEsgmxUsd += amountUsd
@@ -590,8 +593,8 @@ export function handleDistributeEsgmxToGlp(event: Distribute): void {
 
   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily")
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
 
   entity.distributedEsgmx += amount
   entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
@@ -602,13 +605,14 @@ export function handleDistributeEsgmxToGlp(event: Distribute): void {
 }
 
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
-  let totalEntity = _getOrCreateGlpStat("total", "total")
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
   totalEntity.aumInUsdg = aumInUsdg
   totalEntity.glpSupply = glpSupply
   totalEntity.save()
 
-  let id = _getDayId(timestamp) + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily")
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
   entity.aumInUsdg = aumInUsdg
   entity.glpSupply = glpSupply
   entity.save()
