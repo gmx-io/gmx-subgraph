@@ -1,7 +1,8 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 
 import {
-  timestampToDay
+  timestampToDay,
+  timestampToPeriodTime
 } from "./helpers"
 
 import {
@@ -52,8 +53,32 @@ function _updateOpenInterest(timestamp: BigInt, increase: boolean, isLong: boole
   let id = dayTimestamp.toString() + ":daily"
   let entity = _loadOrCreateEntity(id, "daily", dayTimestamp)
 
-  entity.longOpenInterest = totalEntity.longOpenInterest
-  entity.shortOpenInterest = totalEntity.shortOpenInterest
+  _updateOpenInterestForPeriod(timestamp, "hourly", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
+  _updateOpenInterestForPeriod(timestamp, "daily", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
+  _updateOpenInterestForPeriod(timestamp, "weekly", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
+}
+
+function _updateOpenInterestForPeriod(
+  timestamp: BigInt,
+  period: string,
+  longOpenInterest: BigInt,
+  shortOpenInterest: BigInt
+): void {
+  let id: string
+  let timestampGroup: BigInt
+  if (period == "daily") {
+    timestampGroup = timestampToPeriodTime(timestamp, 86400)
+    id = timestampGroup.toString() + ":daily"
+  } else if (period == "hourly") {
+    timestampGroup = timestampToPeriodTime(timestamp, 3600)
+    id = timestampGroup.toString() + ":hourly"
+  } else if (period == "weekly" ){
+    timestampGroup = timestampToPeriodTime(timestamp, 86400 * 7)
+    id = timestampGroup.toString() + ":weekly"
+  }
+  let entity = _loadOrCreateEntity(id, period, timestampGroup)
+  entity.longOpenInterest = longOpenInterest
+  entity.shortOpenInterest = shortOpenInterest
   entity.save()
 }
 

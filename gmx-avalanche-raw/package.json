@@ -4,7 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-raw --deploy-key $(cat .access_token)"
+    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-raw --deploy-key $(cat .access_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",

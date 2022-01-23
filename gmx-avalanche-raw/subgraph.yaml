@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: RewardRouterV2
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0xA906F338CB21815cBc4Bc87ace9e68c87eF8d8F1"
+      address: "0x82147C5A7E850eA4E28155DF107F2590fD4ba327"
       abi: RewardRouterV2
-      startBlock: 227000
+      startBlock: 8351228
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -34,10 +34,10 @@ dataSources:
 
   - kind: ethereum/contract
     name: Vault
-    network: arbitrum-one
+    network: avalanche
     source:
-      startBlock: 227000
-      address: "0x489ee077994B6658eAfA855C308275EAd8097C4A"
+      startBlock: 8351228
+      address: "0x9ab2De34A33fB459b538c43f251eB825645e8595"
       abi: Vault
     mapping:
       kind: ethereum/events
