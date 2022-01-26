@@ -5,7 +5,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy-prod": "graph deploy --product hosted-service gmx-io/gmx-stats",
-    "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx --deploy-key $(cat .access_token)"
+    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-arbitrum-stats --deploy-key $(cat .access_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
