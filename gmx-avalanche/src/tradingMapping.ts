@@ -2,7 +2,7 @@ import { BigInt } from "@graphprotocol/graph-ts"
 
 import {
   timestampToDay,
-  timestampToPeriodTime
+  timestampToPeriod
 } from "./helpers"
 
 import {
@@ -50,9 +50,6 @@ function _updateOpenInterest(timestamp: BigInt, increase: boolean, isLong: boole
   }
   totalEntity.save()
 
-  let id = dayTimestamp.toString() + ":daily"
-  let entity = _loadOrCreateEntity(id, "daily", dayTimestamp)
-
   _updateOpenInterestForPeriod(timestamp, "hourly", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
   _updateOpenInterestForPeriod(timestamp, "daily", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
   _updateOpenInterestForPeriod(timestamp, "weekly", totalEntity.longOpenInterest, totalEntity.shortOpenInterest)
@@ -66,16 +63,10 @@ function _updateOpenInterestForPeriod(
 ): void {
   let id: string
   let timestampGroup: BigInt
-  if (period == "daily") {
-    timestampGroup = timestampToPeriodTime(timestamp, 86400)
-    id = timestampGroup.toString() + ":daily"
-  } else if (period == "hourly") {
-    timestampGroup = timestampToPeriodTime(timestamp, 3600)
-    id = timestampGroup.toString() + ":hourly"
-  } else if (period == "weekly" ){
-    timestampGroup = timestampToPeriodTime(timestamp, 86400 * 7)
-    id = timestampGroup.toString() + ":weekly"
-  }
+
+  timestampGroup = timestampToPeriod(timestamp, period)
+  id = timestampGroup.toString() + ":" + period
+
   let entity = _loadOrCreateEntity(id, period, timestampGroup)
   entity.longOpenInterest = longOpenInterest
   entity.shortOpenInterest = shortOpenInterest
@@ -118,8 +109,21 @@ function _storePnl(timestamp: BigInt, pnl: BigInt, isLiquidated: boolean): void 
   totalEntity.timestamp = dayTimestamp.toI32()
   totalEntity.save()
 
-  let id = dayTimestamp.toString() + ":daily"
-  let entity = _loadOrCreateEntity(id, "daily", dayTimestamp)
+  _storePnlForPeriod(timestamp, "hourly", pnl, isLiquidated, totalEntity)
+  _storePnlForPeriod(timestamp, "daily", pnl, isLiquidated, totalEntity)
+  _storePnlForPeriod(timestamp, "weekly", pnl, isLiquidated, totalEntity)
+}
+
+function _storePnlForPeriod(
+  timestamp: BigInt,
+  period: string,
+  pnl: BigInt,
+  isLiquidated: boolean,
+  totalEntity: TradingStat
+): void {
+  let timestampGroup = timestampToPeriod(timestamp, period)
+  let id = timestampGroup.toString() + ":" + period
+  let entity = _loadOrCreateEntity(id, period, timestampGroup)
 
   if (pnl > ZERO) {
     entity.profit += pnl

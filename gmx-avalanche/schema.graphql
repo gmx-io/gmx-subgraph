@@ -9,6 +9,7 @@ enum LiquidationType {
 }
 
 enum Period {
+  hourly
   daily
   weekly
   total
@@ -88,6 +89,16 @@ type TradingStat @entity {
 
   liquidatedCollateral: BigInt!
   liquidatedCollateralCumulative: BigInt!
+
+  timestamp: Int!
+  period: Period!
+}
+
+type TokenStat @entity {
+  id: ID!
+
+  token: String!
+  amount: BigInt!
 
   timestamp: Int!
   period: Period!

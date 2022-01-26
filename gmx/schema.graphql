@@ -8,6 +8,17 @@ type WhitelistedToken @entity {
   foo: String!
 }
 
+type TokenStat @entity {
+  id: ID!
+
+  token: String!
+  amount: BigInt!
+
+  timestamp: Int!
+  period: Period!
+}
+
+
 type ActivePosition @entity {
   id: ID! # key
   averagePrice: BigInt!
@@ -131,6 +142,7 @@ type OrderStat @entity {
 }
 
 enum Period {
+  hourly
   daily
   weekly
   total

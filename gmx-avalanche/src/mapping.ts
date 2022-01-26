@@ -19,7 +19,9 @@ import {
   BuyUSDG as BuyUSDGEvent,
   SellUSDG as SellUSDGEvent,
   CollectMarginFees as CollectMarginFeesEvent,
-  UpdateFundingRate
+  UpdateFundingRate,
+  IncreasePoolAmount,
+  DecreasePoolAmount,
 } from "../generated/Vault/Vault"
 
 import {
@@ -35,7 +37,8 @@ import {
   FundingRate,
   GmxStat,
   LiquidatedPosition,
-  ActivePosition
+  ActivePosition,
+  TokenStat
 } from "../generated/schema"
 
 import {
@@ -44,7 +47,8 @@ import {
   BASIS_POINTS_DIVISOR,
   getTokenPrice,
   getTokenDecimals,
-  getTokenAmountUsd
+  getTokenAmountUsd,
+  timestampToPeriod
 } from "./helpers"
 
 let ZERO = BigInt.fromI32(0)
@@ -415,6 +419,55 @@ export function handleDistributeEsgmxToGmx(event: Distribute): void {
   entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
 
   entity.save()
+}
+
+export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+  totalEntity.amount += event.params.amount
+
+  _updatePoolAmount(timestamp, "hourly", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "daily", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "weekly", token, totalEntity.amount);
+}
+
+export function handleDecreasePoolAmount(event: DecreasePoolAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+  totalEntity.amount -= event.params.amount
+
+  _updatePoolAmount(timestamp, "hourly", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "daily", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "weekly", token, totalEntity.amount);
+}
+
+function _updatePoolAmount(timestamp: BigInt, period: string, token: Address, newAmount: BigInt): void {
+  let entity = _getOrCreateTokenStat(timestamp, period, token)
+  entity.amount = newAmount
+  entity.save()
+}
+
+function _getOrCreateTokenStat(timestamp: BigInt, period: string, token: Address): TokenStat {
+  let id: string
+  let timestampGroup: BigInt
+  if (period == "total") {
+    id = "total:" + token.toHexString()
+    timestampGroup = timestamp
+  } else {
+    id = timestampGroup.toString() + ":" + period + ":" + token.toHexString()
+    timestampGroup = timestampToPeriod(timestamp, period)
+  }
+
+  let entity = TokenStat.load(id)
+  if (entity == null) {
+    entity = new TokenStat(id)
+    entity.timestamp = timestampGroup as i32
+    entity.period = period
+    entity.token = token.toHexString()
+  }
+  return entity as TokenStat;
 }
 
 function _getOrCreateGmxStat(id: string, period: string): GmxStat {

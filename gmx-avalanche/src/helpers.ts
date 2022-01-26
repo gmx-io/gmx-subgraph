@@ -24,11 +24,21 @@ export let USDC_E = "0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664"
 export let USDC = "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e"
 
 export function timestampToDay(timestamp: BigInt): BigInt {
-  return timestampToPeriodTime(timestamp, 86400)
+  return timestampToPeriod(timestamp, "daily")
 }
 
-export function timestampToPeriodTime(timestamp: BigInt, periodTime: i32): BigInt {
-  return timestamp / BigInt.fromI32(86400) * BigInt.fromI32(periodTime)
+export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
+  let periodTime: BigInt
+
+  if (period == "daily") {
+    periodTime = BigInt.fromI32(86400)
+  } else if (period == "hourly") {
+    periodTime = BigInt.fromI32(3600)
+  } else if (period == "weekly" ){
+    periodTime = BigInt.fromI32(86400 * 7)
+  }
+
+  return timestamp / periodTime * periodTime
 }
 
 export function getTokenDecimals(token: String): u8 {
