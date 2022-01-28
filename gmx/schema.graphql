@@ -12,7 +12,8 @@ type TokenStat @entity {
   id: ID!
 
   token: String!
-  amount: BigInt!
+  poolAmount: BigInt!
+  poolAmountUsd: BigInt!
 
   timestamp: Int!
   period: Period!

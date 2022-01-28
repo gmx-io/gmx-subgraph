@@ -425,27 +425,38 @@ export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
   let timestamp = event.block.timestamp
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
-  totalEntity.amount += event.params.amount
+  totalEntity.poolAmount += event.params.amount
+  totalEntity.poolAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.poolAmount)
+  totalEntity.save()
 
-  _updatePoolAmount(timestamp, "hourly", token, totalEntity.amount);
-  _updatePoolAmount(timestamp, "daily", token, totalEntity.amount);
-  _updatePoolAmount(timestamp, "weekly", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "hourly", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
+  _updatePoolAmount(timestamp, "daily", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
+  _updatePoolAmount(timestamp, "weekly", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
 }
 
 export function handleDecreasePoolAmount(event: DecreasePoolAmount): void {
   let timestamp = event.block.timestamp
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
-  totalEntity.amount -= event.params.amount
+  totalEntity.poolAmount -= event.params.amount
+  totalEntity.poolAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.poolAmount)
+  totalEntity.save()
 
-  _updatePoolAmount(timestamp, "hourly", token, totalEntity.amount);
-  _updatePoolAmount(timestamp, "daily", token, totalEntity.amount);
-  _updatePoolAmount(timestamp, "weekly", token, totalEntity.amount);
+  _updatePoolAmount(timestamp, "hourly", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
+  _updatePoolAmount(timestamp, "daily", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
+  _updatePoolAmount(timestamp, "weekly", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
 }
 
-function _updatePoolAmount(timestamp: BigInt, period: string, token: Address, newAmount: BigInt): void {
+function _updatePoolAmount(
+  timestamp: BigInt,
+  period: string,
+  token: Address,
+  poolAmount: BigInt,
+  poolAmountUsd: BigInt
+): void {
   let entity = _getOrCreateTokenStat(timestamp, period, token)
-  entity.amount = newAmount
+  entity.poolAmount = poolAmount
+  entity.poolAmountUsd = poolAmountUsd
   entity.save()
 }
 
@@ -456,16 +467,18 @@ function _getOrCreateTokenStat(timestamp: BigInt, period: string, token: Address
     id = "total:" + token.toHexString()
     timestampGroup = timestamp
   } else {
-    id = timestampGroup.toString() + ":" + period + ":" + token.toHexString()
     timestampGroup = timestampToPeriod(timestamp, period)
+    id = timestampGroup.toString() + ":" + period + ":" + token.toHexString()
   }
 
   let entity = TokenStat.load(id)
   if (entity == null) {
     entity = new TokenStat(id)
-    entity.timestamp = timestampGroup as i32
+    entity.timestamp = timestampGroup.toI32()
     entity.period = period
     entity.token = token.toHexString()
+    entity.poolAmount = BigInt.fromI32(0);
+    entity.poolAmountUsd = BigInt.fromI32(0);
   }
   return entity as TokenStat;
 }
