@@ -1,6 +1,8 @@
 enum PricePeriod {
   any
   last
+  hourly
+  daily
 }
 
 enum LiquidationType {

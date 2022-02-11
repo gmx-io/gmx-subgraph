@@ -587,6 +587,7 @@ function _getOrCreateGlpStat(id: string, period: string): GlpStat {
     entity.distributedEsgmxCumulative = ZERO
     entity.distributedEsgmxUsd = ZERO
     entity.distributedEsgmxUsdCumulative = ZERO
+    entity.timestamp = timestamp
   }
   return entity as GlpStat
 }

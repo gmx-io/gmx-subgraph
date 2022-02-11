@@ -13,7 +13,8 @@ import {
   BTC,
   AVAX,
   GMX,
-  getTokenAmountUsd
+  getTokenAmountUsd,
+  timestampToPeriod
 } from "./helpers"
 
 import {
@@ -87,23 +88,23 @@ export function handleUniswapGmxEthSwap(event: UniswapSwap): void {
 }
 
 function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt): void {
-  let id = token.toHexString() + ":" + timestamp.toString()
-  let entity = new FastPrice(id)
+  let dailyTimestampGroup = timestampToPeriod(timestamp, "daily")
+  _storeFastPrice(dailyTimestampGroup.toString() + ":daily:" + token.toHexString(), token, price, dailyTimestampGroup, "daily")
 
+  let hourlyTimestampGroup = timestampToPeriod(timestamp, "hourly")
+  _storeFastPrice(hourlyTimestampGroup.toString() + ":hourly:" + token.toHexString(), token, price, hourlyTimestampGroup, "hourly")
+
+  _storeFastPrice(timestamp.toString() + ":any:" + token.toHexString(), token, price, timestamp, "any")
+  _storeFastPrice(token.toHexString(), token, price, timestamp, "last")
+}
+
+function _storeFastPrice(id: string, token: Address, price: BigInt, timestampGroup: BigInt, period: string): void {
+  let entity = new FastPrice(id)
+  entity.period = period
   entity.value = price
   entity.token = token.toHexString()
-  entity.timestamp = timestamp.toI32()
-  entity.period = "any"
-
+  entity.timestamp = timestampGroup.toI32()
   entity.save()
-
-  let totalEntity = new FastPrice(token.toHexString())
-  totalEntity.period = "last"
-  totalEntity.value = price
-  totalEntity.token = token.toHexString()
-  totalEntity.timestamp = timestamp.toI32()
-
-  totalEntity.save()
 }
 
 export function handlePriceUpdate(event: PriceUpdate): void {
