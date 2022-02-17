@@ -122,6 +122,18 @@ type Order @entity {
   index: BigInt!
   size: BigInt!
 
+  # increase/decrease only
+  indexToken: String
+  isLong: Boolean
+
+  # decrease only
+  collateralToken: String
+  collateral: BigInt
+
+  # common
+  triggerPrice: BigInt
+  triggerAboveThreshold: Boolean
+
   createdTimestamp: Int!
   cancelledTimestamp: Int
   executedTimestamp: Int

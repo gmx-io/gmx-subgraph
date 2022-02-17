@@ -52,7 +52,19 @@ function _storeStats(incrementProp: string, decrementProp: string | null): void 
   entity.save()
 }
 
-function _handleCreateOrder(account: Address, type: string, index: BigInt, size: BigInt, timestamp: BigInt): void {
+function _handleCreateOrder(
+  account: Address,
+  type: string,
+  index: BigInt,
+  size: BigInt,
+  timestamp: BigInt,
+  triggerPrice: BigInt,
+  triggerAboveThreshold: boolean,
+  indexToken: Address = null,
+  isLong: boolean = false,
+  collateralToken: Address = null,
+  collateral: BigInt = null
+): void {
   let id = _getId(account, type, index)
   let order = new Order(id)
 
@@ -62,6 +74,12 @@ function _handleCreateOrder(account: Address, type: string, index: BigInt, size:
   order.type = type
   order.status = "open"
   order.size = size
+  order.triggerPrice = triggerPrice
+  order.triggerAboveThreshold = triggerAboveThreshold
+  if (indexToken !== null) order.indexToken = indexToken.toHexString()
+  order.isLong = isLong
+  if (collateralToken !== null) order.collateralToken = collateralToken.toHexString()
+  if (collateral !== null) order.collateral = collateral
 
   order.save()
 }
@@ -87,7 +105,17 @@ function _handleExecuteOrder(account: Address, type: string, index: BigInt, time
 }
 
 export function handleCreateIncreaseOrder(event: CreateIncreaseOrder): void {
-  _handleCreateOrder(event.params.account, "increase", event.params.orderIndex, event.params.sizeDelta, event.block.timestamp);
+  _handleCreateOrder(
+    event.params.account,
+    "increase",
+    event.params.orderIndex,
+    event.params.sizeDelta,
+    event.block.timestamp,
+    event.params.triggerPrice,
+    event.params.triggerAboveThreshold,
+    event.params.indexToken,
+    event.params.isLong
+  );
   _storeStats("openIncrease", null)
 }
 
@@ -102,7 +130,19 @@ export function handleExecuteIncreaseOrder(event: ExecuteIncreaseOrder): void {
 }
 
 export function handleCreateDecreaseOrder(event: CreateDecreaseOrder): void {
-  _handleCreateOrder(event.params.account, "decrease", event.params.orderIndex, event.params.sizeDelta, event.block.timestamp);
+  _handleCreateOrder(
+    event.params.account,
+    "decrease",
+    event.params.orderIndex,
+    event.params.sizeDelta,
+    event.block.timestamp,
+    event.params.triggerPrice,
+    event.params.triggerAboveThreshold,
+    event.params.indexToken,
+    event.params.isLong,
+    event.params.collateralToken,
+    event.params.collateralDelta
+  );
   _storeStats("openDecrease", null)
 }
 
@@ -119,7 +159,15 @@ export function handleExecuteDecreaseOrder(event: ExecuteDecreaseOrder): void {
 export function handleCreateSwapOrder(event: CreateSwapOrder): void {
   let path = event.params.path
   let size = getTokenAmountUsd(path[0].toHexString(), event.params.amountIn)
-  _handleCreateOrder(event.params.account, "swap", event.params.orderIndex, size, event.block.timestamp);
+  _handleCreateOrder(
+    event.params.account,
+    "swap",
+    event.params.orderIndex,
+    size,
+    event.block.timestamp,
+    event.params.triggerRatio,
+    event.params.triggerAboveThreshold
+  );
   _storeStats("openSwap", null)
 }
 
