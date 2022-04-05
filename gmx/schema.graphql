@@ -208,6 +208,7 @@ type GlpStat @entity {
   distributedEsgmxUsdCumulative: BigInt!
 
   period: Period!
+  timestamp: Int
 }
 
 type Swap @entity {

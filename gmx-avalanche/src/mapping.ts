@@ -61,7 +61,7 @@ export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to, event.params.sizeDelta)
   _storeVolumeByToken("margin", event.block.timestamp, event.params.collateralToken, event.params.indexToken, event.params.sizeDelta)
   _storeFees("margin", event.block.timestamp, event.params.fee)
-  _storeUserAction(event.block.timestamp, event.transaction.from, "margin")
+  _storeUserAction(event.block.timestamp, event.params.account, "margin")
 }
 
 export function handleDecreasePosition(event: DecreasePositionEvent): void {
@@ -69,7 +69,7 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
   _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to, event.params.sizeDelta)
   _storeVolumeByToken("margin", event.block.timestamp, event.params.collateralToken, event.params.indexToken, event.params.sizeDelta)
   _storeFees("margin", event.block.timestamp, event.params.fee)
-  _storeUserAction(event.block.timestamp, event.transaction.from, "margin")
+  _storeUserAction(event.block.timestamp, event.params.account, "margin")
 
   if (event.transaction.from.toHexString() == LIQUIDATOR_ADDRESS) {
     _storeLiquidatedPosition(
@@ -167,7 +167,7 @@ export function handleBuyUSDG(event: BuyUSDGEvent): void {
 
   let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
   _storeFees("mint", event.block.timestamp, fee)
-  _storeUserAction(event.block.timestamp, event.transaction.from, "mintBurn")
+  _storeUserAction(event.block.timestamp, event.params.account, "mintBurn")
 }
 
 export function handleSellUSDG(event: SellUSDGEvent): void {
@@ -177,7 +177,7 @@ export function handleSellUSDG(event: SellUSDGEvent): void {
 
   let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
   _storeFees("burn", event.block.timestamp, fee)
-  _storeUserAction(event.block.timestamp, event.transaction.from, "mintBurn")
+  _storeUserAction(event.block.timestamp, event.params.account, "mintBurn")
 }
 
 export function handleCollectMarginFees(event: CollectMarginFeesEvent): void {
@@ -228,7 +228,7 @@ export function handleSwap(event: SwapEvent): void {
   let fee = volume * entity.feeBasisPoints / BASIS_POINTS_DIVISOR
   _storeFees("swap", event.block.timestamp, fee)
 
-  _storeUserAction(event.block.timestamp, event.transaction.from, "swap")
+  _storeUserAction(event.block.timestamp, event.params.account, "swap")
 }
 
 function _storeUserAction(timestamp: BigInt, account: Address, actionType: String): void {
