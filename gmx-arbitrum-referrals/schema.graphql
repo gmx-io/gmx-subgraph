@@ -1,0 +1,69 @@
+type Tier @entity {
+  id: ID!
+  totalRebate: BigInt!
+  discountShare: BigInt!
+}
+
+type Referrer @entity {
+  id: ID!
+  discountShare: BigInt!
+  tierId: BigInt!
+}
+
+type ReferralVolumeRecord @entity {
+  id: ID!
+
+  volume: BigInt!
+  referral: String!
+  referralCode: String!
+  referrer: String!
+  tierId: BigInt!
+  totalRebate: BigInt!
+  discountShare: BigInt!
+  marginFee: BigInt!
+  totalRebateUsd: BigInt!
+  discountUsd: BigInt!
+
+  transactionHash: String!
+  timestamp: BigInt!
+}
+
+type ReferralVolumeStat @entity {
+  id: ID! # period start timestamp + referrer + referralCode
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  referralCode: String!
+  referrer: String!
+  trades: BigInt!
+  tradesCumulative: BigInt!
+  referrals: [Referral!]!
+  referralsCount: BigInt!
+  referralsCountCumulative: BigInt!
+  totalRebateUsd: BigInt!
+  totalRebateUsdCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+
+  timestamp: BigInt!
+  period: Period!
+}
+
+type Referral @entity {
+  id: ID! # timestamp + referrer + referrerCode
+}
+
+type ExampleEntity @entity {
+  id: ID!
+  count: BigInt!
+  code: Bytes! # bytes32
+  newAccount: Bytes! # address
+}
+
+enum Period {
+  hourly
+  daily
+  weekly
+  total
+}
+
