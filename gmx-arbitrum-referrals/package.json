@@ -4,7 +4,6 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-prod": "graph codegen && graph deploy --product hosted-service gmx-io/gmx-stats",
     "deploy-test": "graph codegen && graph deploy --product hosted-service gdev8317/gmx-arbitrum-referrals-staging --deploy-key $(cat .access_token)"
   },
   "dependencies": {

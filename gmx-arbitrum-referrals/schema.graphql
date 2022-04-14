@@ -10,6 +10,19 @@ type Referrer @entity {
   tierId: BigInt!
 }
 
+type Distribution @entity {
+  id: ID!
+
+  receiver: String! # referral or referrer
+  amount: BigInt!
+  token: String!
+  typeId: BigInt!
+
+  transactionHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
 type ReferralVolumeRecord @entity {
   id: ID!
 
@@ -25,21 +38,23 @@ type ReferralVolumeRecord @entity {
   discountUsd: BigInt!
 
   transactionHash: String!
+  blockNumber: BigInt!
   timestamp: BigInt!
 }
 
-type ReferralVolumeStat @entity {
+type ReferrerStat @entity {
   id: ID! # period start timestamp + referrer + referralCode
+
+  referrer: String!
 
   volume: BigInt!
   volumeCumulative: BigInt!
   referralCode: String!
-  referrer: String!
   trades: BigInt!
   tradesCumulative: BigInt!
-  referrals: [Referral!]!
-  referralsCount: BigInt!
-  referralsCountCumulative: BigInt!
+  referrals: [UniqueReferral!]! @derivedFrom(field: "referrerStat")
+  tradedReferralsCount: BigInt!
+  tradedReferralsCountCumulative: BigInt!
   totalRebateUsd: BigInt!
   totalRebateUsdCumulative: BigInt!
   discountUsd: BigInt!
@@ -49,15 +64,52 @@ type ReferralVolumeStat @entity {
   period: Period!
 }
 
-type Referral @entity {
-  id: ID! # timestamp + referrer + referrerCode
+type ReferralCode @entity {
+  id: ID!
+  code: String!
+  owner: String!
 }
 
-type ExampleEntity @entity {
+type UniqueReferral @entity {
+  id: ID! # timestamp + referrer + referrerCode
+  referrerStat: ReferrerStat!
+  referral: String!
+}
+
+type ReferralStat @entity {
   id: ID!
-  count: BigInt!
-  code: Bytes! # bytes32
-  newAccount: Bytes! # address
+
+  referral: String!
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+
+  timestamp: BigInt!
+  period: Period!
+}
+
+type GlobalStat @entity {
+  id: ID!
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  totalRebateUsd: BigInt!
+  totalRebateUsdCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+  trades: BigInt!
+  tradesCumulative: BigInt!
+  # tradedReferralsCount: BigInt!
+  # tradedReferralsCountCumulative: BigInt!
+  referrersCount: BigInt!
+  referrersCountCumulative: BigInt!
+  referralCodesCount: BigInt!
+  referralCodesCountCumulative: BigInt!
+
+  timestamp: BigInt!
+  period: Period!
 }
 
 enum Period {

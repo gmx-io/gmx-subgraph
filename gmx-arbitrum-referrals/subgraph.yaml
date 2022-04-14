@@ -2,26 +2,26 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
-  # - kind: ethereum/contract
-  #   name: BatchSender
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x00000000FFFFFFFF00000000FFFd8a285F223aba"
-  #     abi: BatchSender
-  #     startBlock: 9391374
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.4
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - BatchSend
-  #     abis:
-  #       - name: BatchSender
-  #         file: ./abis/BatchSender.json
-  #     eventHandlers:
-  #       - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
-  #         handler: handleBatchSend
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: BatchSender
+    network: arbitrum-one
+    source:
+      address: "0x1070f775e8eb466154BBa8FA0076C4Adc7FE17e8"
+      abi: BatchSender
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
 
   - kind: ethereum/contract
     name: PositionManager
