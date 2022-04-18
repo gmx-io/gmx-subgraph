@@ -159,7 +159,16 @@ export function handleSetTier(event: SetTier): void {
   entity.save()
 }
 
-export function handleSetTraderReferralCode(event: SetTraderReferralCode): void {}
+export function handleSetTraderReferralCode(event: SetTraderReferralCode): void {
+  let totalGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "total", null);
+  totalGlobalStatEntity.referralsCount += ONE
+  totalGlobalStatEntity.referralsCountCumulative += ONE
+  totalGlobalStatEntity.save()
+
+  let dailyGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "daily", totalGlobalStatEntity);
+  dailyGlobalStatEntity.referralsCount += ONE
+  dailyGlobalStatEntity.save()
+}
 
 function _getOrCreateTier(id: String): Tier {
   let entity = Tier.load(id)
@@ -224,12 +233,16 @@ function _getOrCreateGlobalStat(timestamp: BigInt, period: String, totalEntity: 
     entity.referrersCount = ZERO
     entity.referrersCountCumulative = ZERO
 
+    entity.referralsCount = ZERO
+    entity.referralsCountCumulative = ZERO
+
     if (totalEntity) {
       entity.referrersCountCumulative = totalEntity.referrersCount
       entity.referralCodesCountCumulative = totalEntity.referralCodesCountCumulative
       entity.volumeCumulative = totalEntity.volumeCumulative
       entity.totalRebateUsdCumulative = totalEntity.totalRebateUsdCumulative
       entity.discountUsdCumulative = totalEntity.discountUsdCumulative
+      entity.referralsCountCumulative = totalEntity.referralsCountCumulative
     }
 
     entity.period = period

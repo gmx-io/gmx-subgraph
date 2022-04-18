@@ -108,6 +108,9 @@ type GlobalStat @entity {
   referralCodesCount: BigInt!
   referralCodesCountCumulative: BigInt!
 
+  referralsCount: BigInt!
+  referralsCountCumulative: BigInt!
+
   timestamp: BigInt!
   period: Period!
 }
