@@ -173,15 +173,14 @@ export function handleSetTraderReferralCode(event: SetTraderReferralCode): void 
   if(_createUniqueReferralIfNotExist(totalReferrerStatEntity.id, event.params.account)) {
     totalReferrerStatEntity.referralsCount += ONE
     totalReferrerStatEntity.referralsCountCumulative += ONE
+    totalReferrerStatEntity.save()
   }
 
   let dailyReferrerStatEntity = _getOrCreateReferrerStat(event.block.timestamp, "daily", event.params.account, event.params.code)
   if(_createUniqueReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
     dailyReferrerStatEntity.referralsCount += ONE
     dailyReferrerStatEntity.referralsCountCumulative = totalReferrerStatEntity.referralsCountCumulative
-  }
-  if(_createUniqueReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
-    dailyReferrerStatEntity
+    dailyReferrerStatEntity.save()
   }
 }
 
