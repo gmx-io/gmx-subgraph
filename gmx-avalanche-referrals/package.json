@@ -1,0 +1,13 @@
+{
+  "name": "gmx-arbitrum-referrals-staging",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy-test": "graph codegen && graph deploy --product hosted-service gdev8317/gmx-avalanche-referrals-staging --deploy-key $(cat .access_token)"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.21.1",
+    "@graphprotocol/graph-ts": "0.20.0"
+  }
+}
