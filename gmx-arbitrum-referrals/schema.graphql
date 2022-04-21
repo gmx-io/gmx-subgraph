@@ -55,6 +55,8 @@ type ReferrerStat @entity {
   referrals: [UniqueReferral!]! @derivedFrom(field: "referrerStat")
   tradedReferralsCount: BigInt!
   tradedReferralsCountCumulative: BigInt!
+  referralsCount: BigInt!
+  referralsCountCumulative: BigInt!
   totalRebateUsd: BigInt!
   totalRebateUsdCumulative: BigInt!
   discountUsd: BigInt!

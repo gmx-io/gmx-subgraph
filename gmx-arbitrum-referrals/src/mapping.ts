@@ -168,6 +168,21 @@ export function handleSetTraderReferralCode(event: SetTraderReferralCode): void 
   let dailyGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "daily", totalGlobalStatEntity);
   dailyGlobalStatEntity.referralsCount += ONE
   dailyGlobalStatEntity.save()
+
+  let totalReferrerStatEntity = _getOrCreateReferrerStat(event.block.timestamp, "total", event.params.account, event.params.code)
+  if(_createUniqueReferralIfNotExist(totalReferrerStatEntity.id, event.params.account)) {
+    totalReferrerStatEntity.referralsCount += ONE
+    totalReferrerStatEntity.referralsCountCumulative += ONE
+  }
+
+  let dailyReferrerStatEntity = _getOrCreateReferrerStat(event.block.timestamp, "daily", event.params.account, event.params.code)
+  if(_createUniqueReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
+    dailyReferrerStatEntity.referralsCount += ONE
+    dailyReferrerStatEntity.referralsCountCumulative = totalReferrerStatEntity.referralsCountCumulative
+  }
+  if(_createUniqueReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
+    dailyReferrerStatEntity
+  }
 }
 
 function _getOrCreateTier(id: String): Tier {
@@ -300,6 +315,8 @@ function _getOrCreateReferrerStat(
     entity.tradesCumulative = ZERO
     entity.tradedReferralsCount = ZERO
     entity.tradedReferralsCountCumulative = ZERO
+    entity.referralsCount = ZERO
+    entity.referralsCountCumulative = ZERO
 
     entity.totalRebateUsd = ZERO
     entity.totalRebateUsdCumulative = ZERO
