@@ -101,8 +101,6 @@ dataSources:
           handler: handleRegisterCode
         - event: SetCodeOwner(address,address,bytes32)
           handler: handleSetCodeOwner
-        - event: SetHandler(address,bool)
-          handler: handleSetHandler
         - event: SetReferrerDiscountShare(address,uint256)
           handler: handleSetReferrerDiscountShare
         - event: SetReferrerTier(address,uint256)

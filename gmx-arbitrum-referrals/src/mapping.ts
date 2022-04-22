@@ -23,7 +23,8 @@ import {
   GlobalStat,
   Tier,
   Referrer,
-  UniqueReferral,
+  TradedReferral,
+  RegisteredReferral,
   ReferralStat,
   Distribution,
   ReferralCode
@@ -98,8 +99,6 @@ export function handleIncreasePositionReferral(event: IncreasePositionReferral):
   )
 }
 
-export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {}
-
 export function handleRegisterCode(event: RegisterCode): void {
    let referrerResult = _getOrCreateReferrerWithCreatedFlag(event.params.account.toHexString())
    let referrerCreated = referrerResult.created
@@ -138,7 +137,11 @@ export function handleSetCodeOwner(event: SetCodeOwner): void {
    referralCodeEntity.save()
 }
 
-export function handleSetHandler(event: SetHandler): void {}
+export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
+   let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
+   referralCodeEntity.owner = event.params.newAccount.toHexString()
+   referralCodeEntity.save()
+}
 
 export function handleSetReferrerDiscountShare(event: SetReferrerDiscountShare): void {
    let entity = _getOrCreateReferrer(event.params.referrer.toHexString())
@@ -160,28 +163,38 @@ export function handleSetTier(event: SetTier): void {
 }
 
 export function handleSetTraderReferralCode(event: SetTraderReferralCode): void {
-  let totalGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "total", null);
+  let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
+  if (referralCodeEntity == null) {
+    // SetTraderReferralCode can be emitted with non-existent code
+    return
+  }
+  let timestamp = event.block.timestamp
+
+  // global stats
+  let totalGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "total", null);
   totalGlobalStatEntity.referralsCount += ONE
   totalGlobalStatEntity.referralsCountCumulative += ONE
   totalGlobalStatEntity.save()
 
-  let dailyGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "daily", totalGlobalStatEntity);
+  let dailyGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "daily", totalGlobalStatEntity);
   dailyGlobalStatEntity.referralsCount += ONE
   dailyGlobalStatEntity.save()
 
-  let totalReferrerStatEntity = _getOrCreateReferrerStat(event.block.timestamp, "total", event.params.account, event.params.code)
-  if(_createUniqueReferralIfNotExist(totalReferrerStatEntity.id, event.params.account)) {
-    totalReferrerStatEntity.referralsCount += ONE
-    totalReferrerStatEntity.referralsCountCumulative += ONE
+  // referrer stats
+  let referrer = Address.fromString(referralCodeEntity.owner)
+  let totalReferrerStatEntity = _getOrCreateReferrerStat(timestamp, "total", referrer, event.params.code)
+  if(_createRegisteredReferralIfNotExist(totalReferrerStatEntity.id, event.params.account)) {
+    totalReferrerStatEntity.registeredReferralsCount += ONE
+    totalReferrerStatEntity.registeredReferralsCountCumulative += ONE
     totalReferrerStatEntity.save()
   }
 
-  let dailyReferrerStatEntity = _getOrCreateReferrerStat(event.block.timestamp, "daily", event.params.account, event.params.code)
-  if(_createUniqueReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
-    dailyReferrerStatEntity.referralsCount += ONE
-    dailyReferrerStatEntity.referralsCountCumulative = totalReferrerStatEntity.referralsCountCumulative
-    dailyReferrerStatEntity.save()
+  let dailyReferrerStatEntity = _getOrCreateReferrerStat(timestamp, "daily", referrer, event.params.code)
+  if(_createRegisteredReferralIfNotExist(dailyReferrerStatEntity.id, event.params.account)) {
+    dailyReferrerStatEntity.registeredReferralsCount += ONE
   }
+  dailyReferrerStatEntity.registeredReferralsCountCumulative = totalReferrerStatEntity.registeredReferralsCountCumulative
+  dailyReferrerStatEntity.save()
 }
 
 function _getOrCreateTier(id: String): Tier {
@@ -197,11 +210,12 @@ function _getOrCreateTier(id: String): Tier {
 
 function _storeReferralStats(
   timestamp: BigInt,
+  period: String,
   referral: Address,
   volume: BigInt,
-  discountUsd: BigInt
-): void {
-  let period = "total"
+  discountUsd: BigInt,
+  totalEntity: ReferralStat | null
+): ReferralStat {
   let periodTimestamp = timestampToPeriod(timestamp, period)
   let id = period + ":" + periodTimestamp.toString() + ":" + referral.toHexString()
 
@@ -219,13 +233,23 @@ function _storeReferralStats(
 
   entity.volume += volume
   entity.discountUsd += discountUsd
-  entity.volumeCumulative = entity.volume
-  entity.discountUsdCumulative = entity.discountUsd
+
+  if (period == "total") {
+    totalEntity = entity
+  }
+  entity.volumeCumulative = totalEntity.volume
+  entity.discountUsdCumulative = totalEntity.discountUsd
 
   entity.save()
+
+  return entity as ReferralStat
 }
 
-function _getOrCreateGlobalStat(timestamp: BigInt, period: String, totalEntity: GlobalStat | null): GlobalStat {
+function _getOrCreateGlobalStat(
+  timestamp: BigInt,
+  period: String,
+  totalEntity: GlobalStat | null
+): GlobalStat {
   let periodTimestamp = timestampToPeriod(timestamp, period)
   let id = period + ":" + periodTimestamp.toString()
 
@@ -314,8 +338,8 @@ function _getOrCreateReferrerStat(
     entity.tradesCumulative = ZERO
     entity.tradedReferralsCount = ZERO
     entity.tradedReferralsCountCumulative = ZERO
-    entity.referralsCount = ZERO
-    entity.referralsCountCumulative = ZERO
+    entity.registeredReferralsCount = ZERO
+    entity.registeredReferralsCountCumulative = ZERO
 
     entity.totalRebateUsd = ZERO
     entity.totalRebateUsdCumulative = ZERO
@@ -342,7 +366,7 @@ function _storeReferrerStats(
   totalEntity: ReferrerStat | null
 ): ReferrerStat {
   let entity = _getOrCreateReferrerStat(timestamp, period, referrer, referralCode)
-  let isNewReferral = _createUniqueReferralIfNotExist(entity.id, referral)
+  let isNewReferral = _createTradedReferralIfNotExist(entity.id, referral)
 
   if (isNewReferral) {
     entity.tradedReferralsCount += BigInt.fromI32(1)
@@ -414,21 +438,35 @@ function _handleChangePositionReferral(
 
   entity.save()
 
-  let totalEntity = _storeReferrerStats(
+  let totalReferrerStatEntity = _storeReferrerStats(
     timestamp, "total", volume, referralCode, referrer, referral, totalRebateUsd, discountUsd, null)
-  _storeReferrerStats(timestamp, "daily", volume, referralCode, referrer, referral, totalRebateUsd, discountUsd, totalEntity)
+  _storeReferrerStats(timestamp, "daily", volume, referralCode, referrer, referral, totalRebateUsd, discountUsd, totalReferrerStatEntity)
 
-  _storeReferralStats(timestamp, referral, volume, discountUsd)
+  let totalReferralStatEntity = _storeReferralStats(timestamp, "total", referral, volume, discountUsd, null)
+  _storeReferralStats(timestamp, "daily", referral, volume, discountUsd, totalReferralStatEntity)
 
   let totalGlobalStatEntity = _storeGlobalStats(timestamp, "total", volume, totalRebateUsd, discountUsd, null)
   _storeGlobalStats(timestamp, "daily", volume, totalRebateUsd, discountUsd, totalGlobalStatEntity)
 }
 
-function _createUniqueReferralIfNotExist(referrerStatId: String, referral: Address): boolean {
+function _createTradedReferralIfNotExist(referrerStatId: String, referral: Address): boolean {
   let id = referrerStatId + ":" + referral.toHexString()
-  let entity = UniqueReferral.load(id)
+  let entity = TradedReferral.load(id)
   if (entity == null) {
-    entity = new UniqueReferral(id)
+    entity = new TradedReferral(id)
+    entity.referrerStat = referrerStatId
+    entity.referral = referral.toHexString()
+    entity.save()
+    return true
+  }
+  return false
+}
+
+function _createRegisteredReferralIfNotExist(referrerStatId: String, referral: Address): boolean {
+  let id = referrerStatId + ":" + referral.toHexString()
+  let entity = RegisteredReferral.load(id)
+  if (entity == null) {
+    entity = new RegisteredReferral(id)
     entity.referrerStat = referrerStatId
     entity.referral = referral.toHexString()
     entity.save()

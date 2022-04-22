@@ -52,11 +52,12 @@ type ReferrerStat @entity {
   referralCode: String!
   trades: BigInt!
   tradesCumulative: BigInt!
-  referrals: [UniqueReferral!]! @derivedFrom(field: "referrerStat")
+  tradedReferrals: [TradedReferral!]! @derivedFrom(field: "referrerStat")
   tradedReferralsCount: BigInt!
   tradedReferralsCountCumulative: BigInt!
-  referralsCount: BigInt!
-  referralsCountCumulative: BigInt!
+  registeredReferrals: [RegisteredReferral!]! @derivedFrom(field: "referrerStat")
+  registeredReferralsCount: BigInt!
+  registeredReferralsCountCumulative: BigInt!
   totalRebateUsd: BigInt!
   totalRebateUsdCumulative: BigInt!
   discountUsd: BigInt!
@@ -72,7 +73,13 @@ type ReferralCode @entity {
   owner: String!
 }
 
-type UniqueReferral @entity {
+type TradedReferral @entity {
+  id: ID! # timestamp + referrer + referrerCode
+  referrerStat: ReferrerStat!
+  referral: String!
+}
+
+type RegisteredReferral @entity {
   id: ID! # timestamp + referrer + referrerCode
   referrerStat: ReferrerStat!
   referral: String!
