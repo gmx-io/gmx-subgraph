@@ -124,6 +124,27 @@ type GlobalStat @entity {
   period: Period!
 }
 
+type ExecuteDecreaseOrder @entity {
+  id: ID! # block + logIndex
+  sizeDelta: BigInt!
+  account: String!
+  timestamp: BigInt!
+}
+
+type PositionReferralAction @entity {
+  id: ID!
+  account: String!
+  referralCode: String!
+  referrer: String!
+  isIncrease: Boolean!
+  volume: BigInt!
+
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  timestamp: BigInt!
+}
+
 enum Period {
   hourly
   daily

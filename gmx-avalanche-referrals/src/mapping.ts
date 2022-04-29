@@ -133,12 +133,20 @@ export function handleRegisterCode(event: RegisterCode): void {
 
 export function handleSetCodeOwner(event: SetCodeOwner): void {
    let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
+   if (referralCodeEntity == null) {
+     referralCodeEntity = new ReferralCode(event.params.code.toHexString());
+     referralCodeEntity.code = event.params.code.toHex();
+   }
    referralCodeEntity.owner = event.params.newAccount.toHexString()
    referralCodeEntity.save()
 }
 
 export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
    let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
+   if (referralCodeEntity == null) {
+     referralCodeEntity = new ReferralCode(event.params.code.toHexString());
+     referralCodeEntity.code = event.params.code.toHex();
+   }
    referralCodeEntity.owner = event.params.newAccount.toHexString()
    referralCodeEntity.save()
 }
