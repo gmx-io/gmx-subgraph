@@ -18,6 +18,9 @@ import {
   BatchSend
 } from "../generated/BatchSender/BatchSender"
 import {
+  ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent
+} from "../generated/OrderBook/OrderBook"
+import {
   ReferralVolumeRecord,
   ReferrerStat,
   GlobalStat,
@@ -27,7 +30,9 @@ import {
   RegisteredReferral,
   ReferralStat,
   Distribution,
-  ReferralCode
+  ReferralCode,
+  ExecuteDecreaseOrder,
+  PositionReferralAction
 } from "../generated/schema"
 import {
   timestampToPeriod
@@ -74,15 +79,27 @@ export function handleBatchSend(event: BatchSend): void {
 }
 
 export function handleDecreasePositionReferral(event: DecreasePositionReferral): void {
+  let sizeDelta = event.params.sizeDelta
+  if (sizeDelta == ZERO) {
+    // sizeDelta is incorrectly emitted for decrease orders
+    let prevLogIndex = event.logIndex - ONE
+    let executeDecreaseOrderId = event.transaction.hash.toHexString() + ":" + prevLogIndex.toString()
+    let executeDecreaseOrderEntity = ExecuteDecreaseOrder.load(executeDecreaseOrderId)
+    if (executeDecreaseOrderEntity != null) {
+      sizeDelta = executeDecreaseOrderEntity.sizeDelta
+    }
+  }
+
   _handleChangePositionReferral(
     event.block.number,
     event.transaction.hash,
     event.logIndex,
     event.block.timestamp,
     event.params.account,
-    event.params.sizeDelta,
+    sizeDelta,
     event.params.referralCode,
-    event.params.referrer
+    event.params.referrer,
+    false
   )
 }
 
@@ -95,26 +112,31 @@ export function handleIncreasePositionReferral(event: IncreasePositionReferral):
     event.params.account,
     event.params.sizeDelta,
     event.params.referralCode,
-    event.params.referrer
+    event.params.referrer,
+    true
   )
 }
 
 export function handleRegisterCode(event: RegisterCode): void {
-   let referrerResult = _getOrCreateReferrerWithCreatedFlag(event.params.account.toHexString())
+  _registerCode(event.block.timestamp, event.params.code, event.params.account);
+}
+
+function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
+   let referrerResult = _getOrCreateReferrerWithCreatedFlag(owner.toHexString())
    let referrerCreated = referrerResult.created
 
-   let referralCodeEntity = new ReferralCode(event.params.code.toHexString())
-   referralCodeEntity.owner = event.params.account.toHexString()
-   referralCodeEntity.code = event.params.code.toHex()
+   let referralCodeEntity = new ReferralCode(code.toHexString())
+   referralCodeEntity.owner = owner.toHexString()
+   referralCodeEntity.code = code.toHex()
    referralCodeEntity.save()
 
-   let totalReferrerStat = _getOrCreateReferrerStat(event.block.timestamp, "total", event.params.account, event.params.code)
+   let totalReferrerStat = _getOrCreateReferrerStat(timestamp, "total", owner, code)
    totalReferrerStat.save()
 
-   let dailyReferrerStat = _getOrCreateReferrerStat(event.block.timestamp, "daily", event.params.account, event.params.code)
+   let dailyReferrerStat = _getOrCreateReferrerStat(timestamp, "daily", owner, code)
    dailyReferrerStat.save()
 
-   let totalGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "total", null)
+   let totalGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "total", null)
    totalGlobalStatEntity.referralCodesCount += ONE
    totalGlobalStatEntity.referralCodesCountCumulative = totalGlobalStatEntity.referralCodesCount
    if (referrerCreated) {
@@ -123,7 +145,7 @@ export function handleRegisterCode(event: RegisterCode): void {
    }
    totalGlobalStatEntity.save()
 
-   let dailyGlobalStatEntity = _getOrCreateGlobalStat(event.block.timestamp, "daily", totalGlobalStatEntity)
+   let dailyGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "daily", totalGlobalStatEntity)
    dailyGlobalStatEntity.referralCodesCount += ONE
    if (referrerCreated) {
      dailyGlobalStatEntity.referrersCount += ONE
@@ -134,21 +156,21 @@ export function handleRegisterCode(event: RegisterCode): void {
 export function handleSetCodeOwner(event: SetCodeOwner): void {
    let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
    if (referralCodeEntity == null) {
-     referralCodeEntity = new ReferralCode(event.params.code.toHexString());
-     referralCodeEntity.code = event.params.code.toHex();
+    _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
+   } else {
+     referralCodeEntity.owner = event.params.newAccount.toHexString()
+     referralCodeEntity.save()
    }
-   referralCodeEntity.owner = event.params.newAccount.toHexString()
-   referralCodeEntity.save()
 }
 
 export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
    let referralCodeEntity = ReferralCode.load(event.params.code.toHexString())
    if (referralCodeEntity == null) {
-     referralCodeEntity = new ReferralCode(event.params.code.toHexString());
-     referralCodeEntity.code = event.params.code.toHex();
+    _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
+   } else {
+     referralCodeEntity.owner = event.params.newAccount.toHexString()
+     referralCodeEntity.save()
    }
-   referralCodeEntity.owner = event.params.newAccount.toHexString()
-   referralCodeEntity.save()
 }
 
 export function handleSetReferrerDiscountShare(event: SetReferrerDiscountShare): void {
@@ -203,6 +225,15 @@ export function handleSetTraderReferralCode(event: SetTraderReferralCode): void 
   }
   dailyReferrerStatEntity.registeredReferralsCountCumulative = totalReferrerStatEntity.registeredReferralsCountCumulative
   dailyReferrerStatEntity.save()
+}
+
+export function handleExecuteDecreaseOrder(event: ExecuteDecreaseOrderEvent): void {
+  let id = event.transaction.hash.toHexString() + ":" + event.logIndex.toString()
+  let entity = new ExecuteDecreaseOrder(id)
+  entity.sizeDelta = event.params.sizeDelta
+  entity.account = event.params.account.toHexString()
+  entity.timestamp = event.block.timestamp
+  entity.save()
 }
 
 function _getOrCreateTier(id: String): Tier {
@@ -412,8 +443,22 @@ function _handleChangePositionReferral(
   referral: Address,
   volume: BigInt,
   referralCode: Bytes,
-  referrer: Address
+  referrer: Address,
+  isIncrease: boolean
 ): void {
+  let actionId = transactionHash.toHexString() + ":" + eventLogIndex.toString()
+  let action = new PositionReferralAction(actionId)
+  action.isIncrease = isIncrease
+  action.account = referral.toHexString()
+  action.referralCode = referralCode.toHex()
+  action.referrer = referrer.toHexString()
+  action.transactionHash = transactionHash.toHexString()
+  action.blockNumber = blockNumber.toI32()
+  action.logIndex = eventLogIndex.toI32()
+  action.timestamp = timestamp
+  action.volume = volume
+  action.save()
+
   if (referral.toHexString() == ZERO_ADDRESS || referralCode.toHex() == ZERO_BYTES32) {
     return
   }
