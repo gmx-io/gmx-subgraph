@@ -62,6 +62,7 @@ export function handleBatchSend(event: BatchSend): void {
   let amounts = event.params.amounts
   for (let i = 0; i < event.params.accounts.length; i++) {
     let receiver = receivers[i].toHexString()
+    // TODO break if amount is undefined?
     let amount = amounts[i]
     let id = receiver + ":" + event.transaction.hash.toHexString() + ":" + event.logIndex.toString()
     let entity = new Distribution(id)
