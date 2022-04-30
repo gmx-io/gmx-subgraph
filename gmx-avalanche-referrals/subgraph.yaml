@@ -27,7 +27,7 @@ dataSources:
     name: BatchSender
     network: avalanche
     source:
-      address: "0xF2fffff2cfb5Fff8bffA3ff39fffffff8fffffff"
+      address: "0xF0f929162751DD723fBa5b86A9B3C88Dc1D4957b"
       abi: BatchSender
       startBlock: 13065036
     mapping:
