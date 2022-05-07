@@ -232,7 +232,7 @@ export function handleSwap(event: SwapEvent): void {
   let fee = volume * entity.feeBasisPoints / BASIS_POINTS_DIVISOR
   _storeFees("swap", event.block.timestamp, fee)
 
-  _storeUserAction(event.block.timestamp, event.params.account, "swap")
+  _storeUserAction(event.block.timestamp, event.transaction.from, "swap")
 }
 
 function _storeUserAction(timestamp: BigInt, account: Address, actionType: String): void {
