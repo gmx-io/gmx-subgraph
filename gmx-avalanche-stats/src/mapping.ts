@@ -21,17 +21,14 @@ import {
   CollectMarginFees as CollectMarginFeesEvent,
   UpdateFundingRate,
   IncreasePoolAmount,
-  DecreasePoolAmount
+  DecreasePoolAmount,
 } from "../generated/Vault/Vault"
 
 import {
   Swap,
-  HourlyFee,
   FeeStat,
   VolumeStat,
-  HourlyVolume,
   Transaction,
-  HourlyGlpStat,
   GlpStat,
   HourlyVolumeBySource,
   HourlyVolumeByToken,
@@ -41,7 +38,6 @@ import {
   GmxStat,
   LiquidatedPosition,
   ActivePosition,
-  WhitelistedToken,
   TokenStat
 } from "../generated/schema"
 
@@ -58,7 +54,7 @@ import {
 let ZERO = BigInt.fromI32(0)
 let FUNDING_PRECISION = BigInt.fromI32(1000000)
 
-const LIQUIDATOR_ADDRESS = "0x44311c91008dde73de521cd25136fd37d616802c"
+const LIQUIDATOR_ADDRESS = "0x7858a4c42c619a68df6e95df7235a9ec6f0308b9"
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -156,7 +152,7 @@ function _storeLiquidatedPosition(
   let priceDelta = isLong ? averagePrice - markPrice : markPrice - averagePrice
   liquidatedPosition.loss = size * priceDelta / averagePrice
 
-  let fundingRateId = _getFundingRateId("total", collateralToken)
+  let fundingRateId = _getFundingRateId("total", "total", collateralToken)
   let fundingRateEntity = FundingRate.load(fundingRateId)
   let accruedFundingRate = BigInt.fromI32(fundingRateEntity.endFundingRate) - position.entryFundingRate
   liquidatedPosition.borrowFee = accruedFundingRate * size / FUNDING_PRECISION
@@ -250,10 +246,10 @@ function _storeUserActionByType(
   userStatTotal: UserStat | null
 ): UserStat {
   let timestampId = period == "weekly" ? _getWeekId(timestamp) : _getDayId(timestamp)
-  let userId = period == "total" ? account.toHexString() : period + ":" + timestampId + ":" + account.toHexString()
+  let userId = period == "total" ? account.toHexString() : timestampId + ":" + period + ":" + account.toHexString()
   let user = UserData.load(userId)
 
-  let statId = period == "total" ? "total" : period + ":" + timestampId
+  let statId = period == "total" ? "total" : timestampId + ":" + period
   let userStat = UserStat.load(statId)
   if (userStat == null) {
     userStat = new UserStat(statId)
@@ -336,8 +332,8 @@ export function handleRemoveLiquidity(event: RemoveLiquidity): void {
   _storeGlpStat(event.block.timestamp, event.params.glpSupply, event.params.aumInUsdg)
 }
 
-function _getFundingRateId(timeKey: string, token: Address): string {
-  return timeKey + ":" + token.toHexString()
+function _getFundingRateId(timeKey: string, period: string, token: Address): string {
+  return timeKey + ":" + period + ":" + token.toHexString()
 }
 
 export function handleUpdateFundingRate(event: UpdateFundingRate): void {
@@ -345,10 +341,10 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
   let fundingIntervalTimestamp = event.block.timestamp.toI32() / FUNDING_INTERVAL * FUNDING_INTERVAL
 
   let timestamp = _getDayId(event.block.timestamp)
-  let id = _getFundingRateId(timestamp, event.params.token)
+  let id = _getFundingRateId(timestamp, "daily", event.params.token)
   let entity = FundingRate.load(id)
 
-  let totalId = _getFundingRateId("total", event.params.token)
+  let totalId = _getFundingRateId("total", "total", event.params.token)
   let totalEntity = FundingRate.load(totalId)
 
   if (entity == null) {
@@ -392,7 +388,7 @@ export function handleDistributeEthToGmx(event: Distribute): void {
 
   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp)
+  let id = _getDayId(event.block.timestamp) + ":daily"
   let entity = _getOrCreateGmxStat(id, "daily")
 
   entity.distributedEth += amount
@@ -414,221 +410,8 @@ export function handleDistributeEsgmxToGmx(event: Distribute): void {
 
   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp)
+  let id = _getDayId(event.block.timestamp) + ":daily"
   let entity = _getOrCreateGmxStat(id, "daily")
-
-  entity.distributedEsgmx += amount
-  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
-  entity.distributedEsgmxUsd += amountUsd
-  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
-}
-
-function _getOrCreateGmxStat(id: string, period: string): GmxStat {
-  let entity = GmxStat.load(id)
-  if (entity == null) {
-    entity = new GmxStat(id)
-    entity.distributedEth = ZERO
-    entity.distributedEthCumulative = ZERO
-    entity.distributedUsd = ZERO
-    entity.distributedUsdCumulative = ZERO
-    entity.distributedEsgmx = ZERO
-    entity.distributedEsgmxCumulative = ZERO
-    entity.distributedEsgmxUsd = ZERO
-    entity.distributedEsgmxUsdCumulative = ZERO
-    entity.period = period
-  }
-  return entity as GmxStat
-}
-
-let TRADE_TYPES = new Array<string>(5)
-TRADE_TYPES[0] = "margin"
-TRADE_TYPES[1] = "swap"
-TRADE_TYPES[2] = "mint"
-TRADE_TYPES[3] = "burn"
-TRADE_TYPES[4] = "liquidation"
-TRADE_TYPES[5] = "marginAndLiquidation"
-
-function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
-  let deprecatedId = _getHourId(timestamp)
-  let entityDeprecated = HourlyFee.load(deprecatedId)
-
-  if (entityDeprecated == null) {
-    entityDeprecated = new HourlyFee(deprecatedId)
-    for (let i = 0; i < TRADE_TYPES.length; i++) {
-      let _type = TRADE_TYPES[i]
-      entityDeprecated.setBigInt(_type, ZERO)
-    }
-  }
-
-  entityDeprecated.setBigInt(type, entityDeprecated.getBigInt(type) + fees)
-  entityDeprecated.save()
-
-  //
-
-  let id = _getDayId(timestamp)
-  let entity = _getOrCreateFeeStat(id, "daily")
-  entity.setBigInt(type, entity.getBigInt(type) + fees)
-  entity.save()
-
-  let totalEntity = _getOrCreateFeeStat("total", "total")
-  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
-  totalEntity.save()
-}
-
-function _getOrCreateFeeStat(id: string, period: string): FeeStat {
-  let entity = FeeStat.load(id)
-  if (entity === null) {
-    entity = new FeeStat(id)
-    for (let i = 0; i < TRADE_TYPES.length; i++) {
-      let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, ZERO)
-    }
-    entity.period = period
-  }
-  return entity as FeeStat
-}
-
-function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
-  let deprecatedId = _getHourId(timestamp)
-  let deprecatedEntity = HourlyVolume.load(deprecatedId)
-
-  if (deprecatedEntity == null) {
-    deprecatedEntity = new HourlyVolume(deprecatedId)
-    for (let i = 0; i < TRADE_TYPES.length; i++) {
-      let _type = TRADE_TYPES[i]
-      deprecatedEntity.setBigInt(_type, ZERO)
-    }
-  }
-
-  deprecatedEntity.setBigInt(type, deprecatedEntity.getBigInt(type) + volume)
-  deprecatedEntity.save()
-
-  //
-
-  let id = _getDayId(timestamp)
-  let entity = _getOrCreateVolumeStat(id, "daily")
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
-
-  let totalEntity = _getOrCreateVolumeStat("total", "total")
-  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
-  totalEntity.save()
-}
-
-function _getOrCreateVolumeStat(id: string, period: string): VolumeStat {
-  let entity = VolumeStat.load(id)
-  if (entity === null) {
-    entity = new VolumeStat(id)
-    entity.margin = ZERO
-    entity.swap = ZERO
-    entity.liquidation = ZERO
-    entity.mint = ZERO
-    entity.burn = ZERO
-    entity.period = period
-  }
-  return entity as VolumeStat
-}
-
-function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address | null, volume: BigInt): void {
-  let id = _getHourId(timestamp) + ":" + source.toHexString()
-  let entity = HourlyVolumeBySource.load(id)
-
-  if (entity == null) {
-    entity = new HourlyVolumeBySource(id)
-    if (source == null) {
-      entity.source = Address.fromString("")
-    } else {
-      entity.source = Address.fromString(source.toHexString())
-    }
-    entity.timestamp = timestamp.toI32() / 3600 * 3600
-    for (let i = 0; i < TRADE_TYPES.length; i++) {
-      let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, ZERO)
-    }
-  }
-
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
-}
-
-function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, tokenB: Address, volume: BigInt): void {
-  let id = _getHourId(timestamp) + ":" + tokenA.toHexString() + ":" + tokenB.toHexString()
-  let entity = HourlyVolumeByToken.load(id)
-
-  if (entity == null) {
-    entity = new HourlyVolumeByToken(id)
-    entity.tokenA = tokenA
-    entity.tokenB = tokenB
-    entity.timestamp = timestamp.toI32() / 3600 * 3600
-    for (let i = 0; i < TRADE_TYPES.length; i++) {
-      let _type = TRADE_TYPES[i]
-      entity.setBigInt(_type, ZERO)
-    }
-  }
-
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
-}
-
-function _getOrCreateGlpStat(id: string, period: string): GlpStat {
-  let entity = GlpStat.load(id)
-  if (entity == null) {
-    entity = new GlpStat(id)
-    entity.period = period
-    entity.glpSupply = ZERO
-    entity.aumInUsdg = ZERO
-    entity.distributedEth = ZERO
-    entity.distributedEthCumulative = ZERO
-    entity.distributedUsd = ZERO
-    entity.distributedUsdCumulative = ZERO
-    entity.distributedEsgmx = ZERO
-    entity.distributedEsgmxCumulative = ZERO
-    entity.distributedEsgmxUsd = ZERO
-    entity.distributedEsgmxUsdCumulative = ZERO
-    // entity.timestamp = timestamp
-  }
-  return entity as GlpStat
-}
-
-export function handleDistributeEthToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
-
-  let totalEntity = _getOrCreateGlpStat("total", "total")
-  totalEntity.distributedEth += amount
-  totalEntity.distributedEthCumulative += amount
-  totalEntity.distributedUsd += amountUsd
-  totalEntity.distributedUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = _getDayId(event.block.timestamp)
-  let entity = _getOrCreateGlpStat(id, "daily")
-
-  entity.distributedEth += amount
-  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
-  entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
-}
-
-export function handleDistributeEsgmxToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(GMX, amount)
-
-  let totalEntity = _getOrCreateGlpStat("total", "total")
-  totalEntity.distributedEsgmx += amount
-  totalEntity.distributedEsgmxCumulative += amount
-  totalEntity.distributedEsgmxUsd += amountUsd
-  totalEntity.distributedEsgmxUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = _getDayId(event.block.timestamp)
-  let entity = _getOrCreateGlpStat(id, "daily")
 
   entity.distributedEsgmx += amount
   entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
@@ -700,30 +483,202 @@ function _getOrCreateTokenStat(timestamp: BigInt, period: string, token: Address
   return entity as TokenStat;
 }
 
-function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
-  let deprecatedId = _getHourId(timestamp)
-  let deprecatedEntity = HourlyGlpStat.load(deprecatedId)
+function _getOrCreateGmxStat(id: string, period: string): GmxStat {
+  let entity = GmxStat.load(id)
+  if (entity == null) {
+    entity = new GmxStat(id)
+    entity.distributedEth = ZERO
+    entity.distributedEthCumulative = ZERO
+    entity.distributedUsd = ZERO
+    entity.distributedUsdCumulative = ZERO
+    entity.distributedEsgmx = ZERO
+    entity.distributedEsgmxCumulative = ZERO
+    entity.distributedEsgmxUsd = ZERO
+    entity.distributedEsgmxUsdCumulative = ZERO
+    entity.period = period
+  }
+  return entity as GmxStat
+}
 
-  if (deprecatedEntity == null) {
-    deprecatedEntity = new HourlyGlpStat(deprecatedId)
-    deprecatedEntity.glpSupply = ZERO
-    deprecatedEntity.aumInUsdg = ZERO
+let TRADE_TYPES = new Array<string>(5)
+TRADE_TYPES[0] = "margin"
+TRADE_TYPES[1] = "swap"
+TRADE_TYPES[2] = "mint"
+TRADE_TYPES[3] = "burn"
+TRADE_TYPES[4] = "liquidation"
+TRADE_TYPES[5] = "marginAndLiquidation"
+
+function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateFeeStat(id, "daily", periodTimestamp)
+  entity.setBigInt(type, entity.getBigInt(type) + fees)
+  entity.save()
+
+  let totalEntity = _getOrCreateFeeStat("total", "total", periodTimestamp)
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
+  totalEntity.save()
+}
+
+function _getOrCreateFeeStat(id: string, period: string, periodTimestmap: i32): FeeStat {
+  let entity = FeeStat.load(id)
+  if (entity === null) {
+    entity = new FeeStat(id)
+    for (let i = 0; i < TRADE_TYPES.length; i++) {
+      let _type = TRADE_TYPES[i]
+      entity.setBigInt(_type, ZERO)
+    }
+    entity.timestamp = periodTimestmap
+    entity.period = period
+  }
+  return entity as FeeStat
+}
+
+function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateVolumeStat(id, "daily", periodTimestamp)
+  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.save()
+
+  let totalEntity = _getOrCreateVolumeStat("total", "total", periodTimestamp)
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
+  totalEntity.save()
+}
+
+function _getOrCreateVolumeStat(id: string, period: string, periodTimestmap: i32): VolumeStat {
+  let entity = VolumeStat.load(id)
+  if (entity === null) {
+    entity = new VolumeStat(id)
+    entity.margin = ZERO
+    entity.swap = ZERO
+    entity.liquidation = ZERO
+    entity.mint = ZERO
+    entity.burn = ZERO
+    entity.period = period
+    entity.timestamp = periodTimestmap
+  }
+  return entity as VolumeStat
+}
+
+function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address | null, volume: BigInt): void {
+  let id = _getHourId(timestamp) + ":" + source.toHexString()
+  let entity = HourlyVolumeBySource.load(id)
+
+  if (entity == null) {
+    entity = new HourlyVolumeBySource(id)
+    if (source == null) {
+      entity.source = ""
+    } else {
+      entity.source = source.toHexString()
+    }
+    entity.timestamp = timestamp.toI32() / 3600 * 3600
+    for (let i = 0; i < TRADE_TYPES.length; i++) {
+      let _type = TRADE_TYPES[i]
+      entity.setBigInt(_type, ZERO)
+    }
   }
 
-  deprecatedEntity.aumInUsdg = aumInUsdg
-  deprecatedEntity.glpSupply = glpSupply
+  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.save()
+}
 
-  deprecatedEntity.save()
+function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, tokenB: Address, volume: BigInt): void {
+  let id = _getHourId(timestamp) + ":" + tokenA.toHexString() + ":" + tokenB.toHexString()
+  let entity = HourlyVolumeByToken.load(id)
 
-  //
+  if (entity == null) {
+    entity = new HourlyVolumeByToken(id)
+    entity.tokenA = tokenA
+    entity.tokenB = tokenB
+    entity.timestamp = timestamp.toI32() / 3600 * 3600
+    for (let i = 0; i < TRADE_TYPES.length; i++) {
+      let _type = TRADE_TYPES[i]
+      entity.setBigInt(_type, ZERO)
+    }
+  }
 
-  let id = _getDayId(timestamp)
-  let totalEntity = _getOrCreateGlpStat("total", "total")
+  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.save()
+}
+
+function _getOrCreateGlpStat(id: string, period: string, periodTimestmap: i32): GlpStat {
+  let entity = GlpStat.load(id)
+  if (entity == null) {
+    entity = new GlpStat(id)
+    entity.period = period
+    entity.glpSupply = ZERO
+    entity.aumInUsdg = ZERO
+    entity.distributedEth = ZERO
+    entity.distributedEthCumulative = ZERO
+    entity.distributedUsd = ZERO
+    entity.distributedUsdCumulative = ZERO
+    entity.distributedEsgmx = ZERO
+    entity.distributedEsgmxCumulative = ZERO
+    entity.distributedEsgmxUsd = ZERO
+    entity.distributedEsgmxUsdCumulative = ZERO
+    entity.timestamp = periodTimestmap
+  }
+  return entity as GlpStat
+}
+
+export function handleDistributeEthToGlp(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(WETH, amount)
+  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
+
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
+  totalEntity.distributedEth += amount
+  totalEntity.distributedEthCumulative += amount
+  totalEntity.distributedUsd += amountUsd
+  totalEntity.distributedUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
+
+  entity.distributedEth += amount
+  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
+  entity.distributedUsd += amountUsd
+  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
+
+  entity.save()
+}
+
+export function handleDistributeEsgmxToGlp(event: Distribute): void {
+  let amount = event.params.amount
+  let amountUsd = getTokenAmountUsd(GMX, amount)
+  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
+
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
+  totalEntity.distributedEsgmx += amount
+  totalEntity.distributedEsgmxCumulative += amount
+  totalEntity.distributedEsgmxUsd += amountUsd
+  totalEntity.distributedEsgmxUsdCumulative += amountUsd
+
+  totalEntity.save()
+
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
+
+  entity.distributedEsgmx += amount
+  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
+  entity.distributedEsgmxUsd += amountUsd
+  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
+
+  entity.save()
+}
+
+function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
+  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
   totalEntity.aumInUsdg = aumInUsdg
   totalEntity.glpSupply = glpSupply
   totalEntity.save()
 
-  let entity = _getOrCreateGlpStat(id, "daily")
+  let id = periodTimestamp.toString() + ":daily"
+  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
   entity.aumInUsdg = aumInUsdg
   entity.glpSupply = glpSupply
   entity.save()

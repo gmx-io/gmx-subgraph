@@ -1,5 +1,5 @@
 {
-  "name": "gmx-arbitrum-referrals-staging",
+  "name": "gmx-avalanche-referrals",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",

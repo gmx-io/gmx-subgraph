@@ -1,26 +1,21 @@
 enum PricePeriod {
   any
   last
-  daily
   hourly
+  daily
 }
 
-type WhitelistedToken @entity {
-  id: ID!
-  foo: String!
+enum LiquidationType {
+  full
+  partial
 }
 
-type TokenStat @entity {
-  id: ID!
-
-  token: String!
-  poolAmount: BigInt!
-  poolAmountUsd: BigInt!
-
-  timestamp: Int!
-  period: Period!
+enum Period {
+  hourly
+  daily
+  weekly
+  total
 }
-
 
 type ActivePosition @entity {
   id: ID! # key
@@ -28,11 +23,6 @@ type ActivePosition @entity {
   entryFundingRate: BigInt!
   collateral: BigInt!
   size: BigInt!
-}
-
-enum LiquidationType {
-  full
-  partial
 }
 
 type LiquidatedPosition @entity {
@@ -106,6 +96,17 @@ type TradingStat @entity {
   period: Period!
 }
 
+type TokenStat @entity {
+  id: ID!
+
+  token: String!
+  poolAmount: BigInt!
+  poolAmountUsd: BigInt!
+
+  timestamp: Int!
+  period: Period!
+}
+
 enum OrderStatus {
   open
   cancelled
@@ -120,6 +121,18 @@ type Order @entity {
   status: OrderStatus!
   index: BigInt!
   size: BigInt!
+
+  # increase/decrease only
+  indexToken: String
+  isLong: Boolean
+
+  # decrease only
+  collateralToken: String
+  collateral: BigInt
+
+  # common
+  triggerPrice: BigInt
+  triggerAboveThreshold: Boolean
 
   createdTimestamp: Int!
   cancelledTimestamp: Int
@@ -142,13 +155,6 @@ type OrderStat @entity {
   executedDecrease: Int!
 
   period: Period!
-}
-
-enum Period {
-  hourly
-  daily
-  weekly
-  total
 }
 
 type UserData @entity {
@@ -181,14 +187,6 @@ type UserStat @entity {
 
   period: Period!
   timestamp: Int
-}
-
-type HourlyGlpStat @entity {
-  # deprecated
-  id: ID!
-
-  glpSupply: BigInt!
-  aumInUsdg: BigInt!
 }
 
 type GlpStat @entity {
@@ -230,17 +228,6 @@ type Swap @entity {
   timestamp: Int!
 }
 
-type HourlyVolume @entity {
-  # deprecated
-  id: ID!
-
-  margin: BigInt!
-  swap: BigInt!
-  liquidation: BigInt!
-  mint: BigInt!
-  burn: BigInt!
-}
-
 type VolumeStat @entity {
   id: ID!
 
@@ -250,12 +237,14 @@ type VolumeStat @entity {
   mint: BigInt!
   burn: BigInt!
   period: Period!
+
+  timestamp: Int!
 }
 
 type HourlyVolumeBySource @entity {
   id: ID!
 
-  source: Bytes!
+  source: String!
   timestamp: Int!
 
   margin: BigInt!
@@ -279,18 +268,6 @@ type HourlyVolumeByToken @entity {
   burn: BigInt!
 }
 
-type HourlyFee @entity {
-  # deprecated
-  id: ID!
-
-  margin: BigInt!
-  swap: BigInt!
-  marginAndLiquidation: BigInt!
-  liquidation: BigInt!
-  mint: BigInt!
-  burn: BigInt!
-}
-
 type FeeStat @entity {
   id: ID!
 
@@ -301,6 +278,8 @@ type FeeStat @entity {
   mint: BigInt!
   burn: BigInt!
   period: Period!
+
+  timestamp: Int!
 }
 
 type Transaction @entity {
