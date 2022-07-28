@@ -17,10 +17,10 @@ type TokenStat @entity {
   poolAmount: BigInt!
   poolAmountUsd: BigInt!
 
-  usdgAmount: BigInt!,
+  usdgAmount: BigInt!
 
-  reservedAmount: BigInt!,
-  reservedAmountUsd: BigInt!,
+  reservedAmount: BigInt!
+  reservedAmountUsd: BigInt!
 
   timestamp: Int!
   period: Period!
