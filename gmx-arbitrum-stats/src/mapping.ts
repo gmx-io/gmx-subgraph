@@ -675,7 +675,7 @@ export function handleIncreaseReservedAmount(event: IncreaseReservedAmount): voi
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
 
-  totalEntity.reservedAmount = totalEntity.reservedAmount.plus(event.params.amount);
+  totalEntity.reservedAmount = totalEntity.reservedAmount + event.params.amount;
   totalEntity.reservedAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.reservedAmount);
   totalEntity.save()
 
@@ -689,7 +689,7 @@ export function handleDecreaseReservedAmount(event: DecreaseReservedAmount): voi
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
 
-  totalEntity.reservedAmount = totalEntity.reservedAmount.minus(event.params.amount);
+  totalEntity.reservedAmount = totalEntity.reservedAmount - event.params.amount;
   totalEntity.reservedAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.reservedAmount)
   totalEntity.save()
 
@@ -703,7 +703,7 @@ export function handleIncreaseUsdgAmount(event: IncreaseUsdgAmount): void {
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
 
-  totalEntity.usdgAmount = totalEntity.usdgAmount.plus(event.params.amount);
+  totalEntity.usdgAmount = totalEntity.usdgAmount + event.params.amount;
   totalEntity.save()
 
   _updateUsdgAmount(timestamp, "hourly", token, totalEntity.usdgAmount);
@@ -716,7 +716,7 @@ export function handleDecreaseUsdgAmount(event: DecreaseUsdgAmount): void {
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
 
-  totalEntity.usdgAmount = totalEntity.usdgAmount.minus(event.params.amount);
+  totalEntity.usdgAmount = totalEntity.usdgAmount - event.params.amount;
   totalEntity.save()
 
   _updateUsdgAmount(timestamp, "hourly", token, totalEntity.usdgAmount);
