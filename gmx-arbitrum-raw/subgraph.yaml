@@ -3,6 +3,30 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
+    name: PositionRouter
+    network: arbitrum-one
+    source:
+      address: "0x3D6bA331e3D9702C5e8A8d254e5d8a285F223aba"
+      abi: PositionRouter
+      startBlock: 227000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - CreateIncreasePosition
+        - CreateDecreasePosition
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: CreateIncreasePosition(indexed address,address[],address,uint256,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleCreateIncreasePosition
+        - event: CreateDecreasePosition(indexed address,address[],address,uint256,uint256,bool,address,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleCreateDecreasePosition
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
     name: RewardRouterV2
     network: arbitrum-one
     source:

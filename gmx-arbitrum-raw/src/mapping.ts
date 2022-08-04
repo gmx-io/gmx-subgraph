@@ -1,5 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import * as vault from "../generated/Vault/Vault"
+import * as positionRouter from "../generated/PositionRouter/PositionRouter"
 import * as glpManager from "../generated/GlpManager/GlpManager"
 import * as rewardRouter from "../generated/RewardRouterV2/RewardRouterV2"
 import {
@@ -16,7 +17,9 @@ import {
   StakeGmx,
   UnstakeGmx,
   StakeGlp,
-  UnstakeGlp
+  UnstakeGlp,
+  CreateIncreasePosition,
+  CreateDecreasePosition
 } from "../generated/schema"
 
 function _createTransactionIfNotExist(event: ethereum.Event): string {
@@ -67,6 +70,45 @@ export function handleClosePosition(event: vault.ClosePosition): void {
   entity.entryFundingRate = event.params.entryFundingRate
   entity.reserveAmount = event.params.reserveAmount
   entity.realisedPnl = event.params.realisedPnl
+
+  entity.transaction = _createTransactionIfNotExist(event)
+  entity.timestamp = event.block.timestamp.toI32()
+
+  entity.save()
+}
+
+export function handleCreateIncreasePosition(event: positionRouter.CreateIncreasePosition): void {
+  let id = event.transaction.hash.toHexString()
+  let entity = new CreateIncreasePosition(id)
+
+  entity.account = event.params.account.toHexString()
+  let path = event.params.path
+  entity.collateralToken = path[path.length - 1].toHexString()
+  entity.indexToken = event.params.indexToken.toHexString()
+  entity.sizeDelta = event.params.sizeDelta
+  entity.amountIn = event.params.amountIn
+  entity.isLong = event.params.isLong
+  entity.acceptablePrice = event.params.acceptablePrice
+  entity.executionFee = event.params.executionFee
+
+  entity.transaction = _createTransactionIfNotExist(event)
+  entity.timestamp = event.block.timestamp.toI32()
+
+  entity.save()
+}
+
+export function handleCreateDecreasePosition(event: positionRouter.CreateDecreasePosition): void {
+  let id = event.transaction.hash.toHexString()
+  let entity = new CreateDecreasePosition(id)
+
+  entity.account = event.params.account.toHexString()
+  let path = event.params.path
+  entity.collateralToken = path[0].toHexString()
+  entity.indexToken = event.params.indexToken.toHexString()
+  entity.sizeDelta = event.params.sizeDelta
+  entity.isLong = event.params.isLong
+  entity.acceptablePrice = event.params.acceptablePrice
+  entity.executionFee = event.params.executionFee
 
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()

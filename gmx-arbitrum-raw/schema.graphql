@@ -103,6 +103,39 @@ type LiquidatePosition @entity {
   timestamp: Int!
 }
 
+type CreateIncreasePosition @entity {
+  id: ID!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  amountIn: BigInt!
+
+  sizeDelta: BigInt!
+  acceptablePrice: BigInt!
+  executionFee: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+type CreateDecreasePosition @entity {
+  id: ID!
+  
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+
+  sizeDelta: BigInt!
+  acceptablePrice: BigInt!
+  executionFee: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
 type IncreasePosition @entity {
   id: ID!
 
