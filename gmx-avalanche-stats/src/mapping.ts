@@ -24,6 +24,13 @@ import {
   DecreasePoolAmount,
 } from "../generated/Vault/Vault"
 
+import { 
+  DecreaseUsdgAmount,
+  IncreaseUsdgAmount,
+  DecreaseReservedAmount,
+  IncreaseReservedAmount
+} from "../generated/Vault2/Vault"
+
 import {
   Swap,
   FeeStat,
@@ -447,6 +454,84 @@ export function handleDecreasePoolAmount(event: DecreasePoolAmount): void {
   _updatePoolAmount(timestamp, "weekly", token, totalEntity.poolAmount, totalEntity.poolAmountUsd);
 }
 
+export function handleIncreaseReservedAmount(event: IncreaseReservedAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+
+  totalEntity.reservedAmount = totalEntity.reservedAmount.plus(event.params.amount);
+  totalEntity.reservedAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.reservedAmount);
+  totalEntity.save()
+
+  _updateReservedAmount(timestamp, "hourly", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+  _updateReservedAmount(timestamp, "daily", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+  _updateReservedAmount(timestamp, "weekly", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+}
+
+export function handleDecreaseReservedAmount(event: DecreaseReservedAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+
+  totalEntity.reservedAmount = totalEntity.reservedAmount.minus(event.params.amount);
+  totalEntity.reservedAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.reservedAmount)
+  totalEntity.save()
+
+  _updateReservedAmount(timestamp, "hourly", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+  _updateReservedAmount(timestamp, "daily", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+  _updateReservedAmount(timestamp, "weekly", token, totalEntity.reservedAmount, totalEntity.reservedAmountUsd);
+}
+
+export function handleIncreaseUsdgAmount(event: IncreaseUsdgAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+
+  totalEntity.usdgAmount = totalEntity.usdgAmount.plus(event.params.amount);
+  totalEntity.save()
+
+  _updateUsdgAmount(timestamp, "hourly", token, totalEntity.usdgAmount);
+  _updateUsdgAmount(timestamp, "daily", token, totalEntity.usdgAmount);
+  _updateUsdgAmount(timestamp, "weekly", token, totalEntity.usdgAmount);
+}
+
+export function handleDecreaseUsdgAmount(event: DecreaseUsdgAmount): void {
+  let timestamp = event.block.timestamp
+  let token = event.params.token
+  let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
+
+  totalEntity.usdgAmount = totalEntity.usdgAmount.minus(event.params.amount);
+  totalEntity.save()
+
+  _updateUsdgAmount(timestamp, "hourly", token, totalEntity.usdgAmount);
+  _updateUsdgAmount(timestamp, "daily", token, totalEntity.usdgAmount);
+  _updateUsdgAmount(timestamp, "weekly", token, totalEntity.usdgAmount);
+}
+
+function _updateReservedAmount(
+  timestamp: BigInt,
+  period: string,
+  token: Address,
+  reservedAmount: BigInt,
+  reservedAmountUsd: BigInt
+): void {
+  let entity = _getOrCreateTokenStat(timestamp, period, token)
+  entity.reservedAmount = reservedAmount
+  entity.reservedAmountUsd = reservedAmountUsd
+  entity.save()
+}
+
+function _updateUsdgAmount(
+  timestamp: BigInt,
+  period: string,
+  token: Address,
+  usdgAmount: BigInt,
+): void {
+  let entity = _getOrCreateTokenStat(timestamp, period, token)
+  entity.usdgAmount = usdgAmount
+  entity.save()
+}
+
 function _updatePoolAmount(
   timestamp: BigInt,
   period: string,
@@ -479,6 +564,9 @@ function _getOrCreateTokenStat(timestamp: BigInt, period: string, token: Address
     entity.token = token.toHexString()
     entity.poolAmount = BigInt.fromI32(0);
     entity.poolAmountUsd = BigInt.fromI32(0);
+    entity.reservedAmountUsd = BigInt.fromI32(0);
+    entity.reservedAmount = BigInt.fromI32(0);
+    entity.usdgAmount = BigInt.fromI32(0);
   }
   return entity as TokenStat;
 }
