@@ -9,6 +9,7 @@ export let PRECISION = BigInt.fromI32(10).pow(30)
 
 export let WETH = "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab"
 export let BTC = "0x50b7545627a5162f82a992c33b87adc75187b218"
+export let BTC_B = "0x152b9d0fdc40c096757f570a51e494bd4b943e50"
 export let AVAX = "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7"
 // export let LINK = ""
 // export let UNI = ""
@@ -44,6 +45,10 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
+  if (token == BTC_B) {
+    token = BTC
+  }
+
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)
   tokenDecimals.set(BTC, 8)
@@ -64,6 +69,10 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
+  if (token == BTC_B) {
+    token = BTC
+  }
+
   if (token != GMX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
