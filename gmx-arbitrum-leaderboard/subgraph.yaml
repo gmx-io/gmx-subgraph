@@ -1,0 +1,35 @@
+specVersion: 0.0.2
+description: GMX
+repository: https://github.com/morazzela/gmx-subgraph
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum/contract
+    name: Competition
+    network: arbitrum-rinkeby
+    source:
+      address: "0x17fb5AEEF7221353B6B2D12EDDa0Dd5655Ec25b2"
+      abi: Competition
+      startBlock: 15634994
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Competition
+      abis:
+        - name: Competition
+          file: ./abis/Competition.json
+      eventHandlers:
+        - event: CompetitionCreated(uint256,uint256,uint256,uint256)
+          handler: handleCompetitionCreated
+        - event: CompetitionUpdated(uint256,uint256,uint256,uint256)
+          handler: handleCompetitionUpdated
+        - event: CompetitionRemoved(uint256)
+          handler: handleCompetitionRemoved
+        - event: TeamCreated(uint256,address,string)
+          handler: handleTeamCreated
+        - event: JoinRequestApproved(uint256,address,address)
+          handler: handleJoinRequestApproved
+      file: ./src/mapping.ts

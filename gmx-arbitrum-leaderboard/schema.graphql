@@ -1,0 +1,29 @@
+type Competition @entity {
+  id: ID!
+  start: BigInt!
+  end: BigInt!
+  maxTeamSize: BigInt!
+  canceled: Boolean!
+}
+
+type Account @entity {
+  id: ID!
+}
+
+type AccountStat @entity {
+  id: ID!
+  account: Account!
+  team: Team
+  pnl: BigDecimal!
+  pnlPercent: BigDecimal!
+}
+
+type Team @entity {
+  id: ID!
+  competition: Competition!
+  name: String!
+  leader: Account!
+  members: [Account!]!
+  pnlPercent: BigDecimal!
+  pnl: BigDecimal!
+}
