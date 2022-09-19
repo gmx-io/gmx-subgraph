@@ -9,9 +9,9 @@ dataSources:
     name: Competition
     network: arbitrum-rinkeby
     source:
-      address: "0x17fb5AEEF7221353B6B2D12EDDa0Dd5655Ec25b2"
+      address: "0x271B8D7b97A07207BAd07dc577F6D29D6a368C56"
       abi: Competition
-      startBlock: 15634994
+      startBlock: 15666273
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

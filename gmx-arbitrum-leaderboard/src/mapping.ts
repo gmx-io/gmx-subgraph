@@ -71,6 +71,7 @@ function loadOrCreateAccount(address: Address): Account {
 
     if (account === null) {
         account = new Account(address.toHex())
+        account.address = address.toHex()
         account.save()
 
         loadOrCreateAccountStat(account.id, null)

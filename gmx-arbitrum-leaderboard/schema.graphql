@@ -8,6 +8,7 @@ type Competition @entity {
 
 type Account @entity {
   id: ID!
+  address: String!
 }
 
 type AccountStat @entity {
