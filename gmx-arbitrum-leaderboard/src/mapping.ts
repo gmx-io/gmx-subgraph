@@ -1,4 +1,4 @@
-import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, store } from "@graphprotocol/graph-ts";
 import {
     CompetitionCreated, CompetitionRemoved, CompetitionUpdated, JoinRequestApproved, MemberRemoved, TeamCreated
 } from "../generated/Competition/Competition"
@@ -41,14 +41,27 @@ export function handleTeamCreated(event: TeamCreated): void {
 export function handleJoinRequestApproved(event: JoinRequestApproved): void {
     let team = loadOrCreateTeam(event.params.index, event.params.leader)
     let account = loadOrCreateAccount(event.params.member)
-    team.members.push(account.id)
+    let members = team.members
+    members.push(account.id)
+    team.members = members
     team.save()
+
+    loadOrCreateAccountStat(account.id, team.id)
 }
 
 export function handleMemberRemoved(event: MemberRemoved): void {
     let team = loadOrCreateTeam(event.params.index, event.params.leader)
-    team.members = team.members.filter(member => member !== event.params.member.toHex())
+    let newMembers: string[] = []
+    for (let i = 0; i < team.members.length; i++) {
+        if (team.members[i] != event.params.member.toHex()) {
+            newMembers.push(team.members[i])
+        }
+    }
+    team.members = newMembers
     team.save()
+
+    let accountStat = loadOrCreateAccountStat(event.params.member.toHex(), team.id)
+    store.remove("AccountStat", accountStat.id)
 }
 
 function loadOrCreateCompetition(index: BigInt): Competition {

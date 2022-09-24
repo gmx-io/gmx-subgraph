@@ -7,11 +7,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Competition
-    network: arbitrum-rinkeby
+    network: arbitrum-goerli
     source:
-      address: "0x271B8D7b97A07207BAd07dc577F6D29D6a368C56"
+      address: "0xec6007Ec2532F5225A91adCCc378414d30F82b69"
       abi: Competition
-      startBlock: 15666273
+      startBlock: 399884
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -32,4 +32,6 @@ dataSources:
           handler: handleTeamCreated
         - event: JoinRequestApproved(uint256,address,address)
           handler: handleJoinRequestApproved
+        - event: MemberRemoved(uint256,address,address)
+          handler: handleMemberRemoved
       file: ./src/mapping.ts
