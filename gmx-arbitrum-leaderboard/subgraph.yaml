@@ -7,11 +7,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Competition
-    network: arbitrum-goerli
+    network: arbitrum-rinkeby
     source:
-      address: "0xec6007Ec2532F5225A91adCCc378414d30F82b69"
+      address: "0x86be386580896C987d49D86D9b81BF479d371e30"
       abi: Competition
-      startBlock: 399884
+      startBlock: 15880379
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -34,4 +34,26 @@ dataSources:
           handler: handleJoinRequestApproved
         - event: MemberRemoved(uint256,address,address)
           handler: handleMemberRemoved
-      file: ./src/mapping.ts
+      file: ./src/competition.ts
+  - kind: ethereum/contract
+    name: EventEmitter
+    network: arbitrum-rinkeby
+    source:
+      address: "0x86be386580896C987d49D86D9b81BF479d371e30"
+      abi: EventEmitter
+      startBlock: 15880379
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - EventEmitter
+      abis:
+        - name: EventEmitter
+          file: ./abis/EventEmitter.json
+      eventHandlers:
+        - event: PositionIncrease(indexed address,indexed address,address,bool,uint256,uint256,int256)
+          handler: handlePositionIncrease
+        - event: PositionDecrease(indexed address,indexed address,address,bool,uint256,uint256,int256,int256,int256,int256)
+          handler: handlePositionDecrease
+      file: ./src/leaderboard.ts

@@ -1,30 +1,72 @@
+enum TimePeriod {
+  any
+  daily
+  weekly
+  monthly
+  quartlery
+  yearly
+}
+
+enum Status {
+  opened
+  closed
+}
+
 type Competition @entity {
   id: ID!
   start: BigInt!
   end: BigInt!
   maxTeamSize: BigInt!
   canceled: Boolean!
+  teams: [Team!]! @derivedFrom(field: "competition")
 }
 
 type Account @entity {
   id: ID!
   address: String!
+  teams: [Team!]! @derivedFrom(field: "members")
+}
+
+type Team @entity {
+  id: ID!
+  address: String!
+  competition: Competition!
+  name: String!
+  leader: Account!
+  members: [Account!]!
+}
+
+type Market @entity {
+  id: ID!
+  marketToken: String!
+  indexToken: String!
+  longToken: String!
+  shortToken: String!
+}
+
+type Position @entity {
+  id: ID!
+  account: Account!
+  market: String!
+  collateralToken: String!
+  isLong: Boolean!
+  sizeInUsd: BigInt!
+  collateral: BigInt!
+  status: Status!
 }
 
 type AccountStat @entity {
   id: ID!
   account: Account!
-  team: Team
-  pnl: BigDecimal!
-  pnlPercent: BigDecimal!
+  period: TimePeriod!
+  timestamp: BigInt!
+  realizedPnl: BigInt!
 }
 
-type Team @entity {
+type TeamStat @entity {
   id: ID!
-  competition: Competition!
-  name: String!
-  leader: Account!
-  members: [Account!]!
-  pnlPercent: BigDecimal!
-  pnl: BigDecimal!
+  team: Team!
+  period: TimePeriod!
+  timestamp: BigInt!
+  realizedPnl: BigInt!
 }
