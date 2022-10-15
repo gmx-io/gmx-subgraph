@@ -69,6 +69,30 @@ dataSources:
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
+    name: PositionManager_v2
+    network: arbitrum-one
+    source:
+      address: "0x75E42e6f01baf1D6022bEa862A28774a9f8a4A0C"
+      abi: PositionManager
+      startBlock: 29852256 
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
     name: PositionRouter
     network: arbitrum-one
     source:
@@ -91,6 +115,31 @@ dataSources:
         - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
           handler: handleDecreasePositionReferral
       file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionRouter_v2
+    network: arbitrum-one
+    source:
+      address: "0xb87a436B93fFE9D75c5cFA7bAcFff96430b09868"
+      abi: PositionRouter
+      startBlock: 29856759
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
 
   - kind: ethereum/contract
     name: ReferralStorage

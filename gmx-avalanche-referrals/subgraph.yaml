@@ -69,12 +69,61 @@ dataSources:
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
+    name: PositionManager_v2
+    network: avalanche
+    source:
+      address: "0xA21B83E579f4315951bA658654c371520BDcB866"
+      abi: PositionManager
+      startBlock: 21005974
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+
+  - kind: ethereum/contract
     name: PositionRouter
     network: avalanche
     source:
       address: "0x195256074192170d1530527abC9943759c7167d8"
       abi: PositionRouter
       startBlock: 13065036
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionRouter_v2
+    network: avalanche
+    source:
+      address: "0xffF6D276Bc37c61A23f06410Dce4A400f66420f8"
+      abi: PositionRouter
+      startBlock: 21006712
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
