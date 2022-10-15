@@ -1,6 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { PositionDecrease, PositionIncrease } from "../generated/EventEmitter/EventEmitter"
-import { Account, Competition, Team } from "../generated/schema";
+import { Account, Competition, Team, Trade } from "../generated/schema";
 import { getDayTimestamp, getMonthTimestamp, getQuarterTimestamp, getWeekTimestamp, getYearTimestamp, loadOrCreateAccount, loadOrCreateAccountStat, loadOrCreatePosition, loadOrCreateTeamStat, toUSD } from "./utils";
 
 export function handlePositionIncrease(event: PositionIncrease): void {
@@ -9,6 +9,7 @@ export function handlePositionIncrease(event: PositionIncrease): void {
 
     position.sizeInUsd = position.sizeInUsd.plus(event.params.sizeDeltaInUsd)
     position.collateral = position.collateral.plus(event.params.collateralDeltaAmount)
+    position.status = "opened"
 
     position.save()
 }
@@ -29,6 +30,17 @@ export function handlePositionDecrease(event: PositionDecrease): void {
     updateAccountStats(event.block.timestamp, account, event.params.realizedPnlAmount)
     updateAccountTeamsStats(event.block.timestamp, account, event.params.realizedPnlAmount)
 
+    if (position.status !== "closed") {
+        return
+    }
+
+    let trade = new Trade(`${account.id}:${event.params.market.toHex()}:${event.params.collateralToken.toHex()}:${event.params.isLong?"1":"0"}`)
+    trade.account = account.id
+    trade.market = position.market
+    trade.isLong = position.isLong
+    trade.realizedPnl = event.params.realizedPnlAmount
+    trade.timestamp = event.block.timestamp
+    trade.save()
 }
 
 function updateAccountStats(ts: BigInt, account: Account, realizedPnl: BigInt): void {

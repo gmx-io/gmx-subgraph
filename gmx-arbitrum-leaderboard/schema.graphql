@@ -47,12 +47,22 @@ type Market @entity {
 type Position @entity {
   id: ID!
   account: Account!
-  market: String!
+  market: Market!
   collateralToken: String!
   isLong: Boolean!
   sizeInUsd: BigInt!
   collateral: BigInt!
   status: Status!
+}
+
+type Trade @entity {
+  id: ID!
+  account: Account!
+  market: Market!
+  isLong: Boolean!
+  realizedPnl: BigInt!
+  entryPrice: BigInt!
+  timestamp: BigInt!
 }
 
 type AccountStat @entity {
