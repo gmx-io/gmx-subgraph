@@ -23,23 +23,32 @@ import {
 } from "../generated/schema"
 
 function _createTransactionIfNotExist(event: ethereum.Event): string {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = Transaction.load(id)
 
   if (entity == null) {
     entity = new Transaction(id)
     entity.timestamp = event.block.timestamp.toI32()
     entity.blockNumber = event.block.number.toI32()
+    entity.logIndex = event.logIndex.toI32()
     entity.from = event.transaction.from.toHexString()
-    entity.to = event.transaction.to.toHexString()
+    if (event.transaction.to == null) {
+      entity.to = ""
+    } else {
+      entity.to = event.transaction.to.toHexString()
+    }
     entity.save()
   }
 
   return id
 }
 
+function _generateIdFromEvent(event: ethereum.Event): string {
+  return event.transaction.hash.toHexString() + ":" + event.logIndex.toString()
+}
+
 export function handleLiquidatePosition(event: vault.LiquidatePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new LiquidatePosition(id)
 
   entity.key = event.params.key.toHexString()
@@ -60,7 +69,7 @@ export function handleLiquidatePosition(event: vault.LiquidatePosition): void {
 }
 
 export function handleClosePosition(event: vault.ClosePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new ClosePosition(id)
 
   entity.key = event.params.key.toHexString()
@@ -78,7 +87,7 @@ export function handleClosePosition(event: vault.ClosePosition): void {
 }
 
 export function handleCreateIncreasePosition(event: positionRouter.CreateIncreasePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new CreateIncreasePosition(id)
 
   entity.account = event.params.account.toHexString()
@@ -98,7 +107,7 @@ export function handleCreateIncreasePosition(event: positionRouter.CreateIncreas
 }
 
 export function handleCreateDecreasePosition(event: positionRouter.CreateDecreasePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new CreateDecreasePosition(id)
 
   entity.account = event.params.account.toHexString()
@@ -117,7 +126,7 @@ export function handleCreateDecreasePosition(event: positionRouter.CreateDecreas
 }
 
 export function handleIncreasePosition(event: vault.IncreasePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new IncreasePosition(id)
 
   entity.key = event.params.key.toHexString()
@@ -137,7 +146,7 @@ export function handleIncreasePosition(event: vault.IncreasePosition): void {
 }
 
 export function handleDecreasePosition(event: vault.DecreasePosition): void {
-  let id = event.transaction.hash.toHexString()
+  let id = _generateIdFromEvent(event)
   let entity = new DecreasePosition(id)
 
   entity.key = event.params.key.toHexString()

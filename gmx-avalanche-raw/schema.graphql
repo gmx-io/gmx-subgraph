@@ -1,6 +1,7 @@
 type Transaction @entity {
   id: ID!
   blockNumber: Int!
+  logIndex: Int!
   timestamp: Int!
   from: String!
   to: String!
