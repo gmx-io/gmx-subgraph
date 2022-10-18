@@ -1,5 +1,5 @@
 import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
-import { Team, Competition, Account, AccountStat, TeamStat, Position, Market } from "../generated/schema"
+import { Team, Competition, Account, AccountStat, Position } from "../generated/schema"
 
 export function loadOrCreateCompetition(index: BigInt): Competition {
     let competition = Competition.load(index.toString())
@@ -60,22 +60,30 @@ export function loadOrCreateAccountStat(account: string, period: string, timesta
     return <AccountStat>stat
 }
 
-export function loadOrCreateTeamStat(team: string, period: string, timestamp: BigInt): TeamStat {
-    let id = `${team}:${period}:${timestamp}`
-    
-    let stat = TeamStat.load(id)
-    if (stat === null) {
-        stat = new TeamStat(id)
-        stat.team = team
-        stat.period = period
-        stat.timestamp = timestamp
+export function getAccountActiveTeams(ts: BigInt, account: Account): Team[] {
+    let result: Team[] = []
+    let teams = account.teams
+
+    for (let i = 0; i < teams.length; i++) {
+        let team = <Team>Team.load(teams[i]);
+        let competition = <Competition>Competition.load(team.competition)
+
+        if (competition.end.le(ts) || competition.start.gt(ts)) {
+            continue
+        }
+
+        result.push(team)
     }
 
-    return <TeamStat>stat
+    return result
+}
+
+export function getPositionId(account: string, market: string, collateralToken: string, isLong: boolean): string {
+    return `${account}:${market}:${collateralToken}:${isLong}`
 }
 
 export function loadOrCreatePosition(account: string, market: string, collateralToken: string, isLong: boolean): Position {
-    let id = `${account}:${market}:${collateralToken}:${isLong}`
+    let id = getPositionId(account, market, collateralToken, isLong)
     let position = Position.load(id)
 
     if (position !== null) {
@@ -87,7 +95,6 @@ export function loadOrCreatePosition(account: string, market: string, collateral
     position.market = market
     position.collateralToken = collateralToken
     position.isLong = isLong
-    position.status = "opened"
 
     return <Position>position
 }
