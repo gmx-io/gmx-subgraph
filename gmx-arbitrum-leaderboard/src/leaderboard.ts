@@ -1,4 +1,4 @@
-import { BigInt, store } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt, store } from "@graphprotocol/graph-ts";
 import { PositionDecrease, PositionIncrease } from "../generated/EventEmitter/EventEmitter"
 import { Account, Position, Team, Trade } from "../generated/schema";
 import { getAccountActiveTeams, getDayTimestamp, getMonthTimestamp, getPositionId, getQuarterTimestamp, getWeekTimestamp, getYearTimestamp, loadOrCreateAccount, loadOrCreateAccountStat, loadOrCreatePosition } from "./utils";
@@ -15,26 +15,27 @@ export function handlePositionDecrease(event: PositionDecrease): void {
     let account = <Account>Account.load(event.params.account.toHex())
     let position = <Position>Position.load(getPositionId(account.id, event.params.market.toHex(), event.params.collateralToken.toHex(), event.params.isLong))
 
+    let realizedPnl = event.params.realizedPnlAmount.minus(position.pnl)
+
     position.sizeInUsd = position.sizeInUsd.minus(event.params.sizeDeltaInUsd)
     position.collateral = position.collateral.minus(event.params.collateralDeltaAmount)
+    position.pnl = event.params.realizedPnlAmount
 
-    if (!position.sizeInUsd.isZero()) {
-        position.save()
-        return
-    }
-
-    updateAccountStats(event.block.timestamp, account, event.params.realizedPnlAmount)
-    updateAccountTeamsStats(event.block.timestamp, account, event.params.realizedPnlAmount)
+    updateAccountStats(event.block.timestamp, account, realizedPnl)
+    updateAccountTeamsStats(event.block.timestamp, account, realizedPnl)
 
     let trade = new Trade(`${account.id}:${event.params.market.toHex()}:${event.params.collateralToken.toHex()}:${event.params.isLong?"1":"0"}`)
     trade.account = account.id
     trade.market = position.market
     trade.isLong = position.isLong
-    trade.realizedPnl = event.params.realizedPnlAmount
+    trade.pnl = realizedPnl
+    trade.pnlPercentage = realizedPnl.divDecimal(event.params.collateralDeltaAmount.toBigDecimal()).times(BigDecimal.fromString("100"))
     trade.timestamp = event.block.timestamp
     trade.save()
 
-    store.remove("Position", position.id)
+    if (position.sizeInUsd.isZero()) {
+        store.remove("Position", position.id)
+    }
 }
 
 function updateAccountStats(ts: BigInt, account: Account, realizedPnl: BigInt): void {
@@ -58,12 +59,6 @@ function updateAccountTeamsStats(ts: BigInt, account: Account, realizedPnl: BigI
 
 function updateAccountStat(ts: BigInt, account: Account, period: string, realizedPnl: BigInt): void {
     let stat = loadOrCreateAccountStat(account.id, period, ts)
-    stat.realizedPnl = stat.realizedPnl.plus(realizedPnl)
-    stat.save()
-}
-
-function updateTeamStat(ts: BigInt, team: Team, period: string, realizedPnl: BigInt): void {
-    let stat = loadOrCreateTeamStat(team.id, period, ts)
-    stat.realizedPnl = stat.realizedPnl.plus(realizedPnl)
+    stat.pnl = stat.pnl.plus(realizedPnl)
     stat.save()
 }

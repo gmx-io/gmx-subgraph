@@ -50,6 +50,7 @@ type Position @entity {
   isLong: Boolean!
   sizeInUsd: BigInt!
   collateral: BigInt!
+  pnl: BigInt!
 }
 
 type Trade @entity {
@@ -57,7 +58,8 @@ type Trade @entity {
   account: Account!
   market: Market!
   isLong: Boolean!
-  realizedPnl: BigInt!
+  pnl: BigInt!
+  pnlPercentage: BigDecimal!
   entryPrice: BigInt!
   timestamp: BigInt!
 }
@@ -67,5 +69,5 @@ type AccountStat @entity {
   account: Account!
   period: TimePeriod!
   timestamp: BigInt!
-  realizedPnl: BigInt!
+  pnl: BigInt!
 }

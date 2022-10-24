@@ -68,11 +68,9 @@ export function getAccountActiveTeams(ts: BigInt, account: Account): Team[] {
         let team = <Team>Team.load(teams[i]);
         let competition = <Competition>Competition.load(team.competition)
 
-        if (competition.end.le(ts) || competition.start.gt(ts)) {
-            continue
+        if (competition.start.le(ts) && competition.end.gt(ts)) {
+            result.push(team)
         }
-
-        result.push(team)
     }
 
     return result
