@@ -1,0 +1,24 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: FastPriceEvents
+    network: avalanche
+    source:
+      address: "0x02b7023d43bc52bff8a0c54a9f2ecec053523bf6"
+      abi: FastPriceEvents
+      startBlock: 8520800 # FastPriceEvents was deployed https://snowtrace.io/tx/0xd7c7eb8365eff22a20f144499d7a5da09b53f831daeaf4722becf184f25e7a70
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - PriceUpdate
+      abis:
+        - name: FastPriceEvents
+          file: ./abis/FastPriceEvents.json
+      eventHandlers:
+        - event: PriceUpdate(address,uint256,address)
+          handler: handlePriceUpdate
+      file: ./src/mapping.ts

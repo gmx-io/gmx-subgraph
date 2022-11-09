@@ -1,0 +1,14 @@
+{
+  "name": "gmx-avalanche-prices",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy-prod": "graph deploy --product hosted-service gmx-io/gmx-avalanche-prices",
+    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-prices --deploy-key $(cat .access_token)"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.21.1",
+    "@graphprotocol/graph-ts": "0.20.0"
+  }
+}
