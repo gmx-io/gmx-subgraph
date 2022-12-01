@@ -1,7 +1,6 @@
 type Transaction @entity {
   id: ID!
   blockNumber: Int!
-  logIndex: Int!
   timestamp: Int!
   from: String!
   to: String!
@@ -69,6 +68,22 @@ type CollectSwapFee @entity {
   timestamp: Int!
 }
 
+type UpdatePosition @entity {
+  id: ID!
+
+  key: String!
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+
+  transaction: Transaction!
+  logIndex: Int!
+  timestamp: Int!
+}
+
 type ClosePosition @entity {
   id: ID!
 
@@ -81,6 +96,7 @@ type ClosePosition @entity {
   realisedPnl: BigInt!
 
   transaction: Transaction!
+  logIndex: Int!
   timestamp: Int!
 }
 
@@ -101,6 +117,7 @@ type LiquidatePosition @entity {
   markPrice: BigInt!
 
   transaction: Transaction!
+  logIndex: Int!
   timestamp: Int!
 }
 
@@ -154,6 +171,7 @@ type IncreasePosition @entity {
   fee: BigInt!
 
   transaction: Transaction!
+  logIndex: Int!
   timestamp: Int!
 }
 
@@ -174,6 +192,7 @@ type DecreasePosition @entity {
   fee: BigInt!
 
   transaction: Transaction!
+  logIndex: Int!
   timestamp: Int!
 }
 
