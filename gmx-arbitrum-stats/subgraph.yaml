@@ -190,6 +190,29 @@ dataSources:
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
+    name: GlpManager2
+    network: arbitrum-one
+    source:
+      address: "0x3963FfC9dff443c2A94f21b129D429891E32ec18"
+      abi: GlpManager
+      startBlock: 40559781
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - HourlyGlpStat
+      abis:
+        - name: GlpManager
+          file: ./abis/GlpManager.json
+      eventHandlers:
+        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleAddLiquidity
+        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleRemoveLiquidity
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
     name: OrderBook
     network: arbitrum-one
     source:

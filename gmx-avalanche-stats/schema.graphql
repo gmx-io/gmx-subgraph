@@ -47,6 +47,7 @@ type ChainlinkPrice @entity {
   token: String!
   value: BigInt!
   timestamp: Int!
+  blockNumber: Int!
   period: PricePeriod!
 }
 
@@ -55,6 +56,7 @@ type UniswapPrice @entity {
   token: String!
   value: BigInt!
   timestamp: Int!
+  blockNumber: Int!
   period: PricePeriod!
 }
 
@@ -63,6 +65,7 @@ type FastPrice @entity {
   token: String!
   value: BigInt!
   timestamp: Int!
+  blockNumber: Int!
   period: PricePeriod!
 }
 

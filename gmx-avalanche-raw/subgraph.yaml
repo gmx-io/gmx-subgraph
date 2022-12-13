@@ -64,7 +64,7 @@ dataSources:
         - Swap
         # - UpdateFundingRate
         # - UpdatePnl
-        # - UpdatePosition
+        - UpdatePosition
       abis:
         - name: Vault
           file: ./abis/Vault.json
@@ -109,6 +109,6 @@ dataSources:
         #   handler: handleUpdateFundingRate
         # - event: UpdatePnl(bytes32,bool,uint256)
         #   handler: handleUpdatePnl
-        # - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
-        #   handler: handleUpdatePosition
+        - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256,uint256)
+          handler: handleUpdatePosition
       file: ./src/mapping.ts
