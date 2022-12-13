@@ -11,6 +11,7 @@ import {
   DecreasePosition,
   LiquidatePosition,
   ClosePosition,
+  UpdatePosition,
   Transaction,
   Swap,
   StakeGmx,
@@ -27,7 +28,7 @@ function _createTransactionIfNotExist(event: ethereum.Event): string {
     entity = new Transaction(id)
     entity.timestamp = event.block.timestamp.toI32()
     entity.blockNumber = event.block.number.toI32()
-    entity.logIndex = event.logIndex.toI32()
+    entity.transactionIndex = event.transaction.index.toI32()
     entity.from = event.transaction.from.toHexString()
     if (event.transaction.to == null) {
       entity.to = ""
@@ -61,6 +62,26 @@ export function handleLiquidatePosition(event: vault.LiquidatePosition): void {
 
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()
+  entity.logIndex = event.logIndex.toI32()
+
+  entity.save()
+}
+
+export function handleUpdatePosition(event: vault.UpdatePosition): void {
+  let id = _generateIdFromEvent(event)
+  let entity = new UpdatePosition(id)
+
+  entity.key = event.params.key.toHexString()
+  entity.size = event.params.size
+  entity.collateral = event.params.collateral
+  entity.averagePrice = event.params.averagePrice
+  entity.entryFundingRate = event.params.entryFundingRate
+  entity.reserveAmount = event.params.reserveAmount
+  entity.realisedPnl = event.params.realisedPnl
+
+  entity.transaction = _createTransactionIfNotExist(event)
+  entity.timestamp = event.block.timestamp.toI32()
+  entity.logIndex = event.logIndex.toI32()
 
   entity.save()
 }
@@ -79,6 +100,7 @@ export function handleClosePosition(event: vault.ClosePosition): void {
 
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()
+  entity.logIndex = event.logIndex.toI32()
 
   entity.save()
 }
@@ -99,6 +121,7 @@ export function handleIncreasePosition(event: vault.IncreasePosition): void {
 
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()
+  entity.logIndex = event.logIndex.toI32()
 
   entity.save()
 }
@@ -119,6 +142,7 @@ export function handleDecreasePosition(event: vault.DecreasePosition): void {
 
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()
+  entity.logIndex = event.logIndex.toI32()
 
   entity.save()
 }

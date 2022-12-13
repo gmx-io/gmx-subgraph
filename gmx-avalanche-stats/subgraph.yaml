@@ -95,6 +95,29 @@ dataSources:
       file: ./src/mapping.ts
 
   - kind: ethereum/contract
+    name: GlpManager
+    network: avalanche
+    source:
+      address: "0xD152c7F25db7F4B95b7658323c5F33d176818EE4"
+      abi: GlpManager
+      startBlock: 22742389
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - HourlyGlpStat
+      abis:
+        - name: GlpManager
+          file: ./abis/GlpManager.json
+      eventHandlers:
+        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleAddLiquidity
+        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleRemoveLiquidity
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
     name: OrderBook
     network: avalanche
     source:
