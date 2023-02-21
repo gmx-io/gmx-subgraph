@@ -623,13 +623,19 @@ function _getOrCreateFeeStat(id: string, period: string, periodTimestmap: i32): 
 }
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
-  let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
-  let id = periodTimestamp.toString() + ":daily"
-  let entity = _getOrCreateVolumeStat(id, "daily", periodTimestamp)
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
+  let hourPeriodTimestamp = parseInt(_getHourId(timestamp)) as i32
+  let hourId = hourPeriodTimestamp.toString() + ":daily"
+  let hourEntity = _getOrCreateVolumeStat(hourId, "daily", hourPeriodTimestamp)
+  hourEntity.setBigInt(type, hourEntity.getBigInt(type) + volume)
+  hourEntity.save()
 
-  let totalEntity = _getOrCreateVolumeStat("total", "total", periodTimestamp)
+  let dayPeriodTimestamp = parseInt(_getDayId(timestamp)) as i32
+  let dayId = dayPeriodTimestamp.toString() + ":daily"
+  let dayEntity = _getOrCreateVolumeStat(dayId, "daily", dayPeriodTimestamp)
+  dayEntity.setBigInt(type, dayEntity.getBigInt(type) + volume)
+  dayEntity.save()
+
+  let totalEntity = _getOrCreateVolumeStat("total", "total", dayPeriodTimestamp)
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
   totalEntity.save()
 }

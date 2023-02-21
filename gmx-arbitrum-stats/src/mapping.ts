@@ -511,12 +511,15 @@ function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
   deprecatedEntity.setBigInt(type, deprecatedEntity.getBigInt(type) + volume)
   deprecatedEntity.save()
 
-  //
+  let hourId = _getHourId(timestamp)
+  let hourEntity = _getOrCreateVolumeStat(hourId, "hourly")
+  hourEntity.setBigInt(type, hourEntity.getBigInt(type) + volume)
+  hourEntity.save()
 
-  let id = _getDayId(timestamp)
-  let entity = _getOrCreateVolumeStat(id, "daily")
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
-  entity.save()
+  let dayId = _getDayId(timestamp)
+  let dayEntity = _getOrCreateVolumeStat(dayId, "daily")
+  dayEntity.setBigInt(type, dayEntity.getBigInt(type) + volume)
+  dayEntity.save()
 
   let totalEntity = _getOrCreateVolumeStat("total", "total")
   totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)

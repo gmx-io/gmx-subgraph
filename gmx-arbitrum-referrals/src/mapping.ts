@@ -476,9 +476,9 @@ function _handleChangePositionReferral(
   entity.referrer = referrer.toHexString()
   entity.tierId = referrerEntity.tierId
   entity.marginFee = BigInt.fromI32(10)
-  entity.totalRebate = tierEntity.totalRebate
+  entity.totalRebate = tierEntity!.totalRebate
   entity.discountShare = referrerEntity.discountShare > ZERO
-    ? referrerEntity.discountShare : tierEntity.discountShare
+    ? referrerEntity.discountShare : tierEntity!.discountShare
   entity.blockNumber = blockNumber
   entity.transactionHash = transactionHash.toHexString()
   entity.timestamp = timestamp
