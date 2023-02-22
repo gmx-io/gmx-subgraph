@@ -624,8 +624,8 @@ function _getOrCreateFeeStat(id: string, period: string, periodTimestmap: i32): 
 
 function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
   let hourPeriodTimestamp = parseInt(_getHourId(timestamp)) as i32
-  let hourId = hourPeriodTimestamp.toString() + ":daily"
-  let hourEntity = _getOrCreateVolumeStat(hourId, "daily", hourPeriodTimestamp)
+  let hourId = hourPeriodTimestamp.toString() + ":hourly"
+  let hourEntity = _getOrCreateVolumeStat(hourId, "hourly", hourPeriodTimestamp)
   hourEntity.setBigInt(type, hourEntity.getBigInt(type) + volume)
   hourEntity.save()
 
