@@ -511,7 +511,7 @@ function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
   deprecatedEntity.setBigInt(type, deprecatedEntity.getBigInt(type) + volume)
   deprecatedEntity.save()
 
-  let hourId = _getHourId(timestamp)
+  let hourId = _getHourId(timestamp) + ":hourly"
   let hourEntity = _getOrCreateVolumeStat(hourId, "hourly")
   hourEntity.setBigInt(type, hourEntity.getBigInt(type) + volume)
   hourEntity.save()
