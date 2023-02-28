@@ -333,3 +333,14 @@ type GmxStat @entity {
 
   period: Period!
 }
+
+type TokenOpenInterest @entity {
+  id: ID!
+
+  token: String!
+  period: Period!
+  timestamp: Int!
+
+  long: BigInt!
+  short: BigInt!
+}
