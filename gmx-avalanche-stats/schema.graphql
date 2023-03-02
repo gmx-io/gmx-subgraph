@@ -313,7 +313,7 @@ type GmxStat @entity {
   period: Period!
 }
 
-type TokenOpenInterest @entity {
+type OpenInterestByToken @entity {
   id: ID!
 
   token: String!

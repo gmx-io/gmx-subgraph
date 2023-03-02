@@ -12,7 +12,7 @@ import {
 } from "../generated/Vault/Vault"
 
 import {
-  TokenOpenInterest,
+  OpenInterestByToken,
   TradingStat
 } from "../generated/schema"
 
@@ -38,22 +38,22 @@ function _loadOrCreateEntity(id: string, period: string, timestamp: BigInt): Tra
   return entity as TradingStat
 }
 
-function _loadOrCreateTokenOpenInterset(id: string, period: string, timestamp: BigInt, indexToken: Address): TokenOpenInterest {
-  let entity = TokenOpenInterest.load(id)
+function _loadOrCreateOpenInterestByToken(id: string, period: string, timestamp: BigInt, indexToken: Address): OpenInterestByToken {
+  let entity = OpenInterestByToken.load(id)
   if (entity == null) {
-    entity = new TokenOpenInterest(id)
+    entity = new OpenInterestByToken(id)
     entity.period = period
     entity.long = ZERO
     entity.short = ZERO
     entity.token = indexToken.toHexString()
   }
   entity.timestamp = timestamp.toI32()
-  return entity as TokenOpenInterest;
+  return entity as OpenInterestByToken;
 }
 
-function _updateTokenOpenInterest(timestamp: BigInt, increase: boolean, isLong: boolean, delta: BigInt, indexToken: Address): void {
+function _updateOpenInterestByToken(timestamp: BigInt, increase: boolean, isLong: boolean, delta: BigInt, indexToken: Address): void {
   const id = indexToken.toHexString();
-  const entity = _loadOrCreateTokenOpenInterset(id, "total", timestamp, indexToken)
+  const entity = _loadOrCreateOpenInterestByToken(id, "total", timestamp, indexToken)
 
   if (isLong) {
     entity.long = increase ? entity.long + delta : entity.long - delta
@@ -65,7 +65,7 @@ function _updateTokenOpenInterest(timestamp: BigInt, increase: boolean, isLong: 
   // update day open interest
   const dayTimestamp = timestampToDay(timestamp)
   const dayId = indexToken.toHexString() + ":" + dayTimestamp.toHexString()
-  const dayEntity = _loadOrCreateTokenOpenInterset(dayId, "daily", dayTimestamp, indexToken)
+  const dayEntity = _loadOrCreateOpenInterestByToken(dayId, "daily", dayTimestamp, indexToken)
 
   dayEntity.long = entity.long
   dayEntity.short = entity.short
@@ -94,18 +94,18 @@ function _updateOpenInterest(timestamp: BigInt, increase: boolean, isLong: boole
 
 export function handleIncreasePosition(event: IncreasePosition): void {
   _updateOpenInterest(event.block.timestamp, true, event.params.isLong, event.params.sizeDelta)
-  _updateTokenOpenInterest(event.block.timestamp, true, event.params.isLong, event.params.sizeDelta, event.params.indexToken)
+  _updateOpenInterestByToken(event.block.timestamp, true, event.params.isLong, event.params.sizeDelta, event.params.indexToken)
 }
 
 export function handleLiquidatePosition(event: LiquidatePosition): void {
   _updateOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.size)
-  _updateTokenOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.size, event.params.indexToken)
+  _updateOpenInterestByToken(event.block.timestamp, false, event.params.isLong, event.params.size, event.params.indexToken)
   _storePnl(event.block.timestamp, -event.params.collateral, true)
 }
 
 export function handleDecreasePosition(event: DecreasePosition): void {
   _updateOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.sizeDelta)
-  _updateTokenOpenInterest(event.block.timestamp, false, event.params.isLong, event.params.sizeDelta, event.params.indexToken)
+  _updateOpenInterestByToken(event.block.timestamp, false, event.params.isLong, event.params.sizeDelta, event.params.indexToken)
 }
 
 export function handleClosePosition(event: ClosePosition): void {
