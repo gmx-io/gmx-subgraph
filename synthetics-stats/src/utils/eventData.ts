@@ -133,6 +133,7 @@ export class EventData {
     >(this.rawData.bytes32Items.arrayItems, key);
   }
 
+  // boolean type is not nullable in AssemblyScript, so we return false if the key is not found
   getBoolItem(key: string): boolean {
     let items = this.rawData.boolItems.items;
 

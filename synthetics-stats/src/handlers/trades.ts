@@ -9,10 +9,10 @@ import {
 
 export function saveOrderCreatedTradeAction(
   eventId: string,
-  orderId: string,
+  order: Order,
   transaction: Transaction
 ): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, orderId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderCreated";
   tradeAction.transaction = transaction.id;
@@ -24,11 +24,11 @@ export function saveOrderCreatedTradeAction(
 
 export function saveOrderCancelledTradeAction(
   eventId: string,
-  orderId: string,
+  order: Order,
   reason: string,
   tranaction: Transaction
 ): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, orderId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderCancelled";
   tradeAction.reason = reason;
@@ -41,10 +41,10 @@ export function saveOrderCancelledTradeAction(
 
 export function saveOrderExecutedTradeAction(
   eventId: string,
-  orderId: string,
+  order: Order,
   transaction: Transaction
 ): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, orderId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderExecuted";
   tradeAction.transaction = transaction.id;
@@ -56,10 +56,10 @@ export function saveOrderExecutedTradeAction(
 
 export function saveOrderUpdatedTradeAction(
   eventId: string,
-  orderId: string,
+  order: Order,
   transaction: Transaction
 ): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, orderId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderUpdated";
   tradeAction.transaction = transaction.id;
@@ -71,12 +71,14 @@ export function saveOrderUpdatedTradeAction(
 
 export function saveOrderFrozenTradeAction(
   eventId: string,
-  orderId: string,
+  order: Order,
+  reason: string,
   transaction: Transaction
 ): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, orderId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderFrozen";
+  tradeAction.reason = reason;
   tradeAction.transaction = transaction.id;
 
   tradeAction.save();
@@ -86,15 +88,9 @@ export function saveOrderFrozenTradeAction(
 
 export function savePositionIncreaseTradeAction(
   eventId: string,
-  positionIncreaseId: string,
+  positionIncrease: PositionIncrease,
   transaction: Transaction
 ): TradeAction {
-  let positionIncrease = PositionIncrease.load(positionIncreaseId);
-
-  if (positionIncrease == null) {
-    throw new Error("PositionIncrease not found " + positionIncreaseId);
-  }
-
   let tradeAction = new TradeAction(eventId);
 
   tradeAction.eventName = "PositionIncrease";
@@ -121,15 +117,9 @@ export function savePositionIncreaseTradeAction(
 
 export function savePositionDecreaseTradeAction(
   eventId: string,
-  positionDecreaseId: string,
+  positionDecrease: PositionDecrease,
   transaction: Transaction
 ): TradeAction {
-  let positionDecrease = PositionDecrease.load(positionDecreaseId);
-
-  if (positionDecrease == null) {
-    throw new Error("PositionDecrease not found " + positionDecreaseId);
-  }
-
   let tradeAction = new TradeAction(eventId);
 
   tradeAction.eventName = "PositionDecrease";
@@ -156,14 +146,8 @@ export function savePositionDecreaseTradeAction(
 
 export function getTradeActionFromOrder(
   eventId: string,
-  orderId: string
+  order: Order
 ): TradeAction {
-  let order = Order.load(orderId);
-
-  if (order == null) {
-    throw new Error("Order not found " + orderId);
-  }
-
   let tradeAction = new TradeAction(eventId);
 
   tradeAction.account = order.account;

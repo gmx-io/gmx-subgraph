@@ -90,6 +90,16 @@ type PositionDecrease @entity {
   transaction: Transaction
 }
 
+enum TradeActionType {
+  OrderCreated
+  OrderCancelled
+  OrderExecuted
+  OrderFrozen
+  OrderUpdated
+  PositionIncrease
+  PositionDecrease
+}
+
 type TradeAction @entity {
   id: ID!
   eventName: String

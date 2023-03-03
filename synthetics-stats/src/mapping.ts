@@ -43,7 +43,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderExecution(eventData, transaction);
-    saveOrderExecutedTradeAction(eventId, order.id, transaction);
+    saveOrderExecutedTradeAction(eventId, order, transaction);
 
     return;
   }
@@ -53,7 +53,7 @@ export function handleEventLog1(event: EventLog1): void {
     let order = saveOrderCancellation(eventData, transaction);
     saveOrderCancelledTradeAction(
       eventId,
-      order.id,
+      order,
       order.cancelledReason as string,
       transaction
     );
@@ -63,7 +63,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderUpdate(eventData);
-    saveOrderUpdatedTradeAction(eventId, order.id, transaction);
+    saveOrderUpdatedTradeAction(eventId, order, transaction);
     return;
   }
 
@@ -80,7 +80,12 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderFrozen(eventData);
-    saveOrderFrozenTradeAction(eventId, order.id, transaction);
+    saveOrderFrozenTradeAction(
+      eventId,
+      order,
+      order.frozenReason as string,
+      transaction
+    );
     return;
   }
 
@@ -91,7 +96,7 @@ export function handleEventLog1(event: EventLog1): void {
       eventData,
       transaction
     );
-    savePositionIncreaseTradeAction(eventId, positionIncrease.id, transaction);
+    savePositionIncreaseTradeAction(eventId, positionIncrease, transaction);
 
     return;
   }
@@ -103,7 +108,7 @@ export function handleEventLog1(event: EventLog1): void {
       eventData,
       transaction
     );
-    savePositionDecreaseTradeAction(eventId, positionDecrease.id, transaction);
+    savePositionDecreaseTradeAction(eventId, positionDecrease, transaction);
 
     return;
   }
@@ -119,7 +124,7 @@ export function handleEventLog2(event: EventLog2): void {
   if (eventName == "OrderCreated") {
     let tranaction = getOrCreateTransaction(event);
     let order = saveOrder(eventData, tranaction);
-    saveOrderCreatedTradeAction(eventId, order.id, tranaction);
+    saveOrderCreatedTradeAction(eventId, order, tranaction);
 
     return;
   }
