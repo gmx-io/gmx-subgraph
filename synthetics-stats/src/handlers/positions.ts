@@ -5,7 +5,7 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 
-export function savePositionIncrease(
+export function handlePositionIncrease(
   eventId: string,
   eventData: EventData,
   transaction: Transaction
@@ -53,7 +53,7 @@ export function savePositionIncrease(
   return entity;
 }
 
-export function savePositionDecrease(
+export function handlePositionDecrease(
   eventId: string,
   eventData: EventData,
   transaction: Transaction

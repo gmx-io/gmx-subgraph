@@ -2,7 +2,7 @@ import { Order, Transaction } from "../../generated/schema";
 import { BigInt } from "@graphprotocol/graph-ts";
 import { EventData } from "../utils/eventData";
 
-export function saveOrder(
+export function handleOrderCreated(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -48,7 +48,7 @@ export function saveOrder(
   return order;
 }
 
-export function saveOrderCancellation(
+export function handleOrderCancelled(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -70,7 +70,7 @@ export function saveOrderCancellation(
   return order as Order;
 }
 
-export function saveOrderExecution(
+export function handleOrderExecuted(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -90,7 +90,7 @@ export function saveOrderExecution(
   return order as Order;
 }
 
-export function saveOrderFrozen(eventData: EventData): Order {
+export function handleOrderFrozen(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -107,7 +107,7 @@ export function saveOrderFrozen(eventData: EventData): Order {
   return order as Order;
 }
 
-export function saveOrderUpdate(eventData: EventData): Order {
+export function handleOrderUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -116,33 +116,17 @@ export function saveOrderUpdate(eventData: EventData): Order {
     throw new Error("Order not found " + key);
   }
 
-  let sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd");
-  let triggerPrice = eventData.getUintItem("triggerPrice");
-  let acceptablePrice = eventData.getUintItem("acceptablePrice");
-  let minOutputAmount = eventData.getUintItem("minOutputAmount");
-
-  if (sizeDeltaUsd != null) {
-    order.sizeDeltaUsd = sizeDeltaUsd as BigInt;
-  }
-
-  if (triggerPrice != null) {
-    order.triggerPrice = triggerPrice as BigInt;
-  }
-
-  if (acceptablePrice != null) {
-    order.acceptablePrice = acceptablePrice as BigInt;
-  }
-
-  if (minOutputAmount != null) {
-    order.minOutputAmount = minOutputAmount as BigInt;
-  }
+  order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
+  order.triggerPrice = eventData.getUintItem("triggerPrice")!;
+  order.acceptablePrice = eventData.getUintItem("acceptablePrice")!;
+  order.minOutputAmount = eventData.getUintItem("minOutputAmount")!;
 
   order.save();
 
   return order as Order;
 }
 
-export function saveOrderAutoUpdate(eventData: EventData): Order {
+export function handleOrderAutoUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);

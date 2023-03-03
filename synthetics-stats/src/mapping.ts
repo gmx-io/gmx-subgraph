@@ -6,16 +6,16 @@ import {
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
 import {
-  saveOrderCancellation,
-  saveOrder,
-  saveOrderExecution,
-  saveOrderUpdate,
-  saveOrderFrozen,
-  saveOrderAutoUpdate,
+  handleOrderCancelled,
+  handleOrderCreated,
+  handleOrderExecuted,
+  handleOrderUpdate,
+  handleOrderFrozen,
+  handleOrderAutoUpdate,
 } from "./handlers/orders";
 import {
-  savePositionDecrease,
-  savePositionIncrease,
+  handlePositionDecrease,
+  handlePositionIncrease,
 } from "./handlers/positions";
 import {
   saveOrderCancelledTradeAction,
@@ -42,7 +42,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderExecution(eventData, transaction);
+    let order = handleOrderExecuted(eventData, transaction);
     saveOrderExecutedTradeAction(eventId, order, transaction);
 
     return;
@@ -50,7 +50,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderCancellation(eventData, transaction);
+    let order = handleOrderCancelled(eventData, transaction);
     saveOrderCancelledTradeAction(
       eventId,
       order,
@@ -62,24 +62,24 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderUpdate(eventData);
+    let order = handleOrderUpdate(eventData);
     saveOrderUpdatedTradeAction(eventId, order, transaction);
     return;
   }
 
   if (eventName == "OrderSizeDeltaAutoUpdated") {
-    saveOrderAutoUpdate(eventData);
+    handleOrderAutoUpdate(eventData);
     return;
   }
 
   if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    saveOrderAutoUpdate(eventData);
+    handleOrderAutoUpdate(eventData);
     return;
   }
 
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderFrozen(eventData);
+    let order = handleOrderFrozen(eventData);
     saveOrderFrozenTradeAction(
       eventId,
       order,
@@ -91,7 +91,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    let positionIncrease = savePositionIncrease(
+    let positionIncrease = handlePositionIncrease(
       eventId,
       eventData,
       transaction
@@ -103,7 +103,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    let positionDecrease = savePositionDecrease(
+    let positionDecrease = handlePositionDecrease(
       eventId,
       eventData,
       transaction
@@ -123,7 +123,7 @@ export function handleEventLog2(event: EventLog2): void {
 
   if (eventName == "OrderCreated") {
     let tranaction = getOrCreateTransaction(event);
-    let order = saveOrder(eventData, tranaction);
+    let order = handleOrderCreated(eventData, tranaction);
     saveOrderCreatedTradeAction(eventId, order, tranaction);
 
     return;
