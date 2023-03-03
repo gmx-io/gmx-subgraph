@@ -1,0 +1,126 @@
+enum OrderStatus {
+  Created
+  Executed
+  Cancelled
+  Frozen
+}
+
+type Order @entity {
+  id: ID!
+
+  account: String!
+  receiver: String!
+  callbackContract: String
+  marketAddress: String
+  swapPath: [String!]
+  initialCollateralTokenAddress: String!
+
+  sizeDeltaUsd: BigInt!
+  initialCollateralDeltaAmount: BigInt!
+  triggerPrice: BigInt
+  acceptablePrice: BigInt!
+  executionFee: BigInt!
+  callbackGasLimit: BigInt
+  minOutputAmount: BigInt
+
+  updatedAtBlock: BigInt
+
+  orderType: BigInt!
+
+  shouldUnwrapNativeToken: Boolean!
+  isLong: Boolean
+
+  status: OrderStatus
+
+  cancelledReason: String
+  frozenReason: String
+
+  createdTxn: Transaction!
+  cancelledTxn: Transaction
+  executedTxn: Transaction
+}
+
+type PositionIncrease @entity {
+  id: ID!
+  positionKey: String!
+  account: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+  sizeInUsd: BigInt!
+  sizeInTokens: BigInt!
+  collateralAmount: BigInt!
+  sizeDeltaUsd: BigInt!
+  sizeDeltaInTokens: BigInt!
+  collateralDeltaAmount: BigInt!
+  executionPrice: BigInt!
+  priceImpactDiffUsd: BigInt!
+  orderType: BigInt!
+  borrowingFactor: BigInt!
+  longTokenFundingAmountPerSize: BigInt!
+  shortTokenFundingAmountPerSize: BigInt!
+  priceImpactAmount: BigInt!
+  pnlUsd: BigInt!
+  isLong: Boolean!
+
+  transaction: Transaction
+}
+
+type PositionDecrease @entity {
+  id: ID!
+  positionKey: String!
+  account: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+  sizeInUsd: BigInt!
+  sizeInTokens: BigInt!
+  collateralAmount: BigInt!
+  sizeDeltaUsd: BigInt!
+  sizeDeltaInTokens: BigInt!
+  collateralDeltaAmount: BigInt!
+  executionPrice: BigInt!
+  priceImpactDiffUsd: BigInt!
+  orderType: BigInt!
+  borrowingFactor: BigInt!
+  longTokenFundingAmountPerSize: BigInt!
+  shortTokenFundingAmountPerSize: BigInt!
+  priceImpactAmount: BigInt!
+  pnlUsd: BigInt!
+  isLong: Boolean!
+
+  transaction: Transaction
+}
+
+type TradeAction @entity {
+  id: ID!
+  eventName: String
+
+  account: String
+  marketAddress: String
+  swapPath: [String!]
+  initialCollateralTokenAddress: String
+
+  initialCollateralDeltaAmount: BigInt
+  sizeDeltaUsd: BigInt
+  triggerPrice: BigInt
+  acceptablePrice: BigInt
+  executionPrice: BigInt
+  minOutputAmount: BigInt
+
+  orderType: BigInt
+  isLong: Boolean
+  shouldUnwrapNativeToken: Boolean
+
+  reason: String
+
+  transaction: Transaction!
+}
+
+type Transaction @entity {
+  id: ID!
+  from: String!
+  to: String!
+  hash: String!
+  timestamp: Int!
+  blockNumber: Int!
+  transactionIndex: Int!
+}
