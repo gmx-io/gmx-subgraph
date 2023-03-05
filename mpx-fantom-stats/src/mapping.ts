@@ -5,9 +5,9 @@ import {
   RemoveLiquidity
 } from "../generated/GlpManager/GlpManager"
 
-import {
-  Distribute
-} from "../generated/FeeGmxRewardDistributor/RewardDistributor"
+// import {
+//   Distribute
+// } from "../generated/FeeGmxRewardDistributor/RewardDistributor"
 
 import {
   Vault,
@@ -24,7 +24,7 @@ import {
   DecreasePoolAmount,
 } from "../generated/Vault/Vault"
 
-import { 
+import {
   DecreaseUsdgAmount,
   IncreaseUsdgAmount,
   DecreaseReservedAmount,
@@ -65,7 +65,7 @@ const LIQUIDATOR_ADDRESS = "0x7858a4c42c619a68df6e95df7235a9ec6f0308b9"
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to, event.params.sizeDelta)
+  _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to as Address, event.params.sizeDelta)
   _storeVolumeByToken("margin", event.block.timestamp, event.params.collateralToken, event.params.indexToken, event.params.sizeDelta)
   _storeFees("margin", event.block.timestamp, event.params.fee)
   _storeUserAction(event.block.timestamp, event.params.account, "margin")
@@ -73,7 +73,7 @@ export function handleIncreasePosition(event: IncreasePositionEvent): void {
 
 export function handleDecreasePosition(event: DecreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
-  _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to, event.params.sizeDelta)
+  _storeVolumeBySource("margin", event.block.timestamp, event.transaction.to as Address, event.params.sizeDelta)
   _storeVolumeByToken("margin", event.block.timestamp, event.params.collateralToken, event.params.indexToken, event.params.sizeDelta)
   _storeFees("margin", event.block.timestamp, event.params.fee)
   _storeUserAction(event.block.timestamp, event.params.account, "margin")
@@ -105,7 +105,7 @@ export function handleUpdatePosition(event: UpdatePositionEvent): void {
 
 export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   _storeVolume("liquidation", event.block.timestamp, event.params.size)
-  _storeVolumeBySource("liquidation", event.block.timestamp, event.transaction.to, event.params.size)
+  _storeVolumeBySource("liquidation", event.block.timestamp, event.transaction.to as Address, event.params.size)
 
   // liquidated collateral is not a fee. it's just traders pnl
   // also size * rate incorrect as well because it doesn't consider borrow fee
@@ -139,7 +139,7 @@ function _storeLiquidatedPosition(
   markPrice: BigInt
 ): void {
   let key = keyBytes.toHexString()
-  let position = ActivePosition.load(key)
+  let position = ActivePosition.load(key) as ActivePosition
   let averagePrice = position.averagePrice
 
   let id = key + ":" + timestamp.toString()
@@ -161,7 +161,7 @@ function _storeLiquidatedPosition(
 
   let fundingRateId = _getFundingRateId("total", "total", collateralToken)
   let fundingRateEntity = FundingRate.load(fundingRateId)
-  let accruedFundingRate = BigInt.fromI32(fundingRateEntity.endFundingRate) - position.entryFundingRate
+  let accruedFundingRate = BigInt.fromI32((fundingRateEntity as FundingRate).endFundingRate) - position.entryFundingRate
   liquidatedPosition.borrowFee = accruedFundingRate * size / FUNDING_PRECISION
 
   liquidatedPosition.save()
@@ -170,7 +170,7 @@ function _storeLiquidatedPosition(
 export function handleBuyUSDG(event: BuyUSDGEvent): void {
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
   _storeVolume("mint", event.block.timestamp, volume)
-  _storeVolumeBySource("mint", event.block.timestamp, event.transaction.to, volume)
+  _storeVolumeBySource("mint", event.block.timestamp, event.transaction.to as Address, volume)
 
   let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
   _storeFees("mint", event.block.timestamp, fee)
@@ -179,7 +179,7 @@ export function handleBuyUSDG(event: BuyUSDGEvent): void {
 
 export function handleSellUSDG(event: SellUSDGEvent): void {
   let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
-  _storeVolumeBySource("burn", event.block.timestamp, event.transaction.to, volume)
+  _storeVolumeBySource("burn", event.block.timestamp, event.transaction.to as Address, volume)
   _storeVolume("burn", event.block.timestamp, volume)
 
   let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
@@ -200,7 +200,7 @@ export function handleSwap(event: SwapEvent): void {
   if (transaction == null) {
     transaction = new Transaction(event.transaction.hash.toHexString())
     transaction.from = event.transaction.from.toHexString()
-    transaction.to = event.transaction.to.toHexString()
+    transaction.to = (event.transaction.to as Address).toHexString()
     transaction.save()
   }
 
@@ -229,7 +229,7 @@ export function handleSwap(event: SwapEvent): void {
   let denominator = BigInt.fromString("10").pow(decimals)
   let volume = entity.amountIn * entity.tokenInPrice / denominator
   _storeVolume("swap", event.block.timestamp, volume)
-  _storeVolumeBySource("swap", event.block.timestamp, event.transaction.to, volume)
+  _storeVolumeBySource("swap", event.block.timestamp, event.transaction.to as Address, volume)
   _storeVolumeByToken("swap", event.block.timestamp, event.params.tokenIn, event.params.tokenOut, volume)
 
   let fee = volume * entity.feeBasisPoints / BASIS_POINTS_DIVISOR
@@ -280,7 +280,7 @@ function _storeUserActionByType(
   }
 
   if (user == null) {
-    user = new UserData(userId) 
+    user = new UserData(userId)
     user.period = period
     user.timestamp = parseInt(timestampId) as i32
 
@@ -384,49 +384,49 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
   totalEntity.save()
 }
 
-export function handleDistributeEthToGmx(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
-  let totalEntity = _getOrCreateGmxStat("total", "total")
-  totalEntity.distributedEth += amount
-  totalEntity.distributedEthCumulative += amount
-  totalEntity.distributedUsd += amountUsd
-  totalEntity.distributedUsdCumulative += amountUsd
+// export function handleDistributeEthToGmx(event: Distribute): void {
+//   let amount = event.params.amount
+//   let amountUsd = getTokenAmountUsd(WETH, amount)
+//   let totalEntity = _getOrCreateGmxStat("total", "total")
+//   totalEntity.distributedEth += amount
+//   totalEntity.distributedEthCumulative += amount
+//   totalEntity.distributedUsd += amountUsd
+//   totalEntity.distributedUsdCumulative += amountUsd
 
-  totalEntity.save()
+//   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGmxStat(id, "daily")
+//   let id = _getDayId(event.block.timestamp) + ":daily"
+//   let entity = _getOrCreateGmxStat(id, "daily")
 
-  entity.distributedEth += amount
-  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
-  entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
+//   entity.distributedEth += amount
+//   entity.distributedEthCumulative = totalEntity.distributedEthCumulative
+//   entity.distributedUsd += amountUsd
+//   entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
 
-  entity.save()
-}
-export function handleDistributeEsgmxToGmx(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(GMX, amount)
+//   entity.save()
+// }
+// export function handleDistributeEsgmxToGmx(event: Distribute): void {
+//   let amount = event.params.amount
+//   let amountUsd = getTokenAmountUsd(GMX, amount)
 
-  let totalEntity = _getOrCreateGmxStat("total", "total")
-  totalEntity.distributedEsgmx += amount
-  totalEntity.distributedEsgmxCumulative += amount
-  totalEntity.distributedEsgmxUsd += amountUsd
-  totalEntity.distributedEsgmxUsdCumulative += amountUsd
+//   let totalEntity = _getOrCreateGmxStat("total", "total")
+//   totalEntity.distributedEsgmx += amount
+//   totalEntity.distributedEsgmxCumulative += amount
+//   totalEntity.distributedEsgmxUsd += amountUsd
+//   totalEntity.distributedEsgmxUsdCumulative += amountUsd
 
-  totalEntity.save()
+//   totalEntity.save()
 
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGmxStat(id, "daily")
+//   let id = _getDayId(event.block.timestamp) + ":daily"
+//   let entity = _getOrCreateGmxStat(id, "daily")
 
-  entity.distributedEsgmx += amount
-  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
-  entity.distributedEsgmxUsd += amountUsd
-  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
+//   entity.distributedEsgmx += amount
+//   entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
+//   entity.distributedEsgmxUsd += amountUsd
+//   entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
 
-  entity.save()
-}
+//   entity.save()
+// }
 
 export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
   let timestamp = event.block.timestamp
@@ -571,22 +571,22 @@ function _getOrCreateTokenStat(timestamp: BigInt, period: string, token: Address
   return entity as TokenStat;
 }
 
-function _getOrCreateGmxStat(id: string, period: string): GmxStat {
-  let entity = GmxStat.load(id)
-  if (entity == null) {
-    entity = new GmxStat(id)
-    entity.distributedEth = ZERO
-    entity.distributedEthCumulative = ZERO
-    entity.distributedUsd = ZERO
-    entity.distributedUsdCumulative = ZERO
-    entity.distributedEsgmx = ZERO
-    entity.distributedEsgmxCumulative = ZERO
-    entity.distributedEsgmxUsd = ZERO
-    entity.distributedEsgmxUsdCumulative = ZERO
-    entity.period = period
-  }
-  return entity as GmxStat
-}
+// function _getOrCreateGmxStat(id: string, period: string): GmxStat {
+//   let entity = GmxStat.load(id)
+//   if (entity == null) {
+//     entity = new GmxStat(id)
+//     entity.distributedEth = ZERO
+//     entity.distributedEthCumulative = ZERO
+//     entity.distributedUsd = ZERO
+//     entity.distributedUsdCumulative = ZERO
+//     entity.distributedEsgmx = ZERO
+//     entity.distributedEsgmxCumulative = ZERO
+//     entity.distributedEsgmxUsd = ZERO
+//     entity.distributedEsgmxUsdCumulative = ZERO
+//     entity.period = period
+//   }
+//   return entity as GmxStat
+// }
 
 let TRADE_TYPES = new Array<string>(5)
 TRADE_TYPES[0] = "margin"
@@ -655,17 +655,18 @@ function _getOrCreateVolumeStat(id: string, period: string, periodTimestmap: i32
   return entity as VolumeStat
 }
 
-function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address | null, volume: BigInt): void {
+// Changed source from optional null
+function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address, volume: BigInt): void {
   let id = _getHourId(timestamp) + ":" + source.toHexString()
   let entity = HourlyVolumeBySource.load(id)
 
   if (entity == null) {
     entity = new HourlyVolumeBySource(id)
-    if (source == null) {
-      entity.source = ""
-    } else {
-      entity.source = source.toHexString()
-    }
+    // if (source == null) {
+    //   entity.source = ""
+    // } else {
+    entity.source = source.toHexString()
+    // }
     entity.timestamp = timestamp.toI32() / 3600 * 3600
     for (let i = 0; i < TRADE_TYPES.length; i++) {
       let _type = TRADE_TYPES[i]
@@ -716,53 +717,53 @@ function _getOrCreateGlpStat(id: string, period: string, periodTimestmap: i32): 
   return entity as GlpStat
 }
 
-export function handleDistributeEthToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
-  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
+// export function handleDistributeEthToGlp(event: Distribute): void {
+//   let amount = event.params.amount
+//   let amountUsd = getTokenAmountUsd(WETH, amount)
+//   let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
 
-  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
-  totalEntity.distributedEth += amount
-  totalEntity.distributedEthCumulative += amount
-  totalEntity.distributedUsd += amountUsd
-  totalEntity.distributedUsdCumulative += amountUsd
+//   let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
+//   totalEntity.distributedEth += amount
+//   totalEntity.distributedEthCumulative += amount
+//   totalEntity.distributedUsd += amountUsd
+//   totalEntity.distributedUsdCumulative += amountUsd
 
-  totalEntity.save()
+//   totalEntity.save()
 
-  let id = periodTimestamp.toString() + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
+//   let id = periodTimestamp.toString() + ":daily"
+//   let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
 
-  entity.distributedEth += amount
-  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
-  entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
+//   entity.distributedEth += amount
+//   entity.distributedEthCumulative = totalEntity.distributedEthCumulative
+//   entity.distributedUsd += amountUsd
+//   entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
 
-  entity.save()
-}
+//   entity.save()
+// }
 
-export function handleDistributeEsgmxToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(GMX, amount)
-  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
+// export function handleDistributeEsgmxToGlp(event: Distribute): void {
+//   let amount = event.params.amount
+//   let amountUsd = getTokenAmountUsd(GMX, amount)
+//   let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
 
-  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
-  totalEntity.distributedEsgmx += amount
-  totalEntity.distributedEsgmxCumulative += amount
-  totalEntity.distributedEsgmxUsd += amountUsd
-  totalEntity.distributedEsgmxUsdCumulative += amountUsd
+//   let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
+//   totalEntity.distributedEsgmx += amount
+//   totalEntity.distributedEsgmxCumulative += amount
+//   totalEntity.distributedEsgmxUsd += amountUsd
+//   totalEntity.distributedEsgmxUsdCumulative += amountUsd
 
-  totalEntity.save()
+//   totalEntity.save()
 
-  let id = periodTimestamp.toString() + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
+//   let id = periodTimestamp.toString() + ":daily"
+//   let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
 
-  entity.distributedEsgmx += amount
-  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
-  entity.distributedEsgmxUsd += amountUsd
-  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
+//   entity.distributedEsgmx += amount
+//   entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
+//   entity.distributedEsgmxUsd += amountUsd
+//   entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
 
-  entity.save()
-}
+//   entity.save()
+// }
 
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
   let periodTimestamp = parseInt(_getDayId(timestamp)) as i32

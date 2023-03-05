@@ -1,83 +1,83 @@
-specVersion: 0.0.2
-description: GMX
-repository: https://github.com/gmx-io/gmx-subgraph
+specVersion: 0.0.4
+description: Morphex
+repository: https://github.com/morphex-labs/morphex-subgraph
 schema:
   file: ./schema.graphql
 
 dataSources:
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorBTC
-    network: avalanche
-    source:
-      address: "0x154baB1FC1D87fF641EeD0E9Bc0f8a50D880D2B6"
-      abi: ChainlinkAggregator
-      startBlock: 8330228
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedBTC
-      file: ./src/pricesMapping.ts
+  # - kind: ethereum/contract
+  #   name: ChainlinkAggregatorBTC
+  #   network: avalanche
+  #   source:
+  #     address: "0x154baB1FC1D87fF641EeD0E9Bc0f8a50D880D2B6"
+  #     abi: ChainlinkAggregator
+  #     startBlock: 8330228
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - ChainlinkPrice
+  #     abis:
+  #       - name: ChainlinkAggregator
+  #         file: ./abis/ChainlinkAggregator.json
+  #     eventHandlers:
+  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+  #         handler: handleAnswerUpdatedBTC
+  #     file: ./src/pricesMapping.ts
 
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorETH
-    network: avalanche
-    source:
-      address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
-      abi: ChainlinkAggregator
-      startBlock: 8330228
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedETH
-      file: ./src/pricesMapping.ts
+  # - kind: ethereum/contract
+  #   name: ChainlinkAggregatorETH
+  #   network: avalanche
+  #   source:
+  #     address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
+  #     abi: ChainlinkAggregator
+  #     startBlock: 8330228
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - ChainlinkPrice
+  #     abis:
+  #       - name: ChainlinkAggregator
+  #         file: ./abis/ChainlinkAggregator.json
+  #     eventHandlers:
+  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+  #         handler: handleAnswerUpdatedETH
+  #     file: ./src/pricesMapping.ts
 
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorAVAX
-    network: avalanche
-    source:
-      address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
-      abi: ChainlinkAggregator
-      startBlock: 8330228
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedAVAX
-      file: ./src/pricesMapping.ts
+  # - kind: ethereum/contract
+    # name: ChainlinkAggregatorAVAX
+    # network: avalanche
+    # source:
+    #   address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
+    #   abi: ChainlinkAggregator
+    #   startBlock: 8330228
+    # mapping:
+    #   kind: ethereum/events
+    #   apiVersion: 0.0.6
+    #   language: wasm/assemblyscript
+    #   entities:
+    #     - ChainlinkPrice
+    #   abis:
+    #     - name: ChainlinkAggregator
+    #       file: ./abis/ChainlinkAggregator.json
+    #   eventHandlers:
+    #     - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+    #       handler: handleAnswerUpdatedAVAX
+    #   file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
     name: GlpManager
-    network: avalanche
+    network: fantom
     source:
-      address: "0xe1ae4d4b06A5Fe1fc288f6B4CD72f9F8323B107F"
+      address: "0xA3Ea99f8aE06bA0d9A6Cf7618d06AEa4564340E9"
       abi: GlpManager
-      startBlock: 8231150
+      startBlock: 56889660
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - HourlyGlpStat
@@ -91,39 +91,39 @@ dataSources:
           handler: handleRemoveLiquidity
       file: ./src/mapping.ts
 
-  - kind: ethereum/contract
-    name: GlpManager2
-    network: avalanche
-    source:
-      address: "0xD152c7F25db7F4B95b7658323c5F33d176818EE4"
-      abi: GlpManager
-      startBlock: 22742389
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - HourlyGlpStat
-      abis:
-        - name: GlpManager
-          file: ./abis/GlpManager.json
-      eventHandlers:
-        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleAddLiquidity
-        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleRemoveLiquidity
-      file: ./src/mapping.ts
+  # - kind: ethereum/contract
+  #   name: GlpManager2
+  #   network: avalanche
+  #   source:
+  #     address: "0xD152c7F25db7F4B95b7658323c5F33d176818EE4"
+  #     abi: GlpManager
+  #     startBlock: 22742389
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - HourlyGlpStat
+  #     abis:
+  #       - name: GlpManager
+  #         file: ./abis/GlpManager.json
+  #     eventHandlers:
+  #       - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+  #         handler: handleAddLiquidity
+  #       - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+  #         handler: handleRemoveLiquidity
+  #     file: ./src/mapping.ts
 
   - kind: ethereum/contract
     name: OrderBook
-    network: avalanche
+    network: fantom
     source:
-      address: "0x4296e307f108B2f583FF2F7B7270ee7831574Ae5"
+      address: "0x46940Dc651bFe3F2CC3E04cf9dC5579B50Cf0765"
       abi: OrderBook
-      startBlock: 8353975
+      startBlock: 56892313
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Order
@@ -155,14 +155,14 @@ dataSources:
 
   - kind: ethereum/contract
     name: FastPriceEvents
-    network: avalanche
+    network: fantom
     source:
-      address: "0x02b7023D43bc52bFf8a0C54A9F2ecec053523Bf6"
+      address: "0xD09eF52d1BB74D67B0c508b932E90f8a6B7F1884"
       abi: FastPriceEvents
-      startBlock: 8520800
+      startBlock: 56986974
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - FastPrice
@@ -183,7 +183,7 @@ dataSources:
   #     startBlock: 200000
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - UniswapPrice
@@ -204,7 +204,7 @@ dataSources:
   #     startBlock: 218204
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - GmxStat
@@ -225,7 +225,7 @@ dataSources:
   #     startBlock: 218204
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - GmxStat
@@ -246,7 +246,7 @@ dataSources:
   #     startBlock: 218204
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - GmxStat
@@ -267,7 +267,7 @@ dataSources:
   #     startBlock: 218208
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - GmxStat
@@ -281,14 +281,14 @@ dataSources:
 
   - kind: ethereum/contract
     name: Vault2
-    network: avalanche
+    network: fantom
     source:
-      address: "0x9ab2De34A33fB459b538c43f251eB825645e8595"
+      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
       abi: Vault
-      startBlock: 8231150
+      startBlock: 56888890
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - TradingStat
@@ -308,14 +308,14 @@ dataSources:
 
   - kind: ethereum/contract
     name: Vault
-    network: avalanche
+    network: fantom
     source:
-      address: "0x9ab2De34A33fB459b538c43f251eB825645e8595"
+      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
       abi: Vault
-      startBlock: 8231150
+      startBlock: 56888890
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Swap

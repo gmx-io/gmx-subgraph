@@ -46,7 +46,7 @@ function _storeStats(incrementProp: string, decrementProp: string | null): void 
 
   entity.setI32(incrementProp, entity.getI32(incrementProp) + 1)
   if (decrementProp != null) {
-    entity.setI32(decrementProp, entity.getI32(decrementProp) - 1)
+    entity.setI32(decrementProp as string, entity.getI32(decrementProp as string) - 1)
   }
 
   entity.save()
@@ -60,10 +60,10 @@ function _handleCreateOrder(
   timestamp: BigInt,
   triggerPrice: BigInt,
   triggerAboveThreshold: boolean,
-  indexToken: Address = null,
+  indexToken: Address | null = null,
   isLong: boolean = false,
-  collateralToken: Address = null,
-  collateral: BigInt = null
+  collateralToken: Address | null = null,
+  collateral: BigInt | null = null
 ): void {
   let id = _getId(account, type, index)
   let order = new Order(id)
@@ -86,7 +86,7 @@ function _handleCreateOrder(
 
 function _handleCancelOrder(account: Address, type: string, index: BigInt, timestamp: BigInt): void {
   let id = account.toHexString() + "-" + type + "-" + index.toString()
-  let order = Order.load(id)
+  let order = Order.load(id) as Order
 
   order.status = "cancelled"
   order.cancelledTimestamp = timestamp.toI32()
@@ -96,7 +96,7 @@ function _handleCancelOrder(account: Address, type: string, index: BigInt, times
 
 function _handleExecuteOrder(account: Address, type: string, index: BigInt, timestamp: BigInt): void {
   let id = account.toHexString() + "-" + type + "-" + index.toString()
-  let order = Order.load(id)
+  let order = Order.load(id) as Order
 
   order.status = "executed"
   order.executedTimestamp = timestamp.toI32()
