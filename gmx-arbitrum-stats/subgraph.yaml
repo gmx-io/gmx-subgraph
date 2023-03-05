@@ -1,5 +1,5 @@
 specVersion: 0.0.2
-description: GMX
+description: MPX
 repository: https://github.com/gmx-io/gmx-subgraph
 schema:
   file: ./schema.graphql

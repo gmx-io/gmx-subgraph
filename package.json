@@ -2,8 +2,8 @@
   "name": "mpx-subgraph",
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.0",
+    "@graphprotocol/graph-cli": "0.42.3",
+    "@graphprotocol/graph-ts": "0.29.3",
     "ethers": "^5.4.6",
     "moment": "^2.29.1"
   }
