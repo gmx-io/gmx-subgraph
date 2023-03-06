@@ -49,8 +49,6 @@ import {
 } from "../generated/schema"
 
 import {
-  WETH,
-  GMX,
   BASIS_POINTS_DIVISOR,
   getTokenPrice,
   getTokenDecimals,

@@ -7,22 +7,14 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let WETH = "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab"
-export let BTC = "0x50b7545627a5162f82a992c33b87adc75187b218"
-export let BTC_B = "0x152b9d0fdc40c096757f570a51e494bd4b943e50"
-export let AVAX = "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7"
-// export let LINK = ""
-// export let UNI = ""
-// export let USDT = ""
-// export let USDC = ""
-export let MIM = "0x130966628846bfd36ff31a822705796e8cb8c18d"
-// export let SPELL = ""
-// export let SUSHI = ""
-// export let FRAX = ""
-// export let DAI = ""
-export let GMX = "0x62edc0692bd897d2295872a9ffcac5425011c661"
-export let USDC_E = "0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664"
-export let USDC = "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e"
+export let WETH = "0x74b23882a30290451a17c44f4f05243b6b58c76d"
+export let BTC = "0x321162cd933e2be498cd2267a90534a804051b11"
+export let WFTM = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
+export let USDC = "0x04068da6c83afcfa0e13ba15a6696662335d5b75"
+export let USDT = "0x049d68029688eabf473097a2fc38ef61633a3c7a"
+export let DAI = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e"
+export let MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
+
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestampToPeriod(timestamp, "daily")
@@ -35,7 +27,7 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
     periodTime = BigInt.fromI32(86400)
   } else if (period == "hourly") {
     periodTime = BigInt.fromI32(3600)
-  } else if (period == "weekly" ){
+  } else if (period == "weekly") {
     periodTime = BigInt.fromI32(86400 * 7)
   } else {
     throw new Error("Unsupported period " + period)
@@ -45,18 +37,14 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
-  if (token == BTC_B) {
-    token = BTC
-  }
-
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)
   tokenDecimals.set(BTC, 8)
-  tokenDecimals.set(MIM, 18)
-  tokenDecimals.set(AVAX, 18)
-  tokenDecimals.set(USDC_E, 6)
+  tokenDecimals.set(WFTM, 18)
   tokenDecimals.set(USDC, 6)
-  tokenDecimals.set(GMX, 18)
+  tokenDecimals.set(USDT, 6)
+  tokenDecimals.set(DAI, 18)
+  tokenDecimals.set(MPX, 18)
 
   return tokenDecimals.get(token) as u8
 }
@@ -69,11 +57,7 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
-  if (token == BTC_B) {
-    token = BTC
-  }
-
-  if (token != GMX) {
+  if (token != MPX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
       // all chainlink prices have 8 decimals
@@ -82,8 +66,8 @@ export function getTokenPrice(token: String): BigInt {
     }
   }
 
-  if (token == GMX) {
-    let uniswapPriceEntity = UniswapPrice.load(GMX)
+  if (token == MPX) {
+    let uniswapPriceEntity = UniswapPrice.load(MPX)
 
     if (uniswapPriceEntity != null) {
       return uniswapPriceEntity.value
@@ -93,11 +77,11 @@ export function getTokenPrice(token: String): BigInt {
   let prices = new TypedMap<String, BigInt>()
   prices.set(WETH, BigInt.fromI32(4000) * PRECISION)
   prices.set(BTC, BigInt.fromI32(50000) * PRECISION)
-  prices.set(AVAX, BigInt.fromI32(100) * PRECISION)
-  prices.set(MIM, PRECISION)
-  prices.set(USDC_E, PRECISION)
+  prices.set(WFTM, BigInt.fromI32(100) * PRECISION)
+  prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
-  prices.set(GMX, BigInt.fromI32(30) * PRECISION)
+  prices.set(USDT, PRECISION)
+  prices.set(MPX, BigInt.fromI32(30) * PRECISION)
 
   return prices.get(token) as BigInt
 }

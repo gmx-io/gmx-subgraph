@@ -7,13 +7,6 @@ import {
 } from "../generated/schema"
 
 import {
-  BASIS_POINTS_DIVISOR,
-  PRECISION,
-  WETH,
-  BTC,
-  AVAX,
-  GMX,
-  getTokenAmountUsd,
   timestampToPeriod
 } from "./helpers"
 
