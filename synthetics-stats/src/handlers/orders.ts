@@ -62,6 +62,7 @@ export function handleOrderCancelled(
 
   order.status = "Cancelled";
   order.cancelledReason = eventData.getStringItem("reason");
+  order.cancelledReasonBytes = eventData.getBytesItem("reasonBytes");
 
   order.cancelledTxn = transaction.id;
 
@@ -101,6 +102,7 @@ export function handleOrderFrozen(eventData: EventData): Order {
 
   order.status = "Frozen";
   order.frozenReason = eventData.getStringItem("reason");
+  order.frozenReasonBytes = eventData.getBytesItem("reasonBytes");
 
   order.save();
 
@@ -126,7 +128,7 @@ export function handleOrderUpdate(eventData: EventData): Order {
   return order as Order;
 }
 
-export function handleOrderAutoUpdate(eventData: EventData): Order {
+export function handleOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -135,18 +137,25 @@ export function handleOrderAutoUpdate(eventData: EventData): Order {
     throw new Error("Order not found " + key);
   }
 
-  let sizeDeltaUsd = eventData.getUintItem("nextSizeDeltaUsd");
-  let collateralDeltaAmount = eventData.getUintItem(
+  order.sizeDeltaUsd = eventData.getUintItem("nextSizeDeltaUsd")!;
+
+  order.save();
+
+  return order as Order;
+}
+
+export function handleOrderCollateralAutoUpdate(eventData: EventData): Order {
+  let key = eventData.getBytes32Item("key")!.toHexString();
+
+  let order = Order.load(key);
+
+  if (order == null) {
+    throw new Error("Order not found " + key);
+  }
+
+  order.initialCollateralDeltaAmount = eventData.getUintItem(
     "nextCollateralDeltaAmount"
-  );
-
-  if (sizeDeltaUsd != null) {
-    order.sizeDeltaUsd = sizeDeltaUsd as BigInt;
-  }
-
-  if (collateralDeltaAmount != null) {
-    order.initialCollateralDeltaAmount = collateralDeltaAmount as BigInt;
-  }
+  )!;
 
   order.save();
 

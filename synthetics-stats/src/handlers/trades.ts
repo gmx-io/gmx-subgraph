@@ -1,4 +1,4 @@
-import { ethereum } from "@graphprotocol/graph-ts";
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -26,12 +26,14 @@ export function saveOrderCancelledTradeAction(
   eventId: string,
   order: Order,
   reason: string,
+  reasonBytes: Bytes,
   tranaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderCancelled";
   tradeAction.reason = reason;
+  tradeAction.reasonBytes = reasonBytes;
   tradeAction.transaction = tranaction.id;
 
   tradeAction.save();
@@ -73,12 +75,14 @@ export function saveOrderFrozenTradeAction(
   eventId: string,
   order: Order,
   reason: string,
+  reasonBytes: Bytes,
   transaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
+  tradeAction.reasonBytes = reasonBytes;
   tradeAction.transaction = transaction.id;
 
   tradeAction.save();

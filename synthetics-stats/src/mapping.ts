@@ -11,7 +11,8 @@ import {
   handleOrderExecuted,
   handleOrderUpdate,
   handleOrderFrozen,
-  handleOrderAutoUpdate,
+  handleOrderSizeDeltaAutoUpdate,
+  handleOrderCollateralAutoUpdate,
 } from "./handlers/orders";
 import {
   handlePositionDecrease,
@@ -28,6 +29,7 @@ import {
 } from "./handlers/trades";
 import { getIdFromEvent, getOrCreateTransaction } from "./handlers/common";
 import { EventData } from "./utils/eventData";
+import { Bytes } from "@graphprotocol/graph-ts";
 
 export function handleEventLog(event: EventLog): void {
   return;
@@ -55,6 +57,7 @@ export function handleEventLog1(event: EventLog1): void {
       eventId,
       order,
       order.cancelledReason as string,
+      order.cancelledReasonBytes as Bytes,
       transaction
     );
     return;
@@ -68,12 +71,12 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "OrderSizeDeltaAutoUpdated") {
-    handleOrderAutoUpdate(eventData);
+    handleOrderSizeDeltaAutoUpdate(eventData);
     return;
   }
 
   if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    handleOrderAutoUpdate(eventData);
+    handleOrderCollateralAutoUpdate(eventData);
     return;
   }
 
@@ -84,6 +87,7 @@ export function handleEventLog1(event: EventLog1): void {
       eventId,
       order,
       order.frozenReason as string,
+      order.frozenReasonBytes as Bytes,
       transaction
     );
     return;

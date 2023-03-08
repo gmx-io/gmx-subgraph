@@ -6,7 +6,7 @@ export function getIdFromEvent(event: ethereum.Event): string {
 }
 
 export function getOrCreateTransaction(event: ethereum.Event): Transaction {
-  let id = getIdFromEvent(event);
+  let id = event.transaction.hash.toHexString();
   let entity = Transaction.load(id);
 
   if (entity == null) {

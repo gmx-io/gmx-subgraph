@@ -33,7 +33,9 @@ type Order @entity {
   status: OrderStatus
 
   cancelledReason: String
+  cancelledReasonBytes: Bytes
   frozenReason: String
+  frozenReasonBytes: Bytes
 
   createdTxn: Transaction!
   cancelledTxn: Transaction
@@ -121,6 +123,7 @@ type TradeAction @entity {
   shouldUnwrapNativeToken: Boolean
 
   reason: String
+  reasonBytes: Bytes
 
   transaction: Transaction!
 }

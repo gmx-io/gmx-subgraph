@@ -5,7 +5,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy-prod": "todo",
-    "deploy-test": "graph deploy --product hosted-service divhead/synts --deploy-key $(cat .access_token)"
+    "deploy-test": "graph deploy --product hosted-service divhead/synthetics-fuji-stats --deploy-key $(cat .access_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
