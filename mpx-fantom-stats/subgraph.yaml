@@ -5,68 +5,68 @@ schema:
   file: ./schema.graphql
 
 dataSources:
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorBTC
-  #   network: avalanche
-  #   source:
-  #     address: "0x154baB1FC1D87fF641EeD0E9Bc0f8a50D880D2B6"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 8330228
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedBTC
-  #     file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorBTC
+    network: fantom
+    source:
+      address: "0x8e94C22142F4A64b99022ccDd994f4e9EC86E4B4"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedBTC
+      file: ./src/pricesMapping.ts
 
-  # - kind: ethereum/contract
-  #   name: ChainlinkAggregatorETH
-  #   network: avalanche
-  #   source:
-  #     address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
-  #     abi: ChainlinkAggregator
-  #     startBlock: 8330228
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ChainlinkPrice
-  #     abis:
-  #       - name: ChainlinkAggregator
-  #         file: ./abis/ChainlinkAggregator.json
-  #     eventHandlers:
-  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-  #         handler: handleAnswerUpdatedETH
-  #     file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: fantom
+    source:
+      address: "0x11DdD3d147E5b83D01cee7070027092397d63658"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedETH
+      file: ./src/pricesMapping.ts
 
-  # - kind: ethereum/contract
-    # name: ChainlinkAggregatorAVAX
-    # network: avalanche
-    # source:
-    #   address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
-    #   abi: ChainlinkAggregator
-    #   startBlock: 8330228
-    # mapping:
-    #   kind: ethereum/events
-    #   apiVersion: 0.0.6
-    #   language: wasm/assemblyscript
-    #   entities:
-    #     - ChainlinkPrice
-    #   abis:
-    #     - name: ChainlinkAggregator
-    #       file: ./abis/ChainlinkAggregator.json
-    #   eventHandlers:
-    #     - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-    #       handler: handleAnswerUpdatedAVAX
-    #   file: ./src/pricesMapping.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorAVAX
+    network: fantom
+    source:
+      address: "0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedAVAX
+      file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
     name: GlpManager
@@ -90,29 +90,6 @@ dataSources:
         - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleRemoveLiquidity
       file: ./src/mapping.ts
-
-  # - kind: ethereum/contract
-  #   name: GlpManager2
-  #   network: avalanche
-  #   source:
-  #     address: "0xD152c7F25db7F4B95b7658323c5F33d176818EE4"
-  #     abi: GlpManager
-  #     startBlock: 22742389
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - HourlyGlpStat
-  #     abis:
-  #       - name: GlpManager
-  #         file: ./abis/GlpManager.json
-  #     eventHandlers:
-  #       - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-  #         handler: handleAddLiquidity
-  #       - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-  #         handler: handleRemoveLiquidity
-  #     file: ./src/mapping.ts
 
   - kind: ethereum/contract
     name: OrderBook
@@ -174,138 +151,6 @@ dataSources:
           handler: handlePriceUpdate
       file: ./src/pricesMapping.ts
 
-  # - kind: ethereum/contract
-  #   name: UniswapPool
-  #   network: avalanche
-  #   source:
-  #     address: "0x80A9ae39310abf666A87C743d6ebBD0E8C42158E"
-  #     abi: UniswapPoolV3
-  #     startBlock: 200000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - UniswapPrice
-  #     abis:
-  #       - name: UniswapPoolV3
-  #         file: ./abis/UniswapPoolV3.json
-  #     eventHandlers:
-  #       - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
-  #         handler: handleUniswapGmxEthSwap
-  #     file: ./src/pricesMapping.ts
-
-  # - kind: ethereum/contract
-  #   name: FeeGmxRewardDistributor
-  #   network: avalanche
-  #   source:
-  #     address: "0x1DE098faF30bD74F22753c28DB17A2560D4F5554"
-  #     abi: RewardDistributor
-  #     startBlock: 218204
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - GmxStat
-  #     abis:
-  #       - name: RewardDistributor
-  #         file: ./abis/RewardDistributor.json
-  #     eventHandlers:
-  #       - event: Distribute(uint256)
-  #         handler: handleDistributeEthToGmx
-  #     file: ./src/mapping.ts
-
-  # - kind: ethereum/contract
-  #   name: EsgmxGmxRewardDistributor
-  #   network: avalanche
-  #   source:
-  #     address: "0x23208B91A98c7C1CD9FE63085BFf68311494F193"
-  #     abi: RewardDistributor
-  #     startBlock: 218204
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - GmxStat
-  #     abis:
-  #       - name: RewardDistributor
-  #         file: ./abis/RewardDistributor.json
-  #     eventHandlers:
-  #       - event: Distribute(uint256)
-  #         handler: handleDistributeEsgmxToGmx
-  #     file: ./src/mapping.ts
-
-  # - kind: ethereum/contract
-  #   name: FeeGlpRewardDistributor
-  #   network: avalanche
-  #   source:
-  #     address: "0x5C04a12EB54A093c396f61355c6dA0B15890150d"
-  #     abi: RewardDistributor
-  #     startBlock: 218204
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - GmxStat
-  #     abis:
-  #       - name: RewardDistributor
-  #         file: ./abis/RewardDistributor.json
-  #     eventHandlers:
-  #       - event: Distribute(uint256)
-  #         handler: handleDistributeEthToGlp
-  #     file: ./src/mapping.ts
-
-  # - kind: ethereum/contract
-  #   name: EsgmxGlpRewardDistributor
-  #   network: avalanche
-  #   source:
-  #     address: "0x60519b48ec4183a61ca2B8e37869E675FD203b34"
-  #     abi: RewardDistributor
-  #     startBlock: 218208
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - GmxStat
-  #     abis:
-  #       - name: RewardDistributor
-  #         file: ./abis/RewardDistributor.json
-  #     eventHandlers:
-  #       - event: Distribute(uint256)
-  #         handler: handleDistributeEsgmxToGlp
-  #     file: ./src/mapping.ts
-
-  - kind: ethereum/contract
-    name: Vault2
-    network: fantom
-    source:
-      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
-      abi: Vault
-      startBlock: 56888890
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - TradingStat
-      abis:
-        - name: Vault
-          file: ./abis/VaultV2.json
-      eventHandlers:
-        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
-          handler: handleClosePosition
-        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-          handler: handleIncreasePosition
-        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-          handler: handleDecreasePosition
-        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
-          handler: handleLiquidatePosition
-      file: ./src/tradingMapping.ts
-
   - kind: ethereum/contract
     name: Vault
     network: fantom
@@ -325,12 +170,15 @@ dataSources:
         - HourlyVolumeBySource
         - HourlyVolumeByToken
         - HourlyFee
+        - TradingStat
         - Transaction
         - FundingFee
       abis:
         - name: Vault
           file: ./abis/VaultV2.json
       eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
         - event: UpdateFundingRate(address,uint256)
           handler: handleUpdateFundingRate
         - event: Swap(address,address,address,uint256,uint256,uint256,uint256)

@@ -75,13 +75,13 @@ export function getTokenPrice(token: String): BigInt {
   }
 
   let prices = new TypedMap<String, BigInt>()
-  prices.set(WETH, BigInt.fromI32(4000) * PRECISION)
-  prices.set(BTC, BigInt.fromI32(50000) * PRECISION)
-  prices.set(WFTM, BigInt.fromI32(100) * PRECISION)
+  prices.set(WETH, BigInt.fromI32(1500) * PRECISION)
+  prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
+  prices.set(WFTM, PRECISION)
   prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
   prices.set(USDT, PRECISION)
-  prices.set(MPX, BigInt.fromI32(30) * PRECISION)
+  prices.set(MPX, PRECISION)
 
   return prices.get(token) as BigInt
 }
