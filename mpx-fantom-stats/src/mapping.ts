@@ -59,7 +59,7 @@ import {
 let ZERO = BigInt.fromI32(0)
 let FUNDING_PRECISION = BigInt.fromI32(1000000)
 
-const LIQUIDATOR_ADDRESS = "0x7858a4c42c619a68df6e95df7235a9ec6f0308b9"
+const LIQUIDATOR_ADDRESSES = ["0xb6254092f30a141bf85b2a7e3b2bcec65d809dd0", "0x2b373c5bb7907076a08d77d75eaa30576c8ccb61"]
 
 export function handleIncreasePosition(event: IncreasePositionEvent): void {
   _storeVolume("margin", event.block.timestamp, event.params.sizeDelta)
@@ -76,7 +76,7 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
   _storeFees("margin", event.block.timestamp, event.params.fee)
   _storeUserAction(event.block.timestamp, event.params.account, "margin")
 
-  if (event.transaction.from.toHexString() == LIQUIDATOR_ADDRESS) {
+  if (LIQUIDATOR_ADDRESSES.includes(event.transaction.from.toHexString())) {
     _storeLiquidatedPosition(
       event.params.key,
       event.block.timestamp,
