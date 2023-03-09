@@ -9,7 +9,7 @@ dataSources:
     name: ChainlinkAggregatorBTC
     network: fantom
     source:
-      address: "0x8e94C22142F4A64b99022ccDd994f4e9EC86E4B4"
+      address: "0x472105bB154bD92580a9669AB2483864c3dE9974"
       abi: ChainlinkAggregator
       startBlock: 56889660
     mapping:
@@ -30,7 +30,7 @@ dataSources:
     name: ChainlinkAggregatorETH
     network: fantom
     source:
-      address: "0x11DdD3d147E5b83D01cee7070027092397d63658"
+      address: "0x50f8339E5668F85Bcb4D8DF987C12b7Df4c99084"
       abi: ChainlinkAggregator
       startBlock: 56889660
     mapping:
@@ -51,7 +51,7 @@ dataSources:
     name: ChainlinkAggregatorAVAX
     network: fantom
     source:
-      address: "0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"
+      address: "0xd62d2aFe0196Ef7A80836F74f420B7E8976f46aE"
       abi: ChainlinkAggregator
       startBlock: 56889660
     mapping:
@@ -152,31 +152,31 @@ dataSources:
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
-  name: Vault2
-  network: fantom
-  source:
-    address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
-    abi: Vault
-    startBlock: 56888890
-  mapping:
-    kind: ethereum/events
-    apiVersion: 0.0.6
-    language: wasm/assemblyscript
-    entities:
-      - TradingStat
-    abis:
-      - name: Vault
-        file: ./abis/VaultV2.json
-    eventHandlers:
-      - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
-        handler: handleClosePosition
-      - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-        handler: handleIncreasePosition
-      - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
-        handler: handleDecreasePosition
-      - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
-        handler: handleLiquidatePosition
-    file: ./src/tradingMapping.ts
+    name: Vault2
+    network: fantom
+    source:
+      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+      abi: Vault
+      startBlock: 56888890
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - TradingStat
+      abis:
+        - name: Vault
+          file: ./abis/VaultV2.json
+      eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+      file: ./src/tradingMapping.ts
 
   - kind: ethereum/contract
     name: Vault
