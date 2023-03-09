@@ -26,10 +26,12 @@ import {
   saveOrderUpdatedTradeAction,
   savePositionDecreaseTradeAction,
   savePositionIncreaseTradeAction,
+  saveSwapExecutedTradeAction,
 } from "./handlers/trades";
 import { getIdFromEvent, getOrCreateTransaction } from "./handlers/common";
 import { EventData } from "./utils/eventData";
-import { Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { handleSwapInfo } from "./handlers/swaps";
 
 export function handleEventLog(event: EventLog): void {
   return;
@@ -45,7 +47,15 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
     let order = handleOrderExecuted(eventData, transaction);
+
     saveOrderExecutedTradeAction(eventId, order, transaction);
+
+    if (
+      order.orderType == BigInt.fromI32(0) ||
+      order.orderType == BigInt.fromI32(1)
+    ) {
+      saveSwapExecutedTradeAction(eventId, order, transaction);
+    }
 
     return;
   }
@@ -90,6 +100,13 @@ export function handleEventLog1(event: EventLog1): void {
       order.frozenReasonBytes as Bytes,
       transaction
     );
+    return;
+  }
+
+  if (eventName == "SwapInfo") {
+    let transaction = getOrCreateTransaction(event);
+    handleSwapInfo(eventData, transaction);
+
     return;
   }
 

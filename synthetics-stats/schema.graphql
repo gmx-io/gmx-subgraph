@@ -92,6 +92,23 @@ type PositionDecrease @entity {
   transaction: Transaction
 }
 
+type SwapInfo @entity {
+  id: ID!
+  orderKey: String!
+  receiver: String!
+  marketAddress: String!
+  tokenInAddress: String!
+  tokenOutAddress: String!
+  tokenInPrice: BigInt!
+  tokenOutPrice: BigInt!
+  amountIn: BigInt!
+  amountInAfterFees: BigInt!
+  amountOut: BigInt!
+  priceImpactUsd: BigInt!
+
+  transaction: Transaction!
+}
+
 enum TradeActionType {
   OrderCreated
   OrderCancelled
@@ -100,6 +117,7 @@ enum TradeActionType {
   OrderUpdated
   PositionIncrease
   PositionDecrease
+  SwapOrderExecuted
 }
 
 type TradeAction @entity {
@@ -110,13 +128,16 @@ type TradeAction @entity {
   marketAddress: String
   swapPath: [String!]
   initialCollateralTokenAddress: String
-
   initialCollateralDeltaAmount: BigInt
+
   sizeDeltaUsd: BigInt
+
   triggerPrice: BigInt
   acceptablePrice: BigInt
   executionPrice: BigInt
+
   minOutputAmount: BigInt
+  executionAmountOut: BigInt
 
   orderType: BigInt
   isLong: Boolean

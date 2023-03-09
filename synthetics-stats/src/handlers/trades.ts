@@ -3,9 +3,11 @@ import {
   Order,
   PositionDecrease,
   PositionIncrease,
+  SwapInfo,
   TradeAction,
   Transaction,
 } from "../../generated/schema";
+import { getSwapInfoId } from "./swaps";
 
 export function saveOrderCreatedTradeAction(
   eventId: string,
@@ -83,6 +85,35 @@ export function saveOrderFrozenTradeAction(
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
   tradeAction.reasonBytes = reasonBytes;
+  tradeAction.transaction = transaction.id;
+
+  tradeAction.save();
+
+  return tradeAction;
+}
+
+export function saveSwapExecutedTradeAction(
+  eventId: string,
+  order: Order,
+  transaction: Transaction
+): TradeAction {
+  let tradeAction = getTradeActionFromOrder(eventId, order);
+
+  let swapPath = order.swapPath!;
+
+  let lastSwapAddress: string = swapPath[swapPath.length - 1];
+
+  let swapInfoId = getSwapInfoId(order.id, lastSwapAddress);
+
+  let swapInfo = SwapInfo.load(swapInfoId);
+
+  if (swapInfo == null) {
+    throw new Error("Swap info not found " + swapInfoId);
+  }
+
+  tradeAction.eventName = "SwapOrderExecuted";
+
+  tradeAction.executionAmountOut = swapInfo.amountOut;
   tradeAction.transaction = transaction.id;
 
   tradeAction.save();
