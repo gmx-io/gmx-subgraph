@@ -152,6 +152,33 @@ dataSources:
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
+  name: Vault2
+  network: fantom
+  source:
+    address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+    abi: Vault
+    startBlock: 56888890
+  mapping:
+    kind: ethereum/events
+    apiVersion: 0.0.6
+    language: wasm/assemblyscript
+    entities:
+      - TradingStat
+    abis:
+      - name: Vault
+        file: ./abis/VaultV2.json
+    eventHandlers:
+      - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+        handler: handleClosePosition
+      - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+        handler: handleIncreasePosition
+      - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+        handler: handleDecreasePosition
+      - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+        handler: handleLiquidatePosition
+    file: ./src/tradingMapping.ts
+
+  - kind: ethereum/contract
     name: Vault
     network: fantom
     source:
@@ -170,15 +197,12 @@ dataSources:
         - HourlyVolumeBySource
         - HourlyVolumeByToken
         - HourlyFee
-        - TradingStat
         - Transaction
         - FundingFee
       abis:
         - name: Vault
           file: ./abis/VaultV2.json
       eventHandlers:
-        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
-          handler: handleClosePosition
         - event: UpdateFundingRate(address,uint256)
           handler: handleUpdateFundingRate
         - event: Swap(address,address,address,uint256,uint256,uint256,uint256)
