@@ -27,6 +27,69 @@ dataSources:
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
+    name: ChainlinkAggregatorUSDC
+    network: fantom
+    source:
+      address: "0x9C5a8b11CeE8c207753C313a566761526F2c7934"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedUSDC
+      file: ./src/pricesMapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorDAI
+    network: fantom
+    source:
+      address: "0x15e682Ba1F3e68D507Eb8D21F2D2a90bA82559Ae"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedDAI
+      file: ./src/pricesMapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorUSDT
+    network: fantom
+    source:
+      address: "0x9Fe3826d53e76E877Ca6124ED2997A33b25896Ba"
+      abi: ChainlinkAggregator
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedUSDT
+      file: ./src/pricesMapping.ts
+
+  - kind: ethereum/contract
     name: ChainlinkAggregatorETH
     network: fantom
     source:

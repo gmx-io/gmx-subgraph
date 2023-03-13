@@ -9,7 +9,10 @@ import {
   BTC,
   WETH,
   WFTM,
-  timestampToPeriod
+  timestampToPeriod,
+  USDC,
+  DAI,
+  USDT
 } from "./helpers"
 
 import {
@@ -49,6 +52,18 @@ export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(WFTM, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedUSDT(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(USDT, event.params.current, event.block.timestamp, event.block.number)
 }
 
 function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
