@@ -1,17 +1,19 @@
 import {
   PositionDecrease,
+  PositionFeesInfo,
   PositionIncrease,
   Transaction,
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 
 export function handlePositionIncrease(
-  eventId: string,
   eventData: EventData,
   transaction: Transaction
 ): PositionIncrease {
-  let entity = new PositionIncrease(eventId);
+  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
+  let entity = new PositionIncrease(orderKey);
 
+  entity.orderKey = orderKey;
   entity.positionKey = eventData.getBytes32Item("positionKey")!.toHexString();
 
   entity.account = eventData.getAddressItemString("account")!;
@@ -54,12 +56,14 @@ export function handlePositionIncrease(
 }
 
 export function handlePositionDecrease(
-  eventId: string,
   eventData: EventData,
   transaction: Transaction
 ): PositionDecrease {
-  let entity = new PositionDecrease(eventId);
+  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
 
+  let entity = new PositionDecrease(orderKey);
+
+  entity.orderKey = orderKey;
   entity.positionKey = eventData.getBytes32Item("positionKey")!.toHexString();
 
   entity.account = eventData.getAddressItemString("account")!;
@@ -99,4 +103,36 @@ export function handlePositionDecrease(
   entity.save();
 
   return entity;
+}
+
+export function handlePositionFeesInfo(
+  eventData: EventData,
+  transaction: Transaction
+): PositionFeesInfo {
+  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
+
+  let feesInfo = new PositionFeesInfo(transaction.id);
+
+  feesInfo.orderKey = orderKey;
+  feesInfo.marketAddress = eventData.getAddressItemString("market")!;
+  feesInfo.collateralTokenAddress = eventData.getAddressItemString(
+    "collateralToken"
+  )!;
+
+  feesInfo.collateralTokenPriceMin = eventData.getUintItem(
+    "collateralTokenPrice.min"
+  )!;
+  feesInfo.collateralTokenPriceMax = eventData.getUintItem(
+    "collateralTokenPrice.max"
+  )!;
+
+  feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
+  feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
+  feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
+
+  feesInfo.transaction = transaction.id;
+
+  feesInfo.save();
+
+  return feesInfo;
 }

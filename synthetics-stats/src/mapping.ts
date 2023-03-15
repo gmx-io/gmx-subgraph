@@ -16,6 +16,7 @@ import {
 } from "./handlers/orders";
 import {
   handlePositionDecrease,
+  handlePositionFeesInfo,
   handlePositionIncrease,
 } from "./handlers/positions";
 import {
@@ -24,18 +25,15 @@ import {
   saveOrderExecutedTradeAction,
   saveOrderFrozenTradeAction,
   saveOrderUpdatedTradeAction,
-  savePositionDecreaseTradeAction,
-  savePositionIncreaseTradeAction,
+  savePositionDecreaseExecutedTradeAction,
+  savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction,
 } from "./handlers/trades";
 import { getIdFromEvent, getOrCreateTransaction } from "./handlers/common";
 import { EventData } from "./utils/eventData";
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 import { handleSwapInfo } from "./handlers/swaps";
-
-export function handleEventLog(event: EventLog): void {
-  return;
-}
+import { orderTypes } from "./utils/orders";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -51,10 +49,22 @@ export function handleEventLog1(event: EventLog1): void {
     saveOrderExecutedTradeAction(eventId, order, transaction);
 
     if (
-      order.orderType == BigInt.fromI32(0) ||
-      order.orderType == BigInt.fromI32(1)
+      order.orderType == orderTypes.get("MarketSwap") ||
+      order.orderType == orderTypes.get("LimitSwap")
     ) {
       saveSwapExecutedTradeAction(eventId, order, transaction);
+    } else if (
+      order.orderType == orderTypes.get("MarketIncrease") ||
+      order.orderType == orderTypes.get("LimitIncrease")
+    ) {
+      savePositionIncreaseExecutedTradeAction(eventId, order, transaction);
+    } else if (
+      order.orderType == orderTypes.get("MarketDecrease") ||
+      order.orderType == orderTypes.get("LimitDecrease") ||
+      order.orderType == orderTypes.get("StopLossDecrease") ||
+      order.orderType == orderTypes.get("Liquidation")
+    ) {
+      savePositionDecreaseExecutedTradeAction(eventId, order, transaction);
     }
 
     return;
@@ -110,26 +120,23 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
+  if (eventName == "PositionFeesCollected" || eventName == "PositionFeesInfo") {
+    let transaction = getOrCreateTransaction(event);
+    handlePositionFeesInfo(eventData, transaction);
+
+    return;
+  }
+
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    let positionIncrease = handlePositionIncrease(
-      eventId,
-      eventData,
-      transaction
-    );
-    savePositionIncreaseTradeAction(eventId, positionIncrease, transaction);
+    handlePositionIncrease(eventData, transaction);
 
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    let positionDecrease = handlePositionDecrease(
-      eventId,
-      eventData,
-      transaction
-    );
-    savePositionDecreaseTradeAction(eventId, positionDecrease, transaction);
+    handlePositionDecrease(eventData, transaction);
 
     return;
   }

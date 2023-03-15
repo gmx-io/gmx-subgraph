@@ -6,6 +6,7 @@ enum OrderStatus {
 }
 
 type Order @entity {
+  # orderKey
   id: ID!
 
   account: String!
@@ -43,7 +44,9 @@ type Order @entity {
 }
 
 type PositionIncrease @entity {
+  # orderKey
   id: ID!
+  orderKey: String!
   positionKey: String!
   account: String!
   marketAddress: String!
@@ -68,7 +71,9 @@ type PositionIncrease @entity {
 }
 
 type PositionDecrease @entity {
+  # orderKey
   id: ID!
+  orderKey: String!
   positionKey: String!
   account: String!
   marketAddress: String!
@@ -92,7 +97,25 @@ type PositionDecrease @entity {
   transaction: Transaction
 }
 
+type PositionFeesInfo @entity {
+  # orderKey
+  id: ID!
+  orderKey: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
+
+  positionFeeAmount: BigInt!
+  borrowingFeeAmount: BigInt!
+  fundingFeeAmount: BigInt!
+
+  transaction: Transaction!
+}
+
 type SwapInfo @entity {
+  # orderKey:marketAddress
   id: ID!
   orderKey: String!
   receiver: String!
@@ -117,30 +140,37 @@ enum TradeActionType {
   OrderUpdated
   PositionIncrease
   PositionDecrease
-  SwapOrderExecuted
 }
 
 type TradeAction @entity {
   id: ID!
-  eventName: String
+  eventName: String!
 
-  account: String
+  orderKey: String!
+  orderType: BigInt!
+
+  account: String!
   marketAddress: String
   swapPath: [String!]
-  initialCollateralTokenAddress: String
-  initialCollateralDeltaAmount: BigInt
+  initialCollateralTokenAddress: String!
+  initialCollateralDeltaAmount: BigInt!
 
+  # positions
   sizeDeltaUsd: BigInt
-
   triggerPrice: BigInt
   acceptablePrice: BigInt
   executionPrice: BigInt
+  collateralTokenPriceMin: BigInt
+  collateralTokenPriceMax: BigInt
+  priceImpactDiffUsd: BigInt
+  positionFeeAmount: BigInt
+  borrowingFeeAmount: BigInt
+  fundingFeeAmount: BigInt
+  isLong: Boolean
 
+  # swaps
   minOutputAmount: BigInt
   executionAmountOut: BigInt
-
-  orderType: BigInt
-  isLong: Boolean
   shouldUnwrapNativeToken: Boolean
 
   reason: String
