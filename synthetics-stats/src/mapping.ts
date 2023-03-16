@@ -6,19 +6,20 @@ import {
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
 import {
-  handleOrderCancelled,
-  handleOrderCreated,
-  handleOrderExecuted,
-  handleOrderUpdate,
-  handleOrderFrozen,
+  handleOrderCancelled as saveOrderCancelledState,
+  handleOrderCreated as saveOrder,
+  handleOrderExecuted as saveOrderExecutedState,
+  handleOrderUpdate as saveOrderUpdate,
+  handleOrderFrozen as saveOrderFrozenState,
   handleOrderSizeDeltaAutoUpdate,
   handleOrderCollateralAutoUpdate,
-} from "./handlers/orders";
+  orderTypes,
+} from "./entities/orders";
 import {
-  handlePositionDecrease,
-  handlePositionFeesInfo,
-  handlePositionIncrease,
-} from "./handlers/positions";
+  handlePositionDecrease as savePositionDecrease,
+  handlePositionFeesInfo as savePositionFeesInfo,
+  handlePositionIncrease as savePositionIncrease,
+} from "./entities/positions";
 import {
   saveOrderCancelledTradeAction,
   saveOrderCreatedTradeAction,
@@ -28,12 +29,12 @@ import {
   savePositionDecreaseExecutedTradeAction,
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction,
-} from "./handlers/trades";
-import { getIdFromEvent, getOrCreateTransaction } from "./handlers/common";
+} from "./entities/trades";
+import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import { EventData } from "./utils/eventData";
 import { Bytes } from "@graphprotocol/graph-ts";
-import { handleSwapInfo } from "./handlers/swaps";
-import { orderTypes } from "./utils/orders";
+import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
+import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -44,9 +45,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
-    let order = handleOrderExecuted(eventData, transaction);
-
-    saveOrderExecutedTradeAction(eventId, order, transaction);
+    let order = saveOrderExecutedState(eventData, transaction);
 
     if (
       order.orderType == orderTypes.get("MarketSwap") ||
@@ -66,13 +65,12 @@ export function handleEventLog1(event: EventLog1): void {
     ) {
       savePositionDecreaseExecutedTradeAction(eventId, order, transaction);
     }
-
     return;
   }
 
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
-    let order = handleOrderCancelled(eventData, transaction);
+    let order = saveOrderCancelledState(eventData, transaction);
     saveOrderCancelledTradeAction(
       eventId,
       order,
@@ -85,7 +83,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
-    let order = handleOrderUpdate(eventData);
+    let order = saveOrderUpdate(eventData);
     saveOrderUpdatedTradeAction(eventId, order, transaction);
     return;
   }
@@ -102,7 +100,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
-    let order = handleOrderFrozen(eventData);
+    let order = saveOrderFrozenState(eventData);
     saveOrderFrozenTradeAction(
       eventId,
       order,
@@ -115,29 +113,37 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
-    handleSwapInfo(eventData, transaction);
-
+    saveSwapInfo(eventData, transaction);
     return;
   }
 
   if (eventName == "PositionFeesCollected" || eventName == "PositionFeesInfo") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionFeesInfo(eventData, transaction);
-
+    savePositionFeesInfo(eventData, transaction);
     return;
   }
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionIncrease(eventData, transaction);
-
+    savePositionIncrease(eventData, transaction);
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionDecrease(eventData, transaction);
+    savePositionDecrease(eventData, transaction);
+    return;
+  }
 
+  if (eventName == "FundingFeesClaimed") {
+    let transaction = getOrCreateTransaction(event);
+    saveCollateralClaimedAction(eventData, transaction, "ClaimFunding");
+    return;
+  }
+
+  if (eventName === "CollateralClaimed") {
+    let transaction = getOrCreateTransaction(event);
+    saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
     return;
   }
 }
@@ -151,9 +157,8 @@ export function handleEventLog2(event: EventLog2): void {
 
   if (eventName == "OrderCreated") {
     let tranaction = getOrCreateTransaction(event);
-    let order = handleOrderCreated(eventData, tranaction);
+    let order = saveOrder(eventData, tranaction);
     saveOrderCreatedTradeAction(eventId, order, tranaction);
-
     return;
   }
 }

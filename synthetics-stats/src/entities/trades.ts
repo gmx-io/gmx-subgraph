@@ -114,6 +114,9 @@ export function saveSwapExecutedTradeAction(
 
   tradeAction.eventName = "OrderExecuted";
 
+  tradeAction.orderKey = order.id;
+  tradeAction.orderType = order.orderType;
+
   tradeAction.executionAmountOut = swapInfo.amountOut;
   tradeAction.transaction = transaction.id;
 
@@ -136,6 +139,9 @@ export function savePositionIncreaseExecutedTradeAction(
 
   tradeAction.eventName = "OrderExecuted";
 
+  tradeAction.orderKey = order.id;
+  tradeAction.orderType = order.orderType;
+
   tradeAction.executionPrice = positionIncrease.executionPrice;
 
   tradeAction.transaction = transaction.id;
@@ -150,7 +156,7 @@ export function savePositionDecreaseExecutedTradeAction(
   order: Order,
   transaction: Transaction
 ): TradeAction {
-  let tradeAction = new TradeAction(eventId);
+  let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
   let positionFeesInfo = PositionFeesInfo.load(order.id);
 
@@ -163,6 +169,9 @@ export function savePositionDecreaseExecutedTradeAction(
   // }
 
   tradeAction.eventName = "OrderExecuted";
+
+  tradeAction.orderKey = order.id;
+  tradeAction.orderType = order.orderType;
 
   tradeAction.executionPrice = positionDecrease.executionPrice;
 

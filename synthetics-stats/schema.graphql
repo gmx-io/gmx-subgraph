@@ -11,27 +11,27 @@ type Order @entity {
 
   account: String!
   receiver: String!
-  callbackContract: String
-  marketAddress: String
+  callbackContract: String!
+  marketAddress: String!
   swapPath: [String!]
   initialCollateralTokenAddress: String!
 
   sizeDeltaUsd: BigInt!
   initialCollateralDeltaAmount: BigInt!
-  triggerPrice: BigInt
+  triggerPrice: BigInt!
   acceptablePrice: BigInt!
   executionFee: BigInt!
-  callbackGasLimit: BigInt
-  minOutputAmount: BigInt
+  callbackGasLimit: BigInt!
+  minOutputAmount: BigInt!
 
-  updatedAtBlock: BigInt
+  updatedAtBlock: BigInt!
 
   orderType: BigInt!
 
   shouldUnwrapNativeToken: Boolean!
-  isLong: Boolean
+  isLong: Boolean!
 
-  status: OrderStatus
+  status: OrderStatus!
 
   cancelledReason: String
   cancelledReasonBytes: Bytes
@@ -175,6 +175,23 @@ type TradeAction @entity {
 
   reason: String
   reasonBytes: Bytes
+
+  transaction: Transaction!
+}
+
+enum ClaimCollateralActionType {
+  ClaimPriceImpact
+  ClaimFunding
+}
+
+type ClaimCollateralAction @entity {
+  # transactionHash:account:eventName
+  id: ID!
+  eventName: ClaimCollateralActionType!
+  account: String!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
 
   transaction: Transaction!
 }
