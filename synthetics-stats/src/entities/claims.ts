@@ -17,31 +17,15 @@ export function handleCollateralClaimAction(
   claimAction.account = account;
 
   let marketAddresses = claimAction.marketAddresses;
-
-  if (!marketAddresses) {
-    marketAddresses = new Array<string>(1);
-  }
-
   marketAddresses.push(eventData.getAddressItemString("market")!);
-
   claimAction.marketAddresses = marketAddresses;
 
   let tokenAddresses = claimAction.tokenAddresses;
-
-  if (!tokenAddresses) {
-    tokenAddresses = new Array<string>(1);
-  }
-
+  tokenAddresses.push(eventData.getAddressItemString("token")!);
   claimAction.tokenAddresses = tokenAddresses;
 
   let amounts = claimAction.amounts;
-
-  if (!amounts) {
-    amounts = new Array<BigInt>(1);
-  }
-
   amounts.push(eventData.getUintItem("amount")!);
-
   claimAction.amounts = amounts;
 
   claimAction.transaction = transaction.id;
@@ -58,6 +42,9 @@ export function getOrCreateClaimCollateralAction(
 
   if (!entity) {
     entity = new ClaimCollateralAction(id);
+    entity.marketAddresses = new Array<string>(0);
+    entity.tokenAddresses = new Array<string>(0);
+    entity.amounts = new Array<BigInt>(0);
   }
 
   return entity as ClaimCollateralAction;
