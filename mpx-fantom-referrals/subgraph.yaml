@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -11,7 +11,7 @@ dataSources:
       startBlock: 56892313
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ExecuteDecreaseOrder
@@ -27,12 +27,12 @@ dataSources:
     name: BatchSender
     network: fantom
     source:
-      address: "0xF0f929162751DD723fBa5b86A9B3C88Dc1D4957b"
+      address: "0x90eaa0DB25C569993c80dC5681E6C2981f5C86D9"
       abi: BatchSender
-      startBlock: 13065036
+      startBlock: 57694070
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - BatchSend
@@ -53,7 +53,7 @@ dataSources:
       startBlock: 56894198
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - IncreasePositionReferral
@@ -101,7 +101,7 @@ dataSources:
       startBlock: 56893486
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - IncreasePositionReferral
@@ -149,7 +149,7 @@ dataSources:
       startBlock: 56894666
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - GovSetCodeOwner
