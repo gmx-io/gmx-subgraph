@@ -1,0 +1,17 @@
+{
+  "name": "gmx-subgraph",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "codegen": "graph codegen subgraph.arbitrum.yaml && graph codegen subgraph.avalanche.yaml",
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-leaderboard subgraph.arbitrum.yaml",
+    "deploy-arbitrum": "graph deploy --product hosted-service nissoh/gmx-arbitrum subgraph.arbitrum.yaml",
+    "deploy-arbitrum-dev": "graph deploy --product hosted-service nissoh/gmx-arbitrum-dev subgraph.arbitrum.yaml",
+    "deploy-avalanche": "graph deploy --product hosted-service nissoh/gmx-avalanche subgraph.avalanche.yaml",
+    "deploy-avalanche-dev": "graph deploy --product hosted-service nissoh/gmx-avalanche-dev subgraph.avalanche.yaml",
+    "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx-raw --deploy-key $(cat .access_token)"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-ts": "0.29.0"
+  }
+}

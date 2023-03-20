@@ -1,0 +1,190 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+
+  - kind: ethereum/contract
+    name: transferGmx
+    network: avalanche
+    source:
+      address: "0x62edc0692bd897d2295872a9ffcac5425011c661"
+      abi: ERC20
+      startBlock: 8352150
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGmxTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferEsGmx
+    network: avalanche
+    source:
+      address: "0xff1489227bbaac61a9209a08929e4c2a526ddd17"
+      abi: ERC20
+      startBlock: 8352193
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleEsGmxTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferGlp
+    network: avalanche
+    source:
+      address: "0x01234181085565ed162a948b6a5e88758cd7c7b8"
+      abi: ERC20
+      startBlock: 8351255
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlpTransfer
+      file: ./src/arbitrum/reward.ts
+
+
+  - kind: ethereum/contract
+    name: FastPriceFeed
+    network: avalanche
+    source:
+      address: "0x02b7023d43bc52bff8a0c54a9f2ecec053523bf6"
+      abi: FastPriceEvents
+      startBlock: 8351228
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PriceUpdate
+      abis:
+        - name: FastPriceEvents
+          file: ./abis/FastPriceEvents.json
+      eventHandlers:
+        - event: PriceUpdate(address,uint256,address)
+          handler: handleFastPriceEvent
+      file: ./src/arbitrum/tokenPrice.ts
+
+  - kind: ethereum/contract
+    name: GlpManager
+    network: avalanche
+    source:
+      address: "0xe1ae4d4b06A5Fe1fc288f6B4CD72f9F8323B107F"
+      abi: GlpManager
+      startBlock: 8351258
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Pricefeed
+      abis:
+        - name: GlpManager
+          file: ./abis/GlpManager.json
+      eventHandlers:
+        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleAddLiquidity
+        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleRemoveLiquidity
+      file: ./src/avalanche/tokenPrice.ts
+
+  - kind: ethereum/contract
+    name: gmxVault
+    network: avalanche
+    source:
+      address: "0x9ab2De34A33fB459b538c43f251eB825645e8595"
+      abi: gmxVault
+      startBlock: 8351228
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ClosePosition
+        - DecreasePosition
+        - IncreasePosition
+        - LiquidatePosition
+        - UpdatePosition
+        - Trade
+      abis:
+        - name: gmxVault
+          file: ./abis/Vault-avalanche.json
+        - name: ReferralStorage
+          file: ./abis/ReferralStorage.json
+      eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+        - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256,uint256)
+          handler: handleUpdatePosition
+      file: ./src/trading.ts
+
+  - kind: ethereum/contract
+    name: positionRouter
+    network: avalanche
+    source:
+      address: "0xffF6D276Bc37c61A23f06410Dce4A400f66420f8"
+      abi: positionRouter
+      startBlock: 21006712
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ReferralAdjustment
+      abis:
+        - name: positionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/trading.ts
+
+  - kind: ethereum/contract
+    name: GmxPrice
+    network: avalanche
+    source:
+      address: "0x0c91a070f862666bBcce281346BE45766d874D98"
+      abi: TraderJoePool
+      startBlock: 9822348
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Sync
+      abis:
+        - name: TraderJoePool
+          file: ./abis/TraderJoePool.json
+      eventHandlers:
+        - event: Sync(uint112,uint112)
+          handler: handleTraderJoeGmxAvaxSwap
+      file: ./src/avalanche/tokenPrice.ts

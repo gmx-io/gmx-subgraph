@@ -1,0 +1,293 @@
+specVersion: 0.0.4
+description: Morphex
+repository: https://github.com/morphex-labs/morphex-subgraph
+schema:
+  file: ./schema.graphql
+
+dataSources:
+# Transfers
+  - kind: ethereum/contract
+    name: transferGmx
+    network: fantom
+    source:
+      address: "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
+      abi: ERC20
+      startBlock: 54647659
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGmxTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferGlp
+    network: fantom
+    source:
+      address: "0xd5c313DE2d33bf36014e6c659F13acE112B80a8E"
+      abi: ERC20
+      startBlock: 56889636
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlpTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferEsGmx
+    network: fantom
+    source:
+      address: "0xe0f606e6730bE531EeAf42348dE43C2feeD43505"
+      abi: ERC20
+      startBlock: 56915731
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleEsGmxTransfer
+      file: ./src/arbitrum/reward.ts
+# Trackers
+  - kind: ethereum/contract
+    name: FeeGmxTrackerClaim
+    network: fantom
+    source:
+      address: "0x2d5875ab0efb999c1f49c798acb9efbd1cfbf63c"
+      abi: RewardTracker
+      startBlock: 56916319
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Claim
+      abis:
+        - name: RewardTracker
+          file: ./abis/RewardTracker.json
+      eventHandlers:
+        - event: Claim(address,uint256)
+          handler: handleClaimFees
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: FeeGlpTrackerClaim
+    network: fantom
+    source:
+      address: "0xd3c5ded5f1207c80473d39230e5b0ed11b39f905"
+      abi: RewardTracker
+      startBlock: 56916341
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Claim
+      abis:
+        - name: RewardTracker
+          file: ./abis/RewardTracker.json
+      eventHandlers:
+        - event: Claim(address,uint256)
+          handler: handleClaimFees
+      file: ./src/arbitrum/reward.ts
+# Chainlink aggregators
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorBTC
+    network: fantom
+    source:
+      address: "0x472105bB154bD92580a9669AB2483864c3dE9974"
+      abi: ChainlinkAggregator
+      startBlock: 55091519
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedBTC
+      file: ./src/arbitrum/tokenPrice.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: fantom
+    source:
+      address: "0x50f8339E5668F85Bcb4D8DF987C12b7Df4c99084"
+      abi: ChainlinkAggregator
+      startBlock: 55091519
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedETH
+      file: ./src/arbitrum/tokenPrice.ts
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorFTM
+    network: fantom
+    source:
+      address: "0xd62d2aFe0196Ef7A80836F74f420B7E8976f46aE"
+      abi: ChainlinkAggregator
+      startBlock: 55091519
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedFTM
+      file: ./src/arbitrum/tokenPrice.ts
+# Morphex contracts
+  - kind: ethereum/contract
+    name: FastPriceFeed
+    network: fantom
+    source:
+      address: "0xD09eF52d1BB74D67B0c508b932E90f8a6B7F1884"
+      abi: FastPriceEvents
+      startBlock: 56986974
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PriceUpdate
+      abis:
+        - name: FastPriceEvents
+          file: ./abis/FastPriceEvents.json
+      eventHandlers:
+        - event: PriceUpdate(address,uint256,address)
+          handler: handleFastPriceEvent
+      file: ./src/arbitrum/tokenPrice.ts
+  - kind: ethereum/contract
+    name: GmxPrice
+    network: fantom
+    source:
+      address: "0xdE26e98d868FE02fFfb6DF26E638995124d3Ca13"
+      abi: UniswapPoolV3
+      startBlock: 55091519
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Sync
+      abis:
+        - name: UniswapPoolV3
+          file: ./abis/UniswapPoolV3.json
+      eventHandlers:
+        - event: Sync(uint256,uint256)
+          handler: handleEqualizerMpxFtmSwap
+      file: ./src/arbitrum/tokenPrice.ts
+  - kind: ethereum/contract
+    name: GlpManager
+    network: fantom
+    source:
+      address: "0xA3Ea99f8aE06bA0d9A6Cf7618d06AEa4564340E9"
+      abi: GlpManager
+      startBlock: 56889660
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Pricefeed
+      abis:
+        - name: GlpManager
+          file: ./abis/GlpManager.json
+      eventHandlers:
+        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleAddLiquidity
+        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleRemoveLiquidity
+      file: ./src/arbitrum/tokenPrice.ts
+  - kind: ethereum/contract
+    name: positionRouter
+    network: fantom
+    source:
+      address: "0x26e6c47682ffc1824d7ac5512752fc671da5e607"
+      abi: positionRouter
+      startBlock: 56893486
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ReferralAdjustment
+      abis:
+        - name: positionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/trading.ts
+  - kind: ethereum/contract
+    name: gmxVault
+    network: fantom
+    source:
+      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+      abi: gmxVault
+      startBlock: 56888890
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ClosePosition
+        - DecreasePosition
+        - IncreasePosition
+        - LiquidatePosition
+        - UpdatePosition
+        - Trade
+      abis:
+        - name: gmxVault
+          file: ./abis/Vault-avalanche.json
+        - name: ReferralStorage
+          file: ./abis/ReferralStorage.json
+      eventHandlers:
+        - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
+          handler: handleClosePosition
+        - event: DecreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleDecreasePosition
+        - event: IncreasePosition(bytes32,address,address,address,uint256,uint256,bool,uint256,uint256)
+          handler: handleIncreasePosition
+        - event: LiquidatePosition(bytes32,address,address,address,bool,uint256,uint256,uint256,int256,uint256)
+          handler: handleLiquidatePosition
+        - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256,uint256)
+          handler: handleUpdatePosition
+      file: ./src/trading.ts
+
+
+
