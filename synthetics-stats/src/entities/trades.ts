@@ -1,4 +1,4 @@
-import { Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -164,9 +164,9 @@ export function savePositionDecreaseExecutedTradeAction(
     throw new Error("PositionDecrease not found " + order.id);
   }
 
-  // if (positionFeesInfo == null) {
-  //   throw new Error("PositionFeesInfo not found " + order.id);
-  // }
+  if (positionFeesInfo == null) {
+    throw new Error("PositionFeesInfo not found " + order.id);
+  }
 
   tradeAction.eventName = "OrderExecuted";
 
@@ -175,16 +175,16 @@ export function savePositionDecreaseExecutedTradeAction(
 
   tradeAction.executionPrice = positionDecrease.executionPrice;
 
-  // tradeAction.collateralTokenPriceMin =
-  //   positionFeesInfo.collateralTokenPriceMin;
-  // tradeAction.collateralTokenPriceMax =
-  //   positionFeesInfo.collateralTokenPriceMax;
+  tradeAction.collateralTokenPriceMin =
+    positionFeesInfo.collateralTokenPriceMin;
+  tradeAction.collateralTokenPriceMax =
+    positionFeesInfo.collateralTokenPriceMax;
 
   tradeAction.priceImpactDiffUsd = positionDecrease.priceImpactDiffUsd;
 
-  // tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
-  // tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
-  // tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
+  tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
+  tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
+  tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
   tradeAction.transaction = transaction.id;
 

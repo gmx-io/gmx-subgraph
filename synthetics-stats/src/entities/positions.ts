@@ -111,7 +111,7 @@ export function handlePositionFeesInfo(
 ): PositionFeesInfo {
   let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
 
-  let feesInfo = new PositionFeesInfo(transaction.id);
+  let feesInfo = new PositionFeesInfo(orderKey);
 
   feesInfo.orderKey = orderKey;
   feesInfo.marketAddress = eventData.getAddressItemString("market")!;

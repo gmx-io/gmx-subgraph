@@ -9,7 +9,7 @@ dataSources:
     name: EventEmitter
     network: fuji
     source:
-      address: "0x5fB6F3F35cB6A790694d8D4092d050e0d1117319"
+      address: "0x7Ddd3011d8A53d24A646AF576fbbe06344906cB3"
       abi: EventEmitter
       startBlock: 19646778
     mapping:
