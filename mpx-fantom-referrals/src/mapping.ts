@@ -175,7 +175,7 @@ export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
 
 export function handleSetReferrerDiscountShare(event: SetReferrerDiscountShare): void {
    let entity = _getOrCreateReferrer(event.params.referrer.toHexString())
-   entity.discountShare = event.params.discountShare;
+   entity.discountShare = (event.params.discountShare !== null ? event.params.discountShare : ZERO) as BigInt;
    entity.save()
 }
 
@@ -187,8 +187,8 @@ export function handleSetReferrerTier(event: SetReferrerTier): void {
 
 export function handleSetTier(event: SetTier): void {
   let entity = _getOrCreateTier(event.params.tierId.toString())
-  entity.totalRebate = event.params.totalRebate
-  entity.discountShare = event.params.discountShare
+  entity.totalRebate = event.params.totalRebate !== null ? event.params.totalRebate : ZERO
+  entity.discountShare = (event.params.discountShare !== null ? event.params.discountShare : ZERO) as BigInt;
   entity.save()
 }
 
@@ -479,7 +479,7 @@ function _handleChangePositionReferral(
   entity.tierId = referrerEntity.tierId
   entity.marginFee = BigInt.fromI32(10)
   if (tierEntity) {
-    entity.totalRebate = tierEntity.totalRebate
+    entity.totalRebate = tierEntity.totalRebate !== null ? tierEntity.totalRebate : ZERO
     entity.discountShare = referrerEntity.discountShare > ZERO
       ? referrerEntity.discountShare : tierEntity.discountShare
   }
@@ -488,8 +488,8 @@ function _handleChangePositionReferral(
   entity.timestamp = timestamp
 
   let feesUsd = entity.volume * entity.marginFee / BASIS_POINTS_DIVISOR
-  let totalRebateUsd = feesUsd * entity.totalRebate / BASIS_POINTS_DIVISOR
-  let discountUsd = totalRebateUsd * entity.discountShare / BASIS_POINTS_DIVISOR
+  let totalRebateUsd = feesUsd * ((entity.totalRebate !== null ? entity.totalRebate : ZERO) as BigInt) / BASIS_POINTS_DIVISOR
+  let discountUsd = totalRebateUsd * ((entity.discountShare !== null ? entity.discountShare : ZERO) as BigInt) / BASIS_POINTS_DIVISOR
 
   entity.totalRebateUsd = totalRebateUsd
   entity.discountUsd = discountUsd

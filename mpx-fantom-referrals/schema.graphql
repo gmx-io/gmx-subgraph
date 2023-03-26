@@ -31,8 +31,8 @@ type ReferralVolumeRecord @entity {
   referralCode: String!
   referrer: String!
   tierId: BigInt!
-  totalRebate: BigInt!
-  discountShare: BigInt!
+  totalRebate: BigInt
+  discountShare: BigInt
   marginFee: BigInt!
   totalRebateUsd: BigInt!
   discountUsd: BigInt!
