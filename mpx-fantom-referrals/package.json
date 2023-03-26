@@ -8,7 +8,7 @@
     "deploy-prod": "graph codegen && graph deploy --product hosted-service morphex-labs/morphex-fantom-referrals"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.0"
+    "@graphprotocol/graph-cli": "0.42.3",
+    "@graphprotocol/graph-ts": "0.29.3"
   }
 }

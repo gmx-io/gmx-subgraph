@@ -72,12 +72,12 @@ dataSources:
   #   name: PositionManager_v2
   #   network: fantom
   #   source:
-  #     address: "0xA21B83E579f4315951bA658654c371520BDcB866"
+  #     address: "0x366152Fc0FC4680e0A05ce9739a4210228C72BA3"
   #     abi: PositionManager
-  #     startBlock: 21005974
+  #     startBlock: 56894198
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - IncreasePositionReferral
@@ -120,12 +120,12 @@ dataSources:
   #   name: PositionRouter_v2
   #   network: fantom
   #   source:
-  #     address: "0xffF6D276Bc37c61A23f06410Dce4A400f66420f8"
+  #     address: "0x26e6C47682FfC1824d7aC5512752FC671dA5e607"
   #     abi: PositionRouter
-  #     startBlock: 21006712
+  #     startBlock: 56893486
   #   mapping:
   #     kind: ethereum/events
-  #     apiVersion: 0.0.4
+  #     apiVersion: 0.0.6
   #     language: wasm/assemblyscript
   #     entities:
   #       - IncreasePositionReferral
