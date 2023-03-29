@@ -142,6 +142,10 @@ export function savePositionIncreaseExecutedTradeAction(
   tradeAction.orderKey = order.id;
   tradeAction.orderType = order.orderType;
 
+  tradeAction.initialCollateralDeltaAmount =
+    positionIncrease.collateralDeltaAmount;
+  tradeAction.sizeDeltaUsd = positionIncrease.sizeDeltaUsd;
+
   tradeAction.executionPrice = positionIncrease.executionPrice;
 
   tradeAction.transaction = transaction.id;
@@ -175,16 +179,23 @@ export function savePositionDecreaseExecutedTradeAction(
 
   tradeAction.executionPrice = positionDecrease.executionPrice;
 
+  tradeAction.initialCollateralDeltaAmount =
+    positionDecrease.collateralDeltaAmount;
+  tradeAction.sizeDeltaUsd = positionDecrease.sizeDeltaUsd;
+
   tradeAction.collateralTokenPriceMin =
     positionFeesInfo.collateralTokenPriceMin;
   tradeAction.collateralTokenPriceMax =
     positionFeesInfo.collateralTokenPriceMax;
 
   tradeAction.priceImpactDiffUsd = positionDecrease.priceImpactDiffUsd;
+  tradeAction.priceImpactAmount = positionDecrease.priceImpactAmount;
 
   tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
   tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
   tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
+
+  tradeAction.pnlUsd = positionDecrease.pnlUsd;
 
   tradeAction.transaction = transaction.id;
 

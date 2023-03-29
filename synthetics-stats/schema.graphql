@@ -138,8 +138,6 @@ enum TradeActionType {
   OrderExecuted
   OrderFrozen
   OrderUpdated
-  PositionIncrease
-  PositionDecrease
 }
 
 type TradeAction @entity {
@@ -163,9 +161,11 @@ type TradeAction @entity {
   collateralTokenPriceMin: BigInt
   collateralTokenPriceMax: BigInt
   priceImpactDiffUsd: BigInt
+  priceImpactAmount: BigInt
   positionFeeAmount: BigInt
   borrowingFeeAmount: BigInt
   fundingFeeAmount: BigInt
+  pnlUsd: BigInt
   isLong: Boolean
 
   # swaps
