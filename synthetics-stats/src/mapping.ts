@@ -35,6 +35,7 @@ import { EventData } from "./utils/eventData";
 import { Bytes } from "@graphprotocol/graph-ts";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
+import { saveCollectedPositionFeesByPeriod } from "./entities/fees";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -117,9 +118,20 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
-  if (eventName == "PositionFeesCollected" || eventName == "PositionFeesInfo") {
+  if (eventName == "PositionFeesInfo") {
     let transaction = getOrCreateTransaction(event);
     savePositionFeesInfo(eventData, transaction);
+    return;
+  }
+
+  if (eventName == "PositionFeesCollected") {
+    let transaction = getOrCreateTransaction(event);
+    let positionFeesInfo = savePositionFeesInfo(eventData, transaction);
+    saveCollectedPositionFeesByPeriod(
+      positionFeesInfo,
+      "1d",
+      transaction.timestamp
+    );
     return;
   }
 

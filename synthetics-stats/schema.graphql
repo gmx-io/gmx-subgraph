@@ -5,6 +5,19 @@ enum OrderStatus {
   Frozen
 }
 
+enum TradeActionType {
+  OrderCreated
+  OrderCancelled
+  OrderExecuted
+  OrderFrozen
+  OrderUpdated
+}
+
+enum ClaimCollateralActionType {
+  ClaimPriceImpact
+  ClaimFunding
+}
+
 type Order @entity {
   # orderKey
   id: ID!
@@ -110,6 +123,7 @@ type PositionFeesInfo @entity {
   positionFeeAmount: BigInt!
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
+  feeAmountForPool: BigInt!
 
   transaction: Transaction!
 }
@@ -130,14 +144,6 @@ type SwapInfo @entity {
   priceImpactUsd: BigInt!
 
   transaction: Transaction!
-}
-
-enum TradeActionType {
-  OrderCreated
-  OrderCancelled
-  OrderExecuted
-  OrderFrozen
-  OrderUpdated
 }
 
 type TradeAction @entity {
@@ -179,11 +185,6 @@ type TradeAction @entity {
   transaction: Transaction!
 }
 
-enum ClaimCollateralActionType {
-  ClaimPriceImpact
-  ClaimFunding
-}
-
 type ClaimCollateralAction @entity {
   # transactionHash:account:eventName
   id: ID!
@@ -194,6 +195,17 @@ type ClaimCollateralAction @entity {
   amounts: [BigInt!]!
 
   transaction: Transaction!
+}
+
+type CollectedPositionFee @entity {
+  # marketAddress:collateralAddress:period:timestampGroup
+  id: ID!
+  period: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+  timestampGroup: Int!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
 }
 
 type Transaction @entity {

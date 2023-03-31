@@ -129,6 +129,7 @@ export function handlePositionFeesInfo(
   feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
   feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
   feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
+  feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
 
   feesInfo.transaction = transaction.id;
 
