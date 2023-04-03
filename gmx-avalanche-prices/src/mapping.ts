@@ -78,13 +78,6 @@ function updateCandle(event: PriceUpdate, period: string): void {
     entity.timestamp = periodStart.toI32()
     entity.token = event.params.token.toHexString()
   } else {
-
-    if (entity.high < event.params.price) {
-      entity.high = event.params.price
-    }
-    if (entity.low > event.params.price) {
-      entity.low = event.params.price
-    }
     entity.high = getMax(entity.high, entity.open, event.params.price)
     entity.low = getMin(entity.low, entity.open, event.params.price)
     entity.close = event.params.price
