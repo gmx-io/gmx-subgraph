@@ -6,24 +6,22 @@ import {
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
 import {
-  handleOrderCancelled as saveOrderCancelledState,
-  handleOrderCreated as saveOrder,
-  handleOrderExecuted as saveOrderExecutedState,
-  handleOrderUpdate as saveOrderUpdate,
-  handleOrderFrozen as saveOrderFrozenState,
-  handleOrderSizeDeltaAutoUpdate,
-  handleOrderCollateralAutoUpdate,
+  saveOrderCancelledState,
+  saveOrder,
+  saveOrderExecutedState,
+  saveOrderUpdate,
+  saveOrderFrozenState,
+  saveOrderSizeDeltaAutoUpdate,
+  saveOrderCollateralAutoUpdate,
   orderTypes,
 } from "./entities/orders";
 import {
-  handlePositionDecrease as savePositionDecrease,
-  handlePositionFeesInfo as savePositionFeesInfo,
-  handlePositionIncrease as savePositionIncrease,
+  savePositionDecrease,
+  savePositionIncrease,
 } from "./entities/positions";
 import {
   saveOrderCancelledTradeAction,
   saveOrderCreatedTradeAction,
-  saveOrderExecutedTradeAction,
   saveOrderFrozenTradeAction,
   saveOrderUpdatedTradeAction,
   savePositionDecreaseExecutedTradeAction,
@@ -35,7 +33,10 @@ import { EventData } from "./utils/eventData";
 import { Bytes } from "@graphprotocol/graph-ts";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
-import { saveCollectedPositionFeesByPeriod } from "./entities/fees";
+import {
+  saveCollectedPositionFeesForPeriod,
+  savePositionFeesInfo,
+} from "./entities/fees";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -90,12 +91,12 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "OrderSizeDeltaAutoUpdated") {
-    handleOrderSizeDeltaAutoUpdate(eventData);
+    saveOrderSizeDeltaAutoUpdate(eventData);
     return;
   }
 
   if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    handleOrderCollateralAutoUpdate(eventData);
+    saveOrderCollateralAutoUpdate(eventData);
     return;
   }
 
@@ -120,16 +121,39 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionFeesInfo") {
     let transaction = getOrCreateTransaction(event);
-    savePositionFeesInfo(eventData, transaction);
+    let positionFeesInfo = savePositionFeesInfo(
+      eventData,
+      "PositionFeesInfo",
+      transaction
+    );
+    saveCollectedPositionFeesForPeriod(
+      positionFeesInfo,
+      "1d",
+      transaction.timestamp
+    );
+    saveCollectedPositionFeesForPeriod(
+      positionFeesInfo,
+      "1h",
+      transaction.timestamp
+    );
     return;
   }
 
   if (eventName == "PositionFeesCollected") {
     let transaction = getOrCreateTransaction(event);
-    let positionFeesInfo = savePositionFeesInfo(eventData, transaction);
-    saveCollectedPositionFeesByPeriod(
+    let positionFeesInfo = savePositionFeesInfo(
+      eventData,
+      "PositionFeesCollected",
+      transaction
+    );
+    saveCollectedPositionFeesForPeriod(
       positionFeesInfo,
       "1d",
+      transaction.timestamp
+    );
+    saveCollectedPositionFeesForPeriod(
+      positionFeesInfo,
+      "1h",
       transaction.timestamp
     );
     return;

@@ -1,4 +1,4 @@
-import { Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -9,6 +9,7 @@ import {
   Transaction,
 } from "../../generated/schema";
 import { getSwapInfoId } from "./swaps";
+import { orderTypes } from "./orders";
 
 export function saveOrderCreatedTradeAction(
   eventId: string,
@@ -162,14 +163,22 @@ export function savePositionDecreaseExecutedTradeAction(
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
-  let positionFeesInfo = PositionFeesInfo.load(order.id);
+
+  let isLiquidation = order.orderType == orderTypes.get("Liquidation");
+
+  let positionFeesInfo = PositionFeesInfo.load(
+    order.id + ":" + "PositionFeesInfo"
+  );
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);
   }
 
   if (positionFeesInfo == null) {
-    throw new Error("PositionFeesInfo not found " + order.id);
+    positionFeesInfo = PositionFeesInfo.load(
+      order.id + ":" + "PositionFeesCollected"
+    );
+    // throw new Error("PositionFeesInfo not found " + order.id);
   }
 
   tradeAction.eventName = "OrderExecuted";

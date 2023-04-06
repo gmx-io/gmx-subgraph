@@ -56,7 +56,7 @@ type Order @entity {
   executedTxn: Transaction
 }
 
-type PositionIncrease @entity {
+type PositionIncrease @entity(immutable: true) {
   # orderKey
   id: ID!
   orderKey: String!
@@ -83,7 +83,7 @@ type PositionIncrease @entity {
   transaction: Transaction
 }
 
-type PositionDecrease @entity {
+type PositionDecrease @entity(immutable: true) {
   # orderKey
   id: ID!
   orderKey: String!
@@ -110,9 +110,10 @@ type PositionDecrease @entity {
   transaction: Transaction
 }
 
-type PositionFeesInfo @entity {
-  # orderKey
+type PositionFeesInfo @entity(immutable: true) {
+  # orderKey:eventName
   id: ID!
+  eventName: String!
   orderKey: String!
   marketAddress: String!
   collateralTokenAddress: String!
@@ -128,7 +129,7 @@ type PositionFeesInfo @entity {
   transaction: Transaction!
 }
 
-type SwapInfo @entity {
+type SwapInfo @entity(immutable: true) {
   # orderKey:marketAddress
   id: ID!
   orderKey: String!
@@ -146,7 +147,7 @@ type SwapInfo @entity {
   transaction: Transaction!
 }
 
-type TradeAction @entity {
+type TradeAction @entity(immutable: true) {
   id: ID!
   eventName: String!
 
@@ -185,7 +186,7 @@ type TradeAction @entity {
   transaction: Transaction!
 }
 
-type ClaimCollateralAction @entity {
+type ClaimCollateralAction @entity(immutable: true) {
   # transactionHash:account:eventName
   id: ID!
   eventName: ClaimCollateralActionType!

@@ -13,7 +13,7 @@ orderTypes.set("LimitDecrease", BigInt.fromI32(5));
 orderTypes.set("StopLossDecrease", BigInt.fromI32(6));
 orderTypes.set("Liquidation", BigInt.fromI32(7));
 
-export function handleOrderCreated(
+export function saveOrder(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -59,7 +59,7 @@ export function handleOrderCreated(
   return order;
 }
 
-export function handleOrderCancelled(
+export function saveOrderCancelledState(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -82,7 +82,7 @@ export function handleOrderCancelled(
   return order as Order;
 }
 
-export function handleOrderExecuted(
+export function saveOrderExecutedState(
   eventData: EventData,
   transaction: Transaction
 ): Order {
@@ -102,7 +102,7 @@ export function handleOrderExecuted(
   return order as Order;
 }
 
-export function handleOrderFrozen(eventData: EventData): Order {
+export function saveOrderFrozenState(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -120,7 +120,7 @@ export function handleOrderFrozen(eventData: EventData): Order {
   return order as Order;
 }
 
-export function handleOrderUpdate(eventData: EventData): Order {
+export function saveOrderUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -139,7 +139,7 @@ export function handleOrderUpdate(eventData: EventData): Order {
   return order as Order;
 }
 
-export function handleOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
+export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
@@ -155,7 +155,7 @@ export function handleOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
   return order as Order;
 }
 
-export function handleOrderCollateralAutoUpdate(eventData: EventData): Order {
+export function saveOrderCollateralAutoUpdate(eventData: EventData): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);

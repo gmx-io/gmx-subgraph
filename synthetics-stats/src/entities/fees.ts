@@ -1,8 +1,13 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { CollectedPositionFee, PositionFeesInfo } from "../../generated/schema";
+import {
+  CollectedPositionFee,
+  PositionFeesInfo,
+  Transaction,
+} from "../../generated/schema";
 import { timestampToPeriodStart } from "../utils/time";
+import { EventData } from "../utils/eventData";
 
-export function saveCollectedPositionFeesByPeriod(
+export function saveCollectedPositionFeesForPeriod(
   positionFeesInfo: PositionFeesInfo,
   period: string,
   timestamp: i32
@@ -14,17 +19,56 @@ export function saveCollectedPositionFeesByPeriod(
     period
   );
 
-  collectedFees.feeAmountForPool =
-    collectedFees.feeAmountForPool + positionFeesInfo.feeAmountForPool;
+  collectedFees.feeAmountForPool = collectedFees.feeAmountForPool.plus(
+    positionFeesInfo.feeAmountForPool
+  );
 
-  collectedFees.feeUsdForPool =
-    collectedFees.feeUsdForPool +
-    positionFeesInfo.feeAmountForPool *
-      positionFeesInfo.collateralTokenPriceMin;
+  collectedFees.feeUsdForPool = collectedFees.feeUsdForPool.plus(
+    positionFeesInfo.feeAmountForPool.times(
+      positionFeesInfo.collateralTokenPriceMin
+    )
+  );
 
   collectedFees.save();
 
   return collectedFees;
+}
+
+export function savePositionFeesInfo(
+  eventData: EventData,
+  eventName: string,
+  transaction: Transaction
+): PositionFeesInfo {
+  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
+
+  let id = orderKey + ":" + eventName;
+
+  let feesInfo = new PositionFeesInfo(id);
+
+  feesInfo.orderKey = orderKey;
+  feesInfo.eventName = eventName;
+  feesInfo.marketAddress = eventData.getAddressItemString("market")!;
+  feesInfo.collateralTokenAddress = eventData.getAddressItemString(
+    "collateralToken"
+  )!;
+
+  feesInfo.collateralTokenPriceMin = eventData.getUintItem(
+    "collateralTokenPrice.min"
+  )!;
+  feesInfo.collateralTokenPriceMax = eventData.getUintItem(
+    "collateralTokenPrice.max"
+  )!;
+
+  feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
+  feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
+  feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
+  feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
+
+  feesInfo.transaction = transaction.id;
+
+  feesInfo.save();
+
+  return feesInfo;
 }
 
 export function getOrCreateColletedPositionFees(

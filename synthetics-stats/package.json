@@ -6,7 +6,7 @@
     "build": "graph build",
     "deploy-prod": "todo",
     "deploy-test": "graph deploy --product hosted-service divhead/synthetics-fuji-stats --deploy-key $(cat .access_token)",
-    "deploy-satsuma": "graph deploy synthetics-fuji-stats --version-label v18 --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://api.thegraph.com/ipfs/ --deploy-key $(cat .satsuma_token)"
+    "deploy-satsuma": "graph deploy synthetics-fuji-stats --version-label v24 --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://api.thegraph.com/ipfs/ --deploy-key $(cat .satsuma_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",

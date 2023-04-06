@@ -6,7 +6,7 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 
-export function handlePositionIncrease(
+export function savePositionIncrease(
   eventData: EventData,
   transaction: Transaction
 ): PositionIncrease {
@@ -55,7 +55,7 @@ export function handlePositionIncrease(
   return entity;
 }
 
-export function handlePositionDecrease(
+export function savePositionDecrease(
   eventData: EventData,
   transaction: Transaction
 ): PositionDecrease {
@@ -103,37 +103,4 @@ export function handlePositionDecrease(
   entity.save();
 
   return entity;
-}
-
-export function handlePositionFeesInfo(
-  eventData: EventData,
-  transaction: Transaction
-): PositionFeesInfo {
-  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
-
-  let feesInfo = new PositionFeesInfo(orderKey);
-
-  feesInfo.orderKey = orderKey;
-  feesInfo.marketAddress = eventData.getAddressItemString("market")!;
-  feesInfo.collateralTokenAddress = eventData.getAddressItemString(
-    "collateralToken"
-  )!;
-
-  feesInfo.collateralTokenPriceMin = eventData.getUintItem(
-    "collateralTokenPrice.min"
-  )!;
-  feesInfo.collateralTokenPriceMax = eventData.getUintItem(
-    "collateralTokenPrice.max"
-  )!;
-
-  feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
-  feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
-  feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
-  feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
-
-  feesInfo.transaction = transaction.id;
-
-  feesInfo.save();
-
-  return feesInfo;
 }
