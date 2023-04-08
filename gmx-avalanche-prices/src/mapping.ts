@@ -5,26 +5,12 @@ import {
 } from "../generated/FastPriceEvents/FastPriceEvents"
 import { PriceCandle } from "../generated/schema"
 
-function getMax(a:BigInt, b:BigInt, c:BigInt): BigInt {
-  let max = a;
-  if (b > max) {
-    max = b;
-  }
-  if (c > max) {
-    max = c;
-  }
-  return max;
+function getMax(a:BigInt, b:BigInt): BigInt {
+  return a > b ? a : b;
 }
 
-function getMin(a: BigInt, b: BigInt, c: BigInt): BigInt {
-  let min = a;
-  if (b < min) {
-    min = b;
-  }
-  if (c < min) {
-    min = c;
-  }
-  return min;
+function getMin(a: BigInt, b: BigInt): BigInt {
+  return a < b ? a : b;
 }
 
 function timestampToPeriodStart(timestamp: BigInt, period: string): BigInt {
@@ -72,14 +58,14 @@ function updateCandle(event: PriceUpdate, period: string): void {
     } else {
       entity.open = prevEntity.close
     }
-    entity.high = event.params.price
-    entity.low = event.params.price
     entity.close = event.params.price
+    entity.high = getMax(entity.open, entity.close)
+    entity.low = getMin(entity.open, entity.close)
     entity.timestamp = periodStart.toI32()
     entity.token = event.params.token.toHexString()
   } else {
-    entity.high = getMax(entity.high, entity.open, event.params.price)
-    entity.low = getMin(entity.low, entity.open, event.params.price)
+    entity.high = getMax(entity.high, event.params.price);
+    entity.low = getMin(entity.low, event.params.price)
     entity.close = event.params.price
   }
 
