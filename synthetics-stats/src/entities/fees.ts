@@ -25,7 +25,7 @@ export function saveCollectedPositionFeesForPeriod(
 
   collectedFees.feeUsdForPool = collectedFees.feeUsdForPool.plus(
     positionFeesInfo.feeAmountForPool.times(
-      positionFeesInfo.collateralTokenPriceMin
+      positionFeesInfo.collateralTokenPriceMax
     )
   );
 

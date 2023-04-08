@@ -209,6 +209,15 @@ type CollectedPositionFee @entity {
   feeUsdForPool: BigInt!
 }
 
+type PoolAmountUpdate @entity(immutable: true) {
+  id: ID!
+  marketAddress: String!
+  tokenAddress: String!
+  delta: BigInt!
+  nextValue: BigInt!
+  transaction: Transaction!
+}
+
 type Transaction @entity {
   id: ID!
   from: String!
