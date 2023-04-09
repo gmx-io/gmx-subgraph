@@ -5,7 +5,8 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy-prod": "graph deploy --product hosted-service gmx-io/gmx-avalanche-prices",
-    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-prices --deploy-key $(cat .access_token)"
+    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-prices --deploy-key $(cat .access_token)",
+    "deploy-satsuma": "graph deploy gmx-avalanche-prices --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://api.thegraph.com/ipfs/ --deploy-key $(cat .satsuma_token)"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
