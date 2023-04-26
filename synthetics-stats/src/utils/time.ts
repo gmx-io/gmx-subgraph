@@ -19,8 +19,8 @@ export function periodToSeconds(period: string): i32 {
     seconds = 4 * 60 * 60;
   } else if (period == "1d") {
     seconds = 24 * 60 * 60;
-  } else {
-    throw new Error("Invalid period");
+  } else if (period == "total") {
+    seconds = 1;
   }
 
   return seconds;

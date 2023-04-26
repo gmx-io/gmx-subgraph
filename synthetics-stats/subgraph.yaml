@@ -11,7 +11,7 @@ dataSources:
     source:
       address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
       abi: EventEmitter
-      startBlock: 19646778
+      startBlock: 20726150
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

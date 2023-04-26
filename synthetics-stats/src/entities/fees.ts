@@ -1,6 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import {
-  CollectedMarketFees,
+  CollectedMarketFeesInfo,
   PositionFeesInfo,
   SwapFeesInfo,
   Transaction,
@@ -15,7 +15,7 @@ export function saveCollectedMarketFeesForPeriod(
   feeUsdForPool: BigInt,
   period: string,
   timestamp: i32
-): CollectedMarketFees {
+): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
     marketAddress,
     tokenAddress,
@@ -96,6 +96,9 @@ export function savePositionFeesInfo(
     "collateralToken"
   )!;
 
+  feesInfo.trader = eventData.getAddressItemString("trader")!;
+  feesInfo.affiliate = eventData.getAddressItemString("affiliate")!;
+
   feesInfo.collateralTokenPriceMin = eventData.getUintItem(
     "collateralTokenPrice.min"
   )!;
@@ -111,6 +114,15 @@ export function savePositionFeesInfo(
     feesInfo.collateralTokenPriceMin
   );
 
+  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
+  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
+  feesInfo.traderDiscountAmount = eventData.getUintItem(
+    "traderDiscountAmount"
+  )!;
+  feesInfo.affiliateRewardAmount = eventData.getUintItem(
+    "affiliateRewardAmount"
+  )!;
+
   feesInfo.transaction = transaction.id;
 
   feesInfo.save();
@@ -123,7 +135,7 @@ function getOrCreateCollectedMarketFees(
   tokenAddress: string,
   timestamp: i32,
   period: string
-): CollectedMarketFees {
+): CollectedMarketFeesInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
 
   let id = marketAddress + ":" + tokenAddress + ":" + period;
@@ -132,10 +144,10 @@ function getOrCreateCollectedMarketFees(
     id = id + ":" + timestampGroup.toString();
   }
 
-  let collectedFees = CollectedMarketFees.load(id);
+  let collectedFees = CollectedMarketFeesInfo.load(id);
 
   if (collectedFees == null) {
-    collectedFees = new CollectedMarketFees(id);
+    collectedFees = new CollectedMarketFeesInfo(id);
     collectedFees.marketAddress = marketAddress;
     collectedFees.tokenAddress = tokenAddress;
     collectedFees.period = period;
@@ -146,5 +158,5 @@ function getOrCreateCollectedMarketFees(
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
   }
 
-  return collectedFees as CollectedMarketFees;
+  return collectedFees as CollectedMarketFeesInfo;
 }

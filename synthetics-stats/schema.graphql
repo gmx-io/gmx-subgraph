@@ -18,6 +18,17 @@ enum ClaimCollateralActionType {
   ClaimFunding
 }
 
+type AffiliateRewardUpdate @entity(immutable: true) {
+  id: ID!
+  affiliate: String!
+  marketAddress: String!
+  tokenAddress: String!
+  delta: BigInt!
+  nextValue: BigInt!
+  nextPoolValue: BigInt!
+  transaction: Transaction!
+}
+
 type Order @entity {
   # orderKey
   id: ID!
@@ -118,6 +129,9 @@ type PositionFeesInfo @entity(immutable: true) {
   marketAddress: String!
   collateralTokenAddress: String!
 
+  trader: String!
+  affiliate: String!
+
   collateralTokenPriceMin: BigInt!
   collateralTokenPriceMax: BigInt!
 
@@ -126,6 +140,11 @@ type PositionFeesInfo @entity(immutable: true) {
   fundingFeeAmount: BigInt!
   feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
+
+  totalRebateFactor: BigInt!
+  traderDiscountAmount: BigInt!
+  totalRebateAmount: BigInt!
+  affiliateRewardAmount: BigInt!
 
   transaction: Transaction!
 }
@@ -162,7 +181,7 @@ type SwapFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
-type CollectedMarketFees @entity {
+type CollectedMarketFeesInfo @entity {
   # marketAddress:tokenAddress:period:timestampGroup
   id: ID!
   period: String!
@@ -173,13 +192,6 @@ type CollectedMarketFees @entity {
   cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
-}
-
-type TotalMarketFees @entity {
-  # marketAddress:tokenAddress
-  id: ID!
-  totalFeeAmountForPool: BigInt!
-  totalFeeUsdForPool: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {

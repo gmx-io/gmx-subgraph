@@ -38,7 +38,6 @@ import {
   savePositionFeesInfo,
   saveSwapFeesInfo,
 } from "./entities/fees";
-import { PoolAmountUpdate } from "../generated/schema";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -69,19 +68,6 @@ export function handleEventLog1(event: EventLog1): void {
     ) {
       savePositionDecreaseExecutedTradeAction(eventId, order, transaction);
     }
-    return;
-  }
-
-  if (eventName == "PoolAmountUpdated") {
-    let transaction = getOrCreateTransaction(event);
-    let entity = new PoolAmountUpdate(eventId);
-    entity.transaction = transaction.id;
-    entity.marketAddress = eventData.getAddressItemString("market")!;
-    entity.tokenAddress = eventData.getAddressItemString("token")!;
-    entity.delta = eventData.getIntItem("delta")!;
-    entity.nextValue = eventData.getUintItem("nextValue")!;
-
-    entity.save();
     return;
   }
 
