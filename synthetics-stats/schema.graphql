@@ -125,6 +125,7 @@ type PositionFeesInfo @entity(immutable: true) {
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
   feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
 
   transaction: Transaction!
 }
@@ -145,6 +146,40 @@ type SwapInfo @entity(immutable: true) {
   priceImpactUsd: BigInt!
 
   transaction: Transaction!
+}
+
+type SwapFeesInfo @entity(immutable: true) {
+  # eventId
+  id: ID!
+  marketAddress: String!
+  tokenAddress: String!
+  action: String!
+  tokenPrice: BigInt!
+  feeReceiverAmount: BigInt!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
+
+  transaction: Transaction!
+}
+
+type CollectedMarketFees @entity {
+  # marketAddress:tokenAddress:period:timestampGroup
+  id: ID!
+  period: String!
+  marketAddress: String!
+  tokenAddress: String!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
+  cummulativeFeeAmountForPool: BigInt!
+  cummulativeFeeUsdForPool: BigInt!
+  timestampGroup: Int!
+}
+
+type TotalMarketFees @entity {
+  # marketAddress:tokenAddress
+  id: ID!
+  totalFeeAmountForPool: BigInt!
+  totalFeeUsdForPool: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {
@@ -196,17 +231,6 @@ type ClaimCollateralAction @entity(immutable: true) {
   amounts: [BigInt!]!
 
   transaction: Transaction!
-}
-
-type CollectedPositionFee @entity {
-  # marketAddress:collateralAddress:period:timestampGroup
-  id: ID!
-  period: String!
-  marketAddress: String!
-  collateralTokenAddress: String!
-  timestampGroup: Int!
-  feeAmountForPool: BigInt!
-  feeUsdForPool: BigInt!
 }
 
 type PoolAmountUpdate @entity(immutable: true) {

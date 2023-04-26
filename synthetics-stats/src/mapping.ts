@@ -34,8 +34,9 @@ import { Bytes } from "@graphprotocol/graph-ts";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 import {
-  saveCollectedPositionFeesForPeriod,
+  saveCollectedMarketFeesForPeriod,
   savePositionFeesInfo,
+  saveSwapFeesInfo,
 } from "./entities/fees";
 import { PoolAmountUpdate } from "../generated/schema";
 
@@ -133,23 +134,33 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
-  if (eventName == "PositionFeesInfo") {
+  if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
-    let positionFeesInfo = savePositionFeesInfo(
-      eventData,
-      "PositionFeesInfo",
-      transaction
-    );
-    saveCollectedPositionFeesForPeriod(
-      positionFeesInfo,
-      "1d",
-      transaction.timestamp
-    );
-    saveCollectedPositionFeesForPeriod(
-      positionFeesInfo,
+    let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
+    saveCollectedMarketFeesForPeriod(
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      swapFeesInfo.feeAmountForPool,
+      swapFeesInfo.feeUsdForPool,
       "1h",
       transaction.timestamp
     );
+    saveCollectedMarketFeesForPeriod(
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      swapFeesInfo.feeAmountForPool,
+      swapFeesInfo.feeUsdForPool,
+      "1d",
+      transaction.timestamp
+    );
+    return;
+  }
+
+  // Only for liquidations if remaining collateral is not sufficient to pay the fees
+  if (eventName == "PositionFeesInfo") {
+    let transaction = getOrCreateTransaction(event);
+    savePositionFeesInfo(eventData, "PositionFeesInfo", transaction);
+
     return;
   }
 
@@ -160,14 +171,20 @@ export function handleEventLog1(event: EventLog1): void {
       "PositionFeesCollected",
       transaction
     );
-    saveCollectedPositionFeesForPeriod(
-      positionFeesInfo,
-      "1d",
+    saveCollectedMarketFeesForPeriod(
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      positionFeesInfo.feeAmountForPool,
+      positionFeesInfo.feeUsdForPool,
+      "1h",
       transaction.timestamp
     );
-    saveCollectedPositionFeesForPeriod(
-      positionFeesInfo,
-      "1h",
+    saveCollectedMarketFeesForPeriod(
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      positionFeesInfo.feeAmountForPool,
+      positionFeesInfo.feeUsdForPool,
+      "1d",
       transaction.timestamp
     );
     return;

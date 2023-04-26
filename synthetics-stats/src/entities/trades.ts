@@ -163,22 +163,28 @@ export function savePositionDecreaseExecutedTradeAction(
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
-
-  let isLiquidation = order.orderType == orderTypes.get("Liquidation");
-
-  let positionFeesInfo = PositionFeesInfo.load(
-    order.id + ":" + "PositionFeesInfo"
-  );
+  let positionFeesInfo: PositionFeesInfo | null = null;
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);
+  }
+
+  let isLiquidation = order.orderType == orderTypes.get("Liquidation");
+
+  if (isLiquidation) {
+    positionFeesInfo = PositionFeesInfo.load(
+      order.id + ":" + "PositionFeesInfo"
+    );
   }
 
   if (positionFeesInfo == null) {
     positionFeesInfo = PositionFeesInfo.load(
       order.id + ":" + "PositionFeesCollected"
     );
-    // throw new Error("PositionFeesInfo not found " + order.id);
+  }
+
+  if (positionFeesInfo == null) {
+    throw new Error("PositionFeesInfo not found " + order.id);
   }
 
   tradeAction.eventName = "OrderExecuted";
