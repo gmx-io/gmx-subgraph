@@ -1,10 +1,10 @@
-import { BigInt, Address, Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
-  ReferralStorage,
+  // ReferralStorage,
   GovSetCodeOwner,
   RegisterCode,
   SetCodeOwner,
-  SetHandler,
+  // SetHandler,
   SetReferrerDiscountShare,
   SetReferrerTier,
   SetTier,
@@ -18,17 +18,20 @@ import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent } from "../generated/OrderBook/OrderBook";
 import {
   ReferralVolumeRecord,
-  ReferrerStat,
+  AffiliateStat,
+  AffiliateStatData,
   GlobalStat,
   Tier,
-  Referrer,
+  Affiliate,
   TradedReferral,
   RegisteredReferral,
   ReferralStat,
+  ReferralStatData,
   Distribution,
   ReferralCode,
   ExecuteDecreaseOrder,
   PositionReferralAction,
+  TraderToReferralCode,
 } from "../generated/schema";
 import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
@@ -38,15 +41,17 @@ import {
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
 
-class ReferrerResult {
+class AffiliateResult {
   created: boolean;
-  entity: Referrer;
+  entity: Affiliate;
 
-  constructor(entity: Referrer, created: boolean) {
+  constructor(entity: Affiliate, created: boolean) {
     this.entity = entity;
     this.created = created;
   }
 }
+
+type Version = string;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ZERO_BYTES32 =
@@ -57,9 +62,9 @@ let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000);
 
 export function handleEventLog2(event: EventLog2): void {
   let eventName = event.params.eventName;
-  let eventData = new EventData(
-    event.params.eventData as EventLogEventDataStruct
-  );
+  // let eventData = new EventData(
+  //   event.params.eventData as EventLogEventDataStruct
+  // );
 
   if (eventName == "OrderCreated") {
     // saveStats(eventData);
@@ -75,12 +80,84 @@ export function handleEventLog1(event: EventLog1): void {
     event.params.eventData as EventLogEventDataStruct
   );
 
-  if (eventName == "OrderCreated") {
-    // saveStats(eventData);
+  if (eventName == "PositionIncrease" || eventName == "PositionDecrease") {
+    let account = eventData.getAddressItem("account")!;
+    let sizeDelta = eventData.getUintItem("sizeInUsd")!;
+    let traderToReferralCode = TraderToReferralCode.load(account.toHexString());
+    if (traderToReferralCode == null) {
+      return;
+    }
 
-    // let market = eventData.getAddressItemString("market")!;
+    let referralCode = traderToReferralCode.referralCode;
+    let referralCodeEntity = ReferralCode.load(referralCode!);
+    let affiliate = referralCodeEntity!.owner;
+
+    _handlePositionAction(
+      event.block.number,
+      event.transaction.hash,
+      event.logIndex,
+      event.block.timestamp,
+      account,
+      sizeDelta,
+      referralCode.toString(),
+      Address.fromString(affiliate),
+      eventName == "PositionIncrease",
+      "v2"
+    );
+    return;
+
+  } else if (eventName == "AffiliateRewardClaimed") {
+    let typeId = BigInt.fromI32(1000);
+    _createOrUpdateDistribution(
+      event,
+      eventData.getAddressItemString("affiliate")!,
+      eventData.getAddressItemString("token")!,
+      eventData.getAddressItemString("market")!,
+      eventData.getUintItem("amount")!,
+      typeId
+    )
     return;
   }
+}
+
+function _createOrUpdateDistribution(
+  event: ethereum.Event,
+  receiver: string,
+  token: string,
+  market: string | null,
+  amount: BigInt,
+  typeId: BigInt,
+): void {
+  let id = receiver + ":" + event.transaction.hash.toHexString() + ":" + typeId.toString();
+  let entity = Distribution.load(id);
+  if (entity == null) {
+    entity = new Distribution(id);
+    entity.tokens = new Array<string>(0);
+    entity.markets = new Array<string>(0);
+    entity.amounts = new Array<BigInt>(0);
+  }
+  let tokens = entity.tokens;
+  tokens.push(token);
+  entity.tokens = tokens;
+
+  let amounts = entity.amounts;
+  amounts.push(amount);
+  entity.amounts = amounts;
+
+  if (market != null) {
+    let markets = entity.markets;
+    markets.push(market);
+    entity.markets = markets;
+  }
+
+  entity.typeId = typeId;
+  entity.receiver = receiver;
+
+  entity.blockNumber = event.block.number;
+  entity.transactionHash = event.transaction.hash.toHexString();
+  entity.timestamp = event.block.timestamp;
+
+  entity.save();
 }
 
 export function handleBatchSend(event: BatchSend): void {
@@ -90,25 +167,14 @@ export function handleBatchSend(event: BatchSend): void {
   let amounts = event.params.amounts;
   for (let i = 0; i < event.params.accounts.length; i++) {
     let receiver = receivers[i].toHexString();
-    // TODO break if amount is undefined?
-    let amount = amounts[i];
-    let id =
-      receiver +
-      ":" +
-      event.transaction.hash.toHexString() +
-      ":" +
-      event.logIndex.toString();
-    let entity = new Distribution(id);
-    entity.typeId = typeId;
-    entity.token = token;
-    entity.receiver = receiver;
-    entity.amount = amount;
-
-    entity.blockNumber = event.block.number;
-    entity.transactionHash = event.transaction.hash.toHexString();
-    entity.timestamp = event.block.timestamp;
-
-    entity.save();
+    _createOrUpdateDistribution(
+      event,
+      receiver,
+      token,
+      null,
+      amounts[i],
+      typeId
+    );
   }
 }
 
@@ -129,32 +195,34 @@ export function handleDecreasePositionReferral(
     }
   }
 
-  _handleChangePositionReferral(
+  _handlePositionAction(
     event.block.number,
     event.transaction.hash,
     event.logIndex,
     event.block.timestamp,
     event.params.account,
     sizeDelta,
-    event.params.referralCode,
+    event.params.referralCode.toHex(),
     event.params.referrer,
-    false
+    false,
+    "v1"
   );
 }
 
 export function handleIncreasePositionReferral(
   event: IncreasePositionReferral
 ): void {
-  _handleChangePositionReferral(
+  _handlePositionAction(
     event.block.number,
     event.transaction.hash,
     event.logIndex,
     event.block.timestamp,
     event.params.account,
     event.params.sizeDelta,
-    event.params.referralCode,
+    event.params.referralCode.toHex(),
     event.params.referrer,
-    true
+    true,
+    "v1"
   );
 }
 
@@ -163,38 +231,38 @@ export function handleRegisterCode(event: RegisterCode): void {
 }
 
 function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
-  let referrerResult = _getOrCreateReferrerWithCreatedFlag(owner.toHexString());
-  let referrerCreated = referrerResult.created;
+  let affiliateResult = _getOrCreateAffiliateWithCreatedFlag(owner.toHexString());
+  let affiliateCreated = affiliateResult.created;
 
   let referralCodeEntity = new ReferralCode(code.toHexString());
   referralCodeEntity.owner = owner.toHexString();
   referralCodeEntity.code = code.toHex();
   referralCodeEntity.save();
 
-  let totalReferrerStat = _getOrCreateReferrerStat(
+  let totalAffiliateStat = _getOrCreateAffiliateStat(
     timestamp,
     "total",
     owner,
-    code
+    code.toHex()
   );
-  totalReferrerStat.save();
+  totalAffiliateStat.save();
 
-  let dailyReferrerStat = _getOrCreateReferrerStat(
+  let dailyAffiliateStat = _getOrCreateAffiliateStat(
     timestamp,
     "daily",
     owner,
-    code
+    code.toHex()
   );
-  dailyReferrerStat.save();
+  dailyAffiliateStat.save();
 
   let totalGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "total", null);
   totalGlobalStatEntity.referralCodesCount += ONE;
   totalGlobalStatEntity.referralCodesCountCumulative =
     totalGlobalStatEntity.referralCodesCount;
-  if (referrerCreated) {
-    totalGlobalStatEntity.referrersCount += ONE;
-    totalGlobalStatEntity.referrersCountCumulative =
-      totalGlobalStatEntity.referrersCount;
+  if (affiliateCreated) {
+    totalGlobalStatEntity.affiliatesCount += ONE;
+    totalGlobalStatEntity.affiliatesCountCumulative =
+      totalGlobalStatEntity.affiliatesCount;
   }
   totalGlobalStatEntity.save();
 
@@ -204,8 +272,8 @@ function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
     totalGlobalStatEntity
   );
   dailyGlobalStatEntity.referralCodesCount += ONE;
-  if (referrerCreated) {
-    dailyGlobalStatEntity.referrersCount += ONE;
+  if (affiliateCreated) {
+    dailyGlobalStatEntity.affiliatesCount += ONE;
   }
   dailyGlobalStatEntity.save();
 }
@@ -241,13 +309,13 @@ export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
 export function handleSetReferrerDiscountShare(
   event: SetReferrerDiscountShare
 ): void {
-  let entity = _getOrCreateReferrer(event.params.referrer.toHexString());
+  let entity = _getOrCreateAffiliate(event.params.referrer.toHexString());
   entity.discountShare = event.params.discountShare;
   entity.save();
 }
 
 export function handleSetReferrerTier(event: SetReferrerTier): void {
-  let entity = _getOrCreateReferrer(event.params.referrer.toHexString());
+  let entity = _getOrCreateAffiliate(event.params.referrer.toHexString());
   entity.tierId = event.params.tierId;
   entity.save();
 }
@@ -267,6 +335,11 @@ export function handleSetTraderReferralCode(
     // SetTraderReferralCode can be emitted with non-existent code
     return;
   }
+  
+  let traderToReferralCode = new TraderToReferralCode(event.params.account.toHexString());
+  traderToReferralCode.referralCode = event.params.code.toHexString();
+  traderToReferralCode.save();
+
   let timestamp = event.block.timestamp;
 
   // global stats
@@ -283,42 +356,42 @@ export function handleSetTraderReferralCode(
   dailyGlobalStatEntity.referralsCount += ONE;
   dailyGlobalStatEntity.save();
 
-  // referrer stats
-  let referrer = Address.fromString(referralCodeEntity.owner);
-  let totalReferrerStatEntity = _getOrCreateReferrerStat(
+  // affiliate stats
+  let affiliate = Address.fromString(referralCodeEntity.owner);
+  let totalAffiliateStatEntity = _getOrCreateAffiliateStat(
     timestamp,
     "total",
-    referrer,
-    event.params.code
+    affiliate,
+    event.params.code.toHex()
   );
   if (
     _createRegisteredReferralIfNotExist(
-      totalReferrerStatEntity.id,
+      totalAffiliateStatEntity.id,
       event.params.account
     )
   ) {
-    totalReferrerStatEntity.registeredReferralsCount += ONE;
-    totalReferrerStatEntity.registeredReferralsCountCumulative += ONE;
-    totalReferrerStatEntity.save();
+    totalAffiliateStatEntity.registeredReferralsCount += ONE;
+    totalAffiliateStatEntity.registeredReferralsCountCumulative += ONE;
+    totalAffiliateStatEntity.save();
   }
 
-  let dailyReferrerStatEntity = _getOrCreateReferrerStat(
+  let dailyAffiliateStatEntity = _getOrCreateAffiliateStat(
     timestamp,
     "daily",
-    referrer,
-    event.params.code
+    affiliate,
+    event.params.code.toHex()
   );
   if (
     _createRegisteredReferralIfNotExist(
-      dailyReferrerStatEntity.id,
+      dailyAffiliateStatEntity.id,
       event.params.account
     )
   ) {
-    dailyReferrerStatEntity.registeredReferralsCount += ONE;
+    dailyAffiliateStatEntity.registeredReferralsCount += ONE;
   }
-  dailyReferrerStatEntity.registeredReferralsCountCumulative =
-    totalReferrerStatEntity.registeredReferralsCountCumulative;
-  dailyReferrerStatEntity.save();
+  dailyAffiliateStatEntity.registeredReferralsCountCumulative =
+    totalAffiliateStatEntity.registeredReferralsCountCumulative;
+  dailyAffiliateStatEntity.save();
 }
 
 export function handleExecuteDecreaseOrder(
@@ -333,11 +406,12 @@ export function handleExecuteDecreaseOrder(
   entity.save();
 }
 
-function _getOrCreateTier(id: String): Tier {
+function _getOrCreateTier(id: string): Tier {
   let entity = Tier.load(id);
   if (entity == null) {
     entity = new Tier(id);
-    entity.totalRebate = ZERO;
+    // default values for tier 0
+    entity.totalRebate = BigInt.fromI32(1000);
     entity.discountShare = BigInt.fromI32(5000);
     entity.save();
   }
@@ -346,17 +420,19 @@ function _getOrCreateTier(id: String): Tier {
 
 function _storeReferralStats(
   timestamp: BigInt,
-  period: String,
+  period: string,
   referral: Address,
   volume: BigInt,
   discountUsd: BigInt,
-  totalEntity: ReferralStat | null
+  totalEntity: ReferralStat | null,
+  version: Version
 ): ReferralStat {
   let periodTimestamp = timestampToPeriod(timestamp, period);
-  let id =
-    period + ":" + periodTimestamp.toString() + ":" + referral.toHexString();
+  let id = period + ":" + periodTimestamp.toString() + ":" + referral.toHexString();
 
   let entity = ReferralStat.load(id);
+  let v1Data: ReferralStatData | null = null;
+  let v2Data: ReferralStatData | null = null;
   if (entity === null) {
     entity = new ReferralStat(id);
     entity.referral = referral.toHexString();
@@ -366,26 +442,44 @@ function _storeReferralStats(
     entity.discountUsdCumulative = ZERO;
     entity.timestamp = periodTimestamp;
     entity.period = period;
+    
+    v1Data = _createReferralStatData(id, "v1")
+    entity.v1Data = v1Data.id;
+    
+    v2Data = _createReferralStatData(id, "v2")
+    entity.v2Data = v2Data.id;
+  } else {
+    v1Data = _getReferralStatData(id, "v1");
+    v2Data = _getReferralStatData(id, "v2");
   }
 
   entity.volume += volume;
   entity.discountUsd += discountUsd;
+  
+  let entityData = version == "v1" ? v1Data : v2Data;
+  entityData!.volume += volume;
+  entityData!.discountUsd += discountUsd;
 
   if (period == "total") {
     totalEntity = entity;
   }
-  entity.volumeCumulative = totalEntity.volume;
-  entity.discountUsdCumulative = totalEntity.discountUsd;
+  entity.volumeCumulative = totalEntity!.volume;
+  entity.discountUsdCumulative = totalEntity!.discountUsd;
+  
+  let totalEntityData = _getReferralStatData(totalEntity!.id, version);
+  entityData!.volumeCumulative = totalEntityData.volume;
+  entityData!.discountUsdCumulative = totalEntityData.discountUsd;
 
   entity.save();
+  entityData!.save();
 
   return entity as ReferralStat;
 }
 
 function _getOrCreateGlobalStat(
   timestamp: BigInt,
-  period: String,
-  totalEntity: GlobalStat | null
+  period: string,
+  totalEntity: GlobalStat | null,
 ): GlobalStat {
   let periodTimestamp = timestampToPeriod(timestamp, period);
   let id = period + ":" + periodTimestamp.toString();
@@ -405,14 +499,14 @@ function _getOrCreateGlobalStat(
     entity.referralCodesCount = ZERO;
     entity.referralCodesCountCumulative = ZERO;
 
-    entity.referrersCount = ZERO;
-    entity.referrersCountCumulative = ZERO;
+    entity.affiliatesCount = ZERO;
+    entity.affiliatesCountCumulative = ZERO;
 
     entity.referralsCount = ZERO;
     entity.referralsCountCumulative = ZERO;
 
     if (totalEntity) {
-      entity.referrersCountCumulative = totalEntity.referrersCount;
+      entity.affiliatesCountCumulative = totalEntity.affiliatesCount;
       entity.referralCodesCountCumulative =
         totalEntity.referralCodesCountCumulative;
       entity.volumeCumulative = totalEntity.volumeCumulative;
@@ -429,11 +523,11 @@ function _getOrCreateGlobalStat(
 
 function _storeGlobalStats(
   timestamp: BigInt,
-  period: String,
+  period: string,
   volume: BigInt,
   totalRebateUsd: BigInt,
   discountUsd: BigInt,
-  totalEntity: GlobalStat | null
+  totalEntity: GlobalStat | null,
 ): GlobalStat {
   let entity = _getOrCreateGlobalStat(timestamp, period, totalEntity);
 
@@ -450,7 +544,7 @@ function _storeGlobalStats(
   entity.totalRebateUsdCumulative = totalEntity.totalRebateUsd;
   entity.discountUsdCumulative = totalEntity.discountUsd;
   entity.tradesCumulative = totalEntity.trades;
-  entity.referrersCountCumulative = totalEntity.referrersCount;
+  entity.affiliatesCountCumulative = totalEntity.affiliatesCount;
   entity.referralCodesCountCumulative = totalEntity.referralCodesCount;
 
   entity.save();
@@ -458,25 +552,25 @@ function _storeGlobalStats(
   return entity as GlobalStat;
 }
 
-function _getOrCreateReferrerStat(
+function _getOrCreateAffiliateStat(
   timestamp: BigInt,
-  period: String,
-  referrer: Address,
-  referralCode: Bytes
-): ReferrerStat {
+  period: string,
+  affiliate: Address,
+  referralCode: string,
+): AffiliateStat {
   let periodTimestamp = timestampToPeriod(timestamp, period);
   let id =
     period +
     ":" +
     periodTimestamp.toString() +
     ":" +
-    referralCode.toHex() +
+    referralCode +
     ":" +
-    referrer.toHexString();
+    affiliate.toHexString();
 
-  let entity = ReferrerStat.load(id);
+  let entity = AffiliateStat.load(id);
   if (entity === null) {
-    entity = new ReferrerStat(id);
+    entity = new AffiliateStat(id);
     entity.volume = ZERO;
     entity.volumeCumulative = ZERO;
     entity.trades = ZERO;
@@ -492,29 +586,76 @@ function _getOrCreateReferrerStat(
     entity.discountUsdCumulative = ZERO;
 
     entity.timestamp = periodTimestamp;
-    entity.referrer = referrer.toHexString();
-    entity.referralCode = referralCode.toHex();
+    entity.affiliate = affiliate.toHexString();
+    entity.referralCode = referralCode;
     entity.period = period;
+    
+    let v1Data = _createAffiliateStatData(id, "v1")
+    entity.v1Data = v1Data.id;
+    
+    let v2Data = _createAffiliateStatData(id, "v2")
+    entity.v2Data = v2Data.id;
   }
-  return entity as ReferrerStat;
+  return entity as AffiliateStat;
 }
 
-function _storeReferrerStats(
+function _getReferralStatData(referralStatId: string, version: Version): ReferralStatData {
+  let id = referralStatId + ":" + version;
+  let entity = ReferralStatData.load(id);
+  return entity as ReferralStatData;
+}
+
+function _createReferralStatData(affiliateStatId: string, version: Version): ReferralStatData {
+  let id = affiliateStatId + ":" + version;
+  let entity = new ReferralStatData(id);
+  entity.volume = ZERO;
+  entity.volumeCumulative = ZERO;
+  entity.discountUsd = ZERO;
+  entity.discountUsdCumulative = ZERO; 
+
+  entity.save();
+  return entity;
+}
+
+function _getAffiliateStatData(affiliateStatId: string, version: Version): AffiliateStatData {
+  let id = affiliateStatId + ":" + version;
+  let entity = AffiliateStatData.load(id);
+  return entity as AffiliateStatData;
+}
+
+function _createAffiliateStatData(affiliateStatId: string, version: Version): AffiliateStatData {
+  let id = affiliateStatId + ":" + version;
+  let entity = new AffiliateStatData(id);
+  entity.volume = ZERO;
+  entity.volumeCumulative = ZERO;
+  entity.totalRebateUsd = ZERO;
+  entity.totalRebateUsdCumulative = ZERO;
+  entity.discountUsd = ZERO;
+  entity.discountUsdCumulative = ZERO; 
+  entity.trades = ZERO;
+  entity.tradesCumulative = ZERO;
+
+  entity.save();
+  return entity;
+}
+
+function _storeAffiliateStats(
   timestamp: BigInt,
-  period: String,
+  period: string,
   volume: BigInt,
-  referralCode: Bytes,
-  referrer: Address,
+  referralCode: string,
+  affiliate: Address,
   referral: Address,
   totalRebateUsd: BigInt,
   discountUsd: BigInt,
-  totalEntity: ReferrerStat | null
-): ReferrerStat {
-  let entity = _getOrCreateReferrerStat(
+  totalEntity: AffiliateStat | null,
+  version: Version,
+): AffiliateStat {
+  let entity = _getOrCreateAffiliateStat(
     timestamp,
     period,
-    referrer,
-    referralCode
+    affiliate,
+    referralCode,
   );
   let isNewReferral = _createTradedReferralIfNotExist(entity.id, referral);
 
@@ -523,45 +664,65 @@ function _storeReferrerStats(
   }
 
   entity.volume += volume;
-  entity.trades += BigInt.fromI32(1);
+  entity.trades += ONE;
   entity.totalRebateUsd += totalRebateUsd;
   entity.discountUsd += discountUsd;
+
+  let entityData = _getAffiliateStatData(entity.id, version);
+  entityData.volume += volume;
+  entityData.trades += ONE;
+  entityData.totalRebateUsd += totalRebateUsd;
+  entityData.discountUsd += discountUsd;
+
   if (period == "total") {
     entity.volumeCumulative = entity.volume;
     entity.totalRebateUsdCumulative = entity.totalRebateUsd;
     entity.discountUsdCumulative = entity.discountUsd;
     entity.tradesCumulative = entity.trades;
     entity.tradedReferralsCountCumulative = entity.tradedReferralsCount;
+
+    entityData.volumeCumulative = entityData.volume;
+    entityData.totalRebateUsdCumulative = entityData.totalRebateUsd;
+    entityData.discountUsdCumulative = entityData.discountUsd;
+    entityData.tradesCumulative = entityData.trades;
   } else {
-    entity.volumeCumulative = totalEntity.volumeCumulative;
-    entity.tradesCumulative = totalEntity.tradesCumulative;
-    entity.totalRebateUsdCumulative = totalEntity.totalRebateUsdCumulative;
-    entity.discountUsdCumulative = totalEntity.discountUsdCumulative;
-    entity.tradedReferralsCountCumulative = totalEntity.tradedReferralsCount;
+    entity.volumeCumulative = totalEntity!.volumeCumulative;
+    entity.tradesCumulative = totalEntity!.tradesCumulative;
+    entity.totalRebateUsdCumulative = totalEntity!.totalRebateUsdCumulative;
+    entity.discountUsdCumulative = totalEntity!.discountUsdCumulative;
+    entity.tradedReferralsCountCumulative = totalEntity!.tradedReferralsCount;
+
+    let totalEntityData = _getAffiliateStatData(totalEntity!.id, version);
+    entityData.volumeCumulative = totalEntityData.volumeCumulative;
+    entityData.tradesCumulative = totalEntityData.tradesCumulative;
+    entityData.totalRebateUsdCumulative = totalEntityData.totalRebateUsdCumulative;
+    entityData.discountUsdCumulative = totalEntityData.discountUsdCumulative;
   }
 
+  entityData.save();
   entity.save();
 
-  return entity as ReferrerStat;
+  return entity as AffiliateStat;
 }
 
-function _handleChangePositionReferral(
+function _handlePositionAction(
   blockNumber: BigInt,
   transactionHash: Bytes,
   eventLogIndex: BigInt,
   timestamp: BigInt,
   referral: Address,
   volume: BigInt,
-  referralCode: Bytes,
-  referrer: Address,
-  isIncrease: boolean
+  referralCode: string,
+  affiliate: Address,
+  isIncrease: boolean,
+  version: Version,
 ): void {
   let actionId = transactionHash.toHexString() + ":" + eventLogIndex.toString();
   let action = new PositionReferralAction(actionId);
   action.isIncrease = isIncrease;
   action.account = referral.toHexString();
-  action.referralCode = referralCode.toHex();
-  action.referrer = referrer.toHexString();
+  action.referralCode = referralCode;
+  action.affiliate = affiliate.toHexString();
   action.transactionHash = transactionHash.toHexString();
   action.blockNumber = blockNumber.toI32();
   action.logIndex = eventLogIndex.toI32();
@@ -571,63 +732,64 @@ function _handleChangePositionReferral(
 
   if (
     referral.toHexString() == ZERO_ADDRESS ||
-    referralCode.toHex() == ZERO_BYTES32
+    referralCode == ZERO_BYTES32
   ) {
     return;
   }
-
-  let referrerEntity = _getOrCreateReferrer(referrer.toHexString());
-  let tierEntity = Tier.load(referrerEntity.tierId.toString());
+  
+  let affiliateEntity = _getOrCreateAffiliate(affiliate.toHexString());
+  let tierEntity = _getOrCreateTier(affiliateEntity.tierId.toString());
 
   let id = transactionHash.toHexString() + ":" + eventLogIndex.toString();
   let entity = new ReferralVolumeRecord(id);
 
   entity.volume = volume;
   entity.referral = referral.toHexString();
-  entity.referralCode = referralCode.toHex();
-  entity.referrer = referrer.toHexString();
-  entity.tierId = referrerEntity.tierId;
+  entity.referralCode = referralCode;
+  entity.affiliate = affiliate.toHexString();
+  entity.tierId = affiliateEntity.tierId;
   entity.marginFee = BigInt.fromI32(10);
   entity.totalRebate = tierEntity!.totalRebate;
   entity.discountShare =
-    referrerEntity.discountShare > ZERO
-      ? referrerEntity.discountShare
+    affiliateEntity.discountShare > ZERO
+      ? affiliateEntity.discountShare
       : tierEntity!.discountShare;
   entity.blockNumber = blockNumber;
   entity.transactionHash = transactionHash.toHexString();
   entity.timestamp = timestamp;
-
-  let feesUsd = (entity.volume * entity.marginFee) / BASIS_POINTS_DIVISOR;
-  let totalRebateUsd = (feesUsd * entity.totalRebate) / BASIS_POINTS_DIVISOR;
-  let discountUsd =
-    (totalRebateUsd * entity.discountShare) / BASIS_POINTS_DIVISOR;
+  
+  let feesUsd = entity.volume.times(entity.marginFee).div(BASIS_POINTS_DIVISOR);
+  let totalRebateUsd = feesUsd.times(entity.totalRebate).div(BASIS_POINTS_DIVISOR);
+  let discountUsd = totalRebateUsd.times(entity.discountShare).div(BASIS_POINTS_DIVISOR);
 
   entity.totalRebateUsd = totalRebateUsd;
   entity.discountUsd = discountUsd;
 
   entity.save();
 
-  let totalReferrerStatEntity = _storeReferrerStats(
+  let totalAffiliateStatEntity = _storeAffiliateStats(
     timestamp,
     "total",
     volume,
     referralCode,
-    referrer,
+    affiliate,
     referral,
     totalRebateUsd,
     discountUsd,
-    null
+    null,
+    version
   );
-  _storeReferrerStats(
+  _storeAffiliateStats(
     timestamp,
     "daily",
     volume,
     referralCode,
-    referrer,
+    affiliate,
     referral,
     totalRebateUsd,
     discountUsd,
-    totalReferrerStatEntity
+    totalAffiliateStatEntity,
+    version
   );
 
   let totalReferralStatEntity = _storeReferralStats(
@@ -636,7 +798,8 @@ function _handleChangePositionReferral(
     referral,
     volume,
     discountUsd,
-    null
+    null,
+    version
   );
   _storeReferralStats(
     timestamp,
@@ -644,7 +807,8 @@ function _handleChangePositionReferral(
     referral,
     volume,
     discountUsd,
-    totalReferralStatEntity
+    totalReferralStatEntity,
+    version
   );
 
   let totalGlobalStatEntity = _storeGlobalStats(
@@ -653,7 +817,7 @@ function _handleChangePositionReferral(
     volume,
     totalRebateUsd,
     discountUsd,
-    null
+    null,
   );
   _storeGlobalStats(
     timestamp,
@@ -661,19 +825,19 @@ function _handleChangePositionReferral(
     volume,
     totalRebateUsd,
     discountUsd,
-    totalGlobalStatEntity
+    totalGlobalStatEntity,
   );
 }
 
 function _createTradedReferralIfNotExist(
-  referrerStatId: String,
+  affiliateStatId: string,
   referral: Address
 ): boolean {
-  let id = referrerStatId + ":" + referral.toHexString();
+  let id = affiliateStatId + ":" + referral.toHexString();
   let entity = TradedReferral.load(id);
   if (entity == null) {
     entity = new TradedReferral(id);
-    entity.referrerStat = referrerStatId;
+    entity.affiliateStat = affiliateStatId;
     entity.referral = referral.toHexString();
     entity.save();
     return true;
@@ -682,14 +846,14 @@ function _createTradedReferralIfNotExist(
 }
 
 function _createRegisteredReferralIfNotExist(
-  referrerStatId: String,
+  affiliateStatId: string,
   referral: Address
 ): boolean {
-  let id = referrerStatId + ":" + referral.toHexString();
+  let id = affiliateStatId + ":" + referral.toHexString();
   let entity = RegisteredReferral.load(id);
   if (entity == null) {
     entity = new RegisteredReferral(id);
-    entity.referrerStat = referrerStatId;
+    entity.affiliateStat = affiliateStatId;
     entity.referral = referral.toHexString();
     entity.save();
     return true;
@@ -697,26 +861,26 @@ function _createRegisteredReferralIfNotExist(
   return false;
 }
 
-function _getOrCreateReferrer(id: String): Referrer {
-  let entity = Referrer.load(id);
+function _getOrCreateAffiliate(id: string): Affiliate {
+  let entity = Affiliate.load(id);
   if (entity == null) {
-    entity = new Referrer(id);
+    entity = new Affiliate(id);
     entity.tierId = ZERO;
     entity.discountShare = ZERO;
     entity.save();
   }
-  return entity as Referrer;
+  return entity as Affiliate;
 }
 
-function _getOrCreateReferrerWithCreatedFlag(id: String): ReferrerResult {
-  let entity = Referrer.load(id);
+function _getOrCreateAffiliateWithCreatedFlag(id: string): AffiliateResult {
+  let entity = Affiliate.load(id);
   let created = false;
   if (entity == null) {
-    entity = new Referrer(id);
+    entity = new Affiliate(id);
     entity.tierId = ZERO;
     entity.discountShare = ZERO;
     entity.save();
     created = true;
   }
-  return new ReferrerResult(entity as Referrer, created);
+  return new AffiliateResult(entity as Affiliate, created);
 }

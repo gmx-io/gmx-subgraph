@@ -2,143 +2,143 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  # - kind: ethereum/contract
-  #   name: OrderBook
-  #   network: fuji
-  #   source:
-  #     address: "0x09f77e8a13de9a35a7231028187e9fd5db8a2acb"
-  #     abi: OrderBook
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - ExecuteDecreaseOrder
-  #     abis:
-  #       - name: OrderBook
-  #         file: ./abis/OrderBook.json
-  #     eventHandlers:
-  #       - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
-  #         handler: handleExecuteDecreaseOrder
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: OrderBook
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: OrderBook
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ExecuteDecreaseOrder
+      abis:
+        - name: OrderBook
+          file: ./abis/OrderBook.json
+      eventHandlers:
+        - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
+          handler: handleExecuteDecreaseOrder
+      file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: BatchSender
-  #   network: fuji
-  #   source:
-  #     address: "0x1070f775e8eb466154BBa8FA0076C4Adc7FE17e8"
-  #     abi: BatchSender
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - BatchSend
-  #     abis:
-  #       - name: BatchSender
-  #         file: ./abis/BatchSender.json
-  #     eventHandlers:
-  #       - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
-  #         handler: handleBatchSend
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: BatchSender
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: BatchSender
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: PositionManager
-  #   network: fuji
-  #   source:
-  #     address: "0x87a4088Bd721F83b6c2E5102e2FA47022Cb1c831"
-  #     abi: PositionManager
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - IncreasePositionReferral
-  #       - DecreasePositionReferral
-  #     abis:
-  #       - name: PositionManager
-  #         file: ./abis/PositionManager.json
-  #     eventHandlers:
-  #       - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleIncreasePositionReferral
-  #       - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleDecreasePositionReferral
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: PositionManager
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionManager
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: PositionManager_v2
-  #   network: fuji
-  #   source:
-  #     address: "0x75E42e6f01baf1D6022bEa862A28774a9f8a4A0C"
-  #     abi: PositionManager
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - IncreasePositionReferral
-  #       - DecreasePositionReferral
-  #     abis:
-  #       - name: PositionManager
-  #         file: ./abis/PositionManager.json
-  #     eventHandlers:
-  #       - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleIncreasePositionReferral
-  #       - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleDecreasePositionReferral
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: PositionManager_v2
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionManager
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: PositionRouter
-  #   network: fuji
-  #   source:
-  #     address: "0x3d6ba331e3d9702c5e8a8d254e5d8a285f223aba"
-  #     abi: PositionRouter
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - IncreasePositionReferral
-  #       - DecreasePositionReferral
-  #     abis:
-  #       - name: PositionRouter
-  #         file: ./abis/PositionRouter.json
-  #     eventHandlers:
-  #       - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleIncreasePositionReferral
-  #       - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleDecreasePositionReferral
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: PositionRouter
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionRouter
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
 
-  # - kind: ethereum/contract
-  #   name: PositionRouter_v2
-  #   network: fuji
-  #   source:
-  #     address: "0xb87a436B93fFE9D75c5cFA7bAcFff96430b09868"
-  #     abi: PositionRouter
-  #     startBlock: 20726150
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - IncreasePositionReferral
-  #       - DecreasePositionReferral
-  #     abis:
-  #       - name: PositionRouter
-  #         file: ./abis/PositionRouter.json
-  #     eventHandlers:
-  #       - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleIncreasePositionReferral
-  #       - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
-  #         handler: handleDecreasePositionReferral
-  #     file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: PositionRouter_v2
+    network: fuji
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionRouter
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
 
   - kind: ethereum/contract
     name: ReferralStorage
@@ -146,7 +146,7 @@ dataSources:
     source:
       address: "0x553e89fF52480C87bbd70F0FCe0E35d18287Cfb4"
       abi: ReferralStorage
-      startBlock: 20726150
+      startBlock: 21131529
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -186,7 +186,7 @@ dataSources:
     source:
       address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
       abi: EventEmitter
-      startBlock: 20726150
+      startBlock: 21131529
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
