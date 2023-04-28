@@ -11,6 +11,9 @@ import {
   SetTraderReferralCode,
 } from "../generated/ReferralStorage/ReferralStorage";
 import {
+  AnswerUpdated as AnswerUpdatedEvent
+} from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
+import {
   IncreasePositionReferral,
   DecreasePositionReferral,
 } from "../generated/PositionManager/PositionManager";
@@ -32,6 +35,7 @@ import {
   ExecuteDecreaseOrder,
   PositionReferralAction,
   TraderToReferralCode,
+  ChainlinkPrice
 } from "../generated/schema";
 import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
@@ -40,6 +44,7 @@ import {
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
+import { getTokenByPriceFeed, getTokenDecimals } from "./tokens";
 
 class AffiliateResult {
   created: boolean;
@@ -72,6 +77,11 @@ export function handleEventLog2(event: EventLog2): void {
     // let market = eventData.getAddressItemString("market")!;
     return;
   }
+}
+
+export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
+  let tokens = getTokenByPriceFeed(event.address.toHexString());
+  _storeChainlinkPrice(tokens, event.params.current)
 }
 
 export function handleEventLog1(event: EventLog1): void {
@@ -135,6 +145,7 @@ function _createOrUpdateDistribution(
     entity.tokens = new Array<string>(0);
     entity.markets = new Array<string>(0);
     entity.amounts = new Array<BigInt>(0);
+    entity.amountsInUsd = new Array<BigInt>(0);
   }
   let tokens = entity.tokens;
   tokens.push(token);
@@ -143,6 +154,10 @@ function _createOrUpdateDistribution(
   let amounts = entity.amounts;
   amounts.push(amount);
   entity.amounts = amounts;
+  
+  let amountsInUsd = entity.amountsInUsd;
+  amountsInUsd.push(_getAmountInUsd(token, amount));
+  entity.amountsInUsd = amountsInUsd;
 
   if (market != null) {
     let markets = entity.markets;
@@ -883,4 +898,28 @@ function _getOrCreateAffiliateWithCreatedFlag(id: string): AffiliateResult {
     created = true;
   }
   return new AffiliateResult(entity as Affiliate, created);
+}
+
+function _storeChainlinkPrice(tokens: string[], value: BigInt): void {
+  for (let i = 0; i < tokens.length; i++) {
+    let id = tokens[i];
+    let entity = new ChainlinkPrice(id)
+    entity.value = value
+    entity.save()
+  }
+}
+
+function _getAmountInUsd(tokenAddress: string, amount: BigInt): BigInt {
+  let price = ChainlinkPrice.load(tokenAddress)
+  if (price == null) {
+    return ZERO
+  }
+  let decimals = getTokenDecimals(tokenAddress)
+  if (decimals == 0) {
+    return ZERO
+  }
+  
+  // 30 USD decimals
+  // 8 Chainlink decimals
+  return amount.times(price.value).times(BigInt.fromI32(10).pow(22 - decimals as u8))
 }
