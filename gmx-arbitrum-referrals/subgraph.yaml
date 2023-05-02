@@ -202,3 +202,66 @@ dataSources:
         - event: EventLog2(address,string,indexed string,indexed bytes32,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
           handler: handleEventLog2
       file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: arbitrum-one
+    source:
+      address: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612"
+      abi: ChainlinkAggregator
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorUSDT
+    network: arbitrum-one
+    source:
+      address: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7"
+      abi: ChainlinkAggregator
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorAVAX
+    network: arbitrum-one
+    source:
+      address: "0x8bf61728eeDCE2F32c456454d87B5d6eD6150208"
+      abi: ChainlinkAggregator
+      startBlock: 21131529
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
