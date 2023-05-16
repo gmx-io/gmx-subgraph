@@ -28,9 +28,7 @@ export function savePositionIncrease(
 
   entity.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
   entity.sizeDeltaInTokens = eventData.getUintItem("sizeDeltaInTokens")!;
-  entity.collateralDeltaAmount = eventData.getUintItem(
-    "collateralDeltaAmount"
-  )!;
+  entity.collateralDeltaAmount = eventData.getIntItem("collateralDeltaAmount")!;
   entity.borrowingFactor = eventData.getUintItem("borrowingFactor")!;
   entity.priceImpactDiffUsd = eventData.getUintItem("priceImpactDiffUsd")!;
 
