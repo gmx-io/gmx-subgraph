@@ -207,7 +207,7 @@ dataSources:
     name: ChainlinkAggregatorETH
     network: avalanche
     source:
-      address: "0x976B3D034E162d8bD72D6b9C989d545b839003b0"
+      address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
       abi: ChainlinkAggregator
       startBlock: 21131529
     mapping:
@@ -228,7 +228,7 @@ dataSources:
     name: ChainlinkAggregatorUSDT
     network: avalanche
     source:
-      address: "0xEBE676ee90Fe1112671f19b6B7459bC678B67e8a"
+      address: "0xb8AEB9160385fa2D1B63B5E88351238593ba0127"
       abi: ChainlinkAggregator
       startBlock: 21131529
     mapping:
@@ -249,7 +249,7 @@ dataSources:
     name: ChainlinkAggregatorAVAX
     network: avalanche
     source:
-      address: "0x0A77230d17318075983913bC2145DB16C7366156"
+      address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
       abi: ChainlinkAggregator
       startBlock: 21131529
     mapping:
