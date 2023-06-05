@@ -144,7 +144,7 @@ dataSources:
     name: ReferralStorage
     network: fuji
     source:
-      address: "0x553e89fF52480C87bbd70F0FCe0E35d18287Cfb4"
+      address: "0x41037500DF49EdCD24Df6E19D4e0c4ae8879cE58"
       abi: ReferralStorage
       startBlock: 21131529
     mapping:
@@ -184,7 +184,7 @@ dataSources:
     name: EventEmitter
     network: fuji
     source:
-      address: "0x764E9B799B53D44B0377a92955DF2930E37136C6"
+      address: "0x165091ec4b94BEfA7f691ea0AC3B391B2770C618"
       abi: EventEmitter
       startBlock: 21131529
     mapping:

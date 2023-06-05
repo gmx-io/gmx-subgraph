@@ -1,0 +1,197 @@
+type Tier @entity {
+  id: ID!
+  totalRebate: BigInt!
+  discountShare: BigInt!
+}
+
+type Affiliate @entity {
+  id: ID!
+  discountShare: BigInt!
+  tierId: BigInt!
+}
+
+type Distribution @entity {
+  id: ID!
+
+  receiver: String! # referral or affiliate
+  amounts: [BigInt!]!
+  amountsInUsd: [BigInt!]!
+  tokens: [String!]!
+  markets: [String!]! # for v2 only
+  
+  # 0 default
+  # 1 airdrop, affiliate
+  # 2 airdrop, traders
+  # 1000 v2, claim, affiliate
+  typeId: BigInt!
+
+  transactionHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type ReferralVolumeRecord @entity {
+  id: ID!
+
+  volume: BigInt!
+  referral: String!
+  referralCode: String!
+  affiliate: String!
+  tierId: BigInt!
+  totalRebate: BigInt!
+  discountShare: BigInt!
+  marginFee: BigInt!
+  totalRebateUsd: BigInt!
+  discountUsd: BigInt!
+
+  transactionHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type AffiliateStat @entity {
+  id: ID! # period start timestamp + affiliate + referralCode
+  affiliate: String!
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  referralCode: String!
+  trades: BigInt!
+  tradesCumulative: BigInt!
+  tradedReferrals: [TradedReferral!]! @derivedFrom(field: "affiliateStat")
+  tradedReferralsCount: BigInt!
+  tradedReferralsCountCumulative: BigInt!
+  registeredReferrals: [RegisteredReferral!]!
+    @derivedFrom(field: "affiliateStat")
+  registeredReferralsCount: BigInt!
+  registeredReferralsCountCumulative: BigInt!
+  totalRebateUsd: BigInt!
+  totalRebateUsdCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+  
+  v1Data: AffiliateStatData!
+  v2Data: AffiliateStatData!
+
+  timestamp: BigInt!
+  period: Period!
+}
+
+type AffiliateStatData @entity {
+  id: ID! # AffiliateStat id + version
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  totalRebateUsd: BigInt!
+  totalRebateUsdCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+  trades: BigInt!
+  tradesCumulative: BigInt!
+}
+
+type ReferralCode @entity {
+  id: ID!
+  code: String!
+  owner: String!
+}
+
+type TradedReferral @entity {
+  id: ID! # timestamp + affiliate + referralCode
+  affiliateStat: AffiliateStat!
+  referral: String!
+}
+
+type RegisteredReferral @entity {
+  id: ID! # timestamp + affiliate + referralCode
+  affiliateStat: AffiliateStat!
+  referral: String!
+}
+
+type TraderToReferralCode @entity {
+  id: ID!
+  referralCode: ReferralCode!
+}
+
+type ReferralStat @entity {
+  id: ID!
+
+  referral: String!
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+  
+  v1Data: ReferralStatData!
+  v2Data: ReferralStatData!
+
+  timestamp: BigInt!
+  period: Period!
+}
+
+type ReferralStatData @entity {
+  id: ID! # ReferralStat id + version
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+} 
+
+type GlobalStat @entity {
+  id: ID!
+
+  volume: BigInt!
+  volumeCumulative: BigInt!
+  totalRebateUsd: BigInt!
+  totalRebateUsdCumulative: BigInt!
+  discountUsd: BigInt!
+  discountUsdCumulative: BigInt!
+  trades: BigInt!
+  tradesCumulative: BigInt!
+  # tradedReferralsCount: BigInt!
+  # tradedReferralsCountCumulative: BigInt!
+  affiliatesCount: BigInt!
+  affiliatesCountCumulative: BigInt!
+  referralCodesCount: BigInt!
+  referralCodesCountCumulative: BigInt!
+
+  referralsCount: BigInt!
+  referralsCountCumulative: BigInt!
+
+  timestamp: BigInt!
+  period: Period!
+}
+
+type ExecuteDecreaseOrder @entity {
+  id: ID! # block + logIndex
+  sizeDelta: BigInt!
+  account: String!
+  timestamp: BigInt!
+}
+
+type PositionReferralAction @entity {
+  id: ID!
+  account: String!
+  referralCode: String!
+  affiliate: String!
+  isIncrease: Boolean!
+  volume: BigInt!
+
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  timestamp: BigInt!
+}
+
+type ChainlinkPrice @entity {
+  id: ID! # token
+  value: BigInt!
+}
+
+
+enum Period {
+  hourly
+  daily
+  weekly
+  total
+}
