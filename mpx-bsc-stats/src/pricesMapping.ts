@@ -8,10 +8,12 @@ import {
 import {
   BTC,
   WETH,
-  WFTM,
+  WBNB,
   timestampToPeriod,
   USDC,
-  DAI,
+  XRP,
+  CAKE,
+  ADA,
   USDT
 } from "./helpers"
 
@@ -50,16 +52,24 @@ export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(WETH, event.params.current, event.block.timestamp, event.block.number)
 }
 
-export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(WFTM, event.params.current, event.block.timestamp, event.block.number)
+export function handleAnswerUpdatedADABNB(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(ADA, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedBNBAndADA(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(WBNB, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
 }
 
-export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
+export function handleAnswerUpdatedCAKE(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(CAKE, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedXRP(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(XRP, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDT(event: AnswerUpdatedEvent): void {

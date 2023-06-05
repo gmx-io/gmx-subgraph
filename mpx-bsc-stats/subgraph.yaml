@@ -65,7 +65,7 @@ dataSources:
           file: ./abis/ChainlinkAggregator.json
       eventHandlers:
         - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedDAI
+          handler: handleAnswerUpdatedXRP
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
@@ -170,7 +170,7 @@ dataSources:
           file: ./abis/ChainlinkAggregator.json
       eventHandlers:
         - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedAVAX
+          handler: handleAnswerUpdatedBNBAndADA
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
