@@ -135,7 +135,7 @@ dataSources:
     name: ChainlinkAggregatorADA
     network: bsc
     source:
-      address: "0x50204D36C231CD4F0De67545Cd1E36C01336e46b"
+      address: "0x2028b4a27c14263Ba00C75c42cfe524E705031F4"
       abi: ChainlinkAggregator
       startBlock: 28810031
     mapping:
