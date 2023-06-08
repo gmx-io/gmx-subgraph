@@ -75,6 +75,8 @@ type PositionIncrease @entity(immutable: true) {
   account: String!
   marketAddress: String!
   collateralTokenAddress: String!
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
   sizeInUsd: BigInt!
   sizeInTokens: BigInt!
   collateralAmount: BigInt!
@@ -102,6 +104,8 @@ type PositionDecrease @entity(immutable: true) {
   account: String!
   marketAddress: String!
   collateralTokenAddress: String!
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
   sizeInUsd: BigInt!
   sizeInTokens: BigInt!
   collateralAmount: BigInt!

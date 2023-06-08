@@ -22,6 +22,14 @@ export function savePositionIncrease(
     "collateralToken"
   )!;
 
+  entity.collateralTokenPriceMin = eventData.getUintItem(
+    "collateralTokenPrice.min"
+  )!;
+
+  entity.collateralTokenPriceMax = eventData.getUintItem(
+    "collateralTokenPrice.max"
+  )!;
+
   entity.sizeInUsd = eventData.getUintItem("sizeInUsd")!;
   entity.sizeInTokens = eventData.getUintItem("sizeInTokens")!;
   entity.collateralAmount = eventData.getUintItem("collateralAmount")!;
@@ -68,6 +76,14 @@ export function savePositionDecrease(
   entity.marketAddress = eventData.getAddressItemString("market")!;
   entity.collateralTokenAddress = eventData.getAddressItemString(
     "collateralToken"
+  )!;
+
+  entity.collateralTokenPriceMin = eventData.getUintItem(
+    "collateralTokenPrice.min"
+  )!;
+
+  entity.collateralTokenPriceMax = eventData.getUintItem(
+    "collateralTokenPrice.max"
   )!;
 
   entity.sizeInUsd = eventData.getUintItem("sizeInUsd")!;
