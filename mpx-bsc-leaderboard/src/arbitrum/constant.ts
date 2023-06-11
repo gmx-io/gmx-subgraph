@@ -1,0 +1,11 @@
+
+export const ReferralStorage = "0xb795e91daefd6a7edeac3060513d93ce7617370a"
+export const WETH = "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+export const WBTC = "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+export const WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+export const MPX = "0x94c6b279b5df54b335ae51866d6e2a56bf5ef9b7"
+export const EsMPX = "0x620e501f70cc0989f7c6a700c457b0fa0207b51b"
+export const MLP = "0xbd1dcec2103675c8f3953c34ae40ed907e1dcac2"
+export const XRP = "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe"
+export const CAKE = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
+export const ADA = "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"

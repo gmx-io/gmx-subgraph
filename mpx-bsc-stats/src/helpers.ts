@@ -15,7 +15,7 @@ export let USDT = "0x55d398326f99059fF775485246999027B3197955"  // bsc
 export let XRP = "0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE"   // bsc
 export let CAKE = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"  // bsc
 export let ADA = "0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47"   // bsc
-export let MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"   // alxMPX ---
+export let MPX = "0x94C6B279b5df54b335aE51866d6E2A56BF5Ef9b7"   // alxMPX ---
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestampToPeriod(timestamp, "daily")
