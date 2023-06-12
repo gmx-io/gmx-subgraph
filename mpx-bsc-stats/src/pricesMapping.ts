@@ -6,7 +6,7 @@ import {
 } from "../generated/schema"
 
 import {
-  BTC,
+  WBTC,
   WETH,
   WBNB,
   timestampToPeriod,
@@ -45,7 +45,7 @@ function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt, b
 }
 
 export function handleAnswerUpdatedBTC(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(BTC, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(WBTC, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {

@@ -7,15 +7,18 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let WETH = "0x2170Ed0880ac9A755fd29B2688956BD959F933F8"  // bsc
-export let BTC = "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"   // bsc
-export let WBNB = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"  // BNB bsc
-export let USDC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"  // bsc
-export let USDT = "0x55d398326f99059fF775485246999027B3197955"  // bsc
-export let XRP = "0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE"   // bsc
-export let CAKE = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"  // bsc
-export let ADA = "0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47"   // bsc
-export let MPX = "0x94C6B279b5df54b335aE51866d6E2A56BF5Ef9b7"   // alxMPX ---
+export let ReferralStorage = "0xb795e91daefd6a7edeac3060513d93ce7617370a"
+export let WETH = "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+export let WBTC = "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+export let WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+export let MPX = "0x94c6b279b5df54b335ae51866d6e2a56bf5ef9b7"
+export let EsMPX = "0x620e501f70cc0989f7c6a700c457b0fa0207b51b"
+export let MLP = "0xbd1dcec2103675c8f3953c34ae40ed907e1dcac2"
+export let XRP = "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe"
+export let CAKE = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
+export let ADA = "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"
+export let USDC = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+export let USDT = "0x55d398326f99059ff775485246999027b3197955"
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestampToPeriod(timestamp, "daily")
@@ -40,7 +43,7 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 export function getTokenDecimals(token: String): u8 {
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)
-  tokenDecimals.set(BTC, 18)
+  tokenDecimals.set(WBTC, 18)
   tokenDecimals.set(XRP, 18)
   tokenDecimals.set(ADA, 18)
   tokenDecimals.set(USDC, 18)
@@ -78,7 +81,7 @@ export function getTokenPrice(token: String): BigInt {
 
   let prices = new TypedMap<String, BigInt>()
   prices.set(WETH, BigInt.fromI32(1800) * PRECISION)
-  prices.set(BTC, BigInt.fromI32(26000) * PRECISION)
+  prices.set(WBTC, BigInt.fromI32(26000) * PRECISION)
   prices.set(XRP, PRECISION)
   prices.set(ADA, BigInt.fromI32(35) * PRECISION)
   prices.set(USDC, PRECISION)
