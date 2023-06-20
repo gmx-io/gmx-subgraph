@@ -12,7 +12,8 @@ export let BTC = "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f"
 export let LINK = "0xf97f4df75117a78c1a5a0dbb814af92458539fb4"
 export let UNI = "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0"
 export let USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
-export let USDC = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+export let USDCe = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+export let USDC = "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
 export let MIM = "0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a"
 export let SPELL = "0x3e6648c5a70a150a88bce65f4ad4d506fe15d2af"
 export let SUSHI = "0xd4d42f0b6def4ce0383636770ef773390d85c61a"
@@ -48,6 +49,7 @@ export function getTokenDecimals(token: String): u8 {
   tokenDecimals.set(LINK, 18)
   tokenDecimals.set(UNI, 18)
   tokenDecimals.set(USDC, 6)
+  tokenDecimals.set(USDCe, 6)
   tokenDecimals.set(USDT, 6)
   tokenDecimals.set(MIM, 18)
   tokenDecimals.set(SPELL, 18)
@@ -90,6 +92,7 @@ export function getTokenPrice(token: String): BigInt {
   prices.set(LINK, BigInt.fromI32(25) * PRECISION)
   prices.set(UNI, BigInt.fromI32(23) * PRECISION)
   prices.set(USDC, PRECISION)
+  prices.set(USDCe, PRECISION)
   prices.set(USDT, PRECISION)
   prices.set(MIM, PRECISION)
   prices.set(SPELL, PRECISION / BigInt.fromI32(50)) // ~2 cents

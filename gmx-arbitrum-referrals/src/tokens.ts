@@ -5,7 +5,8 @@ let USDT_PRICE_FEED = "0xCb35fE6E53e71b30301Ec4a3948Da4Ad3c65ACe4"; // same as U
 
 let WETH = "0x82af49447d8a07e3bd95bd0d56f35241523fbab1";
 let AVAX = "0x565609faf65b92f7be02468acf86f8979423e514";
-let USDC = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8";
+let USDCe = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8";
+let USDC = "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 let USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9";
 
 export function getTokenByPriceFeed(priceFeed: string): string[] {
@@ -14,7 +15,7 @@ export function getTokenByPriceFeed(priceFeed: string): string[] {
   } else if (priceFeed == AVAX_PRICE_FEED) {
     return [AVAX];
   } else if (priceFeed == USDC_PRICE_FEED || priceFeed == USDT_PRICE_FEED) {
-    return [USDC, USDT];
+    return [USDC, USDCe, USDT];
   }
 
   return [];
@@ -25,6 +26,8 @@ export function getTokenDecimals(tokenAddress: string): number {
     return 18;
   } else if (tokenAddress == AVAX) {
     return 18;
+  } else if (tokenAddress == USDCe) {
+    return 6;
   } else if (tokenAddress == USDC) {
     return 6;
   } else if (tokenAddress == USDT) {

@@ -7,14 +7,10 @@ import {
 } from "../generated/schema"
 
 import {
-  BASIS_POINTS_DIVISOR,
-  PRECISION,
   WETH,
   BTC,
   LINK,
   UNI,
-  USDT,
-  USDC,
   MIM,
   SPELL,
   SUSHI,
