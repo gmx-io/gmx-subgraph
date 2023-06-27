@@ -209,7 +209,7 @@ dataSources:
     source:
       address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
       abi: ChainlinkAggregator
-      startBlock: 21131529
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -230,7 +230,7 @@ dataSources:
     source:
       address: "0xb8AEB9160385fa2D1B63B5E88351238593ba0127"
       abi: ChainlinkAggregator
-      startBlock: 21131529
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -251,7 +251,7 @@ dataSources:
     source:
       address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
       abi: ChainlinkAggregator
-      startBlock: 21131529
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

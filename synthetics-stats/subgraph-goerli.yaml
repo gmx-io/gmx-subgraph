@@ -9,7 +9,7 @@ dataSources:
     name: EventEmitter
     network: arbitrum-goerli
     source:
-      address: "0xBaA2ad3E03A07FB93218c45454EE07612b6E5d2E"
+      address: "0xB801Ad27C516eD5B9A4a1b2494Ba1D8788740764"
       abi: EventEmitter
       startBlock: 23368123
     mapping:
