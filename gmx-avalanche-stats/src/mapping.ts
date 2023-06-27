@@ -6,10 +6,6 @@ import {
 } from "../generated/GlpManager/GlpManager"
 
 import {
-  Distribute
-} from "../generated/FeeGmxRewardDistributor/RewardDistributor"
-
-import {
   Vault,
   Swap as SwapEvent,
   IncreasePosition as IncreasePositionEvent,
@@ -384,50 +380,6 @@ export function handleUpdateFundingRate(event: UpdateFundingRate): void {
   totalEntity.save()
 }
 
-export function handleDistributeEthToGmx(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
-  let totalEntity = _getOrCreateGmxStat("total", "total")
-  totalEntity.distributedEth += amount
-  totalEntity.distributedEthCumulative += amount
-  totalEntity.distributedUsd += amountUsd
-  totalEntity.distributedUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGmxStat(id, "daily")
-
-  entity.distributedEth += amount
-  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
-  entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
-}
-export function handleDistributeEsgmxToGmx(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(GMX, amount)
-
-  let totalEntity = _getOrCreateGmxStat("total", "total")
-  totalEntity.distributedEsgmx += amount
-  totalEntity.distributedEsgmxCumulative += amount
-  totalEntity.distributedEsgmxUsd += amountUsd
-  totalEntity.distributedEsgmxUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = _getDayId(event.block.timestamp) + ":daily"
-  let entity = _getOrCreateGmxStat(id, "daily")
-
-  entity.distributedEsgmx += amount
-  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
-  entity.distributedEsgmxUsd += amountUsd
-  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
-}
-
 export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
   let timestamp = event.block.timestamp
   let token = event.params.token
@@ -714,54 +666,6 @@ function _getOrCreateGlpStat(id: string, period: string, periodTimestmap: i32): 
     entity.timestamp = periodTimestmap
   }
   return entity as GlpStat
-}
-
-export function handleDistributeEthToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(WETH, amount)
-  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
-
-  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
-  totalEntity.distributedEth += amount
-  totalEntity.distributedEthCumulative += amount
-  totalEntity.distributedUsd += amountUsd
-  totalEntity.distributedUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = periodTimestamp.toString() + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
-
-  entity.distributedEth += amount
-  entity.distributedEthCumulative = totalEntity.distributedEthCumulative
-  entity.distributedUsd += amountUsd
-  entity.distributedUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
-}
-
-export function handleDistributeEsgmxToGlp(event: Distribute): void {
-  let amount = event.params.amount
-  let amountUsd = getTokenAmountUsd(GMX, amount)
-  let periodTimestamp = parseInt(_getDayId(event.block.timestamp)) as i32
-
-  let totalEntity = _getOrCreateGlpStat("total", "total", periodTimestamp)
-  totalEntity.distributedEsgmx += amount
-  totalEntity.distributedEsgmxCumulative += amount
-  totalEntity.distributedEsgmxUsd += amountUsd
-  totalEntity.distributedEsgmxUsdCumulative += amountUsd
-
-  totalEntity.save()
-
-  let id = periodTimestamp.toString() + ":daily"
-  let entity = _getOrCreateGlpStat(id, "daily", periodTimestamp)
-
-  entity.distributedEsgmx += amount
-  entity.distributedEsgmxCumulative = totalEntity.distributedEthCumulative
-  entity.distributedEsgmxUsd += amountUsd
-  entity.distributedEsgmxUsdCumulative = totalEntity.distributedUsdCumulative
-
-  entity.save()
 }
 
 function _storeGlpStat(timestamp: BigInt, glpSupply: BigInt, aumInUsdg: BigInt): void {
