@@ -1,0 +1,27 @@
+enum Period {
+  hourly
+  daily
+  total
+}
+
+type AccountPerf @entity {
+  id: ID!
+  timestamp: Int!
+  period: Period!
+  account: String!
+  wins: BigInt!
+  losses: BigInt!
+  volume: BigInt!
+  totalPnl: BigInt!
+  maxCollateral: BigInt!
+}
+
+type AccountOpenPosition @entity {
+  id: ID!
+  account: String!
+  market: String!
+  collateralToken: String!
+  isLong: Boolean!
+  size: BigInt!
+  realizedPnl: BigInt!
+}
