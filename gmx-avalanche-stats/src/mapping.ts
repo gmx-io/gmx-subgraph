@@ -1,12 +1,10 @@
-import { BigInt, Address, Bytes, TypedMap, ethereum, store, log } from "@graphprotocol/graph-ts"
+import { BigInt, Address, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
-  GlpManager,
   AddLiquidity,
   RemoveLiquidity
 } from "../generated/GlpManager/GlpManager"
 
 import {
-  Vault,
   Swap as SwapEvent,
   IncreasePosition as IncreasePositionEvent,
   DecreasePosition as DecreasePositionEvent,

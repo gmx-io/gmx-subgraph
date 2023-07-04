@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: OrderBook
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0x09f77e8a13de9a35a7231028187e9fd5db8a2acb"
       abi: OrderBook
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -25,11 +25,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: BatchSender
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0x1070f775e8eb466154BBa8FA0076C4Adc7FE17e8"
       abi: BatchSender
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -46,11 +46,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionManager
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0x87a4088Bd721F83b6c2E5102e2FA47022Cb1c831"
       abi: PositionManager
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -70,11 +70,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionManager_v2
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0x75E42e6f01baf1D6022bEa862A28774a9f8a4A0C"
       abi: PositionManager
-      startBlock: 29852256
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -94,11 +94,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionRouter
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0x3d6ba331e3d9702c5e8a8d254e5d8a285f223aba"
       abi: PositionRouter
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -118,11 +118,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionRouter_v2
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0xb87a436B93fFE9D75c5cFA7bAcFff96430b09868"
       abi: PositionRouter
-      startBlock: 29856759
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -142,11 +142,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: ReferralStorage
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
-      address: "0xe6fab3F0c7199b0d34d7FbE83394fc0e0D06e99d"
+      address: "0x995E905E471D53B7c5d0dbf6406860Cb3C029e95"
       abi: ReferralStorage
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -182,11 +182,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: EventEmitter
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
-      address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
+      address: "0x4761B01ACFa3722640C3BA021Ac2D0D40f2F439e"
       abi: EventEmitter
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -205,11 +205,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: ChainlinkAggregatorETH
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
-      address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
+      address: "0xc975defb12c5e83f2c7e347831126cf136196447"
       abi: ChainlinkAggregator
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -226,11 +226,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: ChainlinkAggregatorUSDT
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
-      address: "0xCb35fE6E53e71b30301Ec4a3948Da4Ad3c65ACe4"
+      address: "0xA966F9276d9eD5F31503D03BA62Ec48b3EF11a30"
       abi: ChainlinkAggregator
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -247,11 +247,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: ChainlinkAggregatorAVAX
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
       address: "0xcf17b68a40f10d3DcEedd9a092F1Df331cE3D9da"
       abi: ChainlinkAggregator
-      startBlock: 9391374
+      startBlock: 23368123
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

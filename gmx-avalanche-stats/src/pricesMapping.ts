@@ -58,20 +58,6 @@ export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(AVAX, event.params.current, event.block.timestamp, event.block.number)
 }
 
-function _storeUniswapPrice(id: string, token: string, price: BigInt, period: string, timestamp: BigInt, blockNumber: BigInt): void {
-  let entity = UniswapPrice.load(id)
-  if (entity == null) {
-    entity = new UniswapPrice(id)
-  }
-
-  entity.timestamp = timestamp.toI32()
-  entity.value = price
-  entity.token = token
-  entity.period = period
-  entity.blockNumber = blockNumber.toI32()
-  entity.save()
-}
-
 function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
   let dailyTimestampGroup = timestampToPeriod(timestamp, "daily")
   _storeFastPrice(dailyTimestampGroup.toString() + ":daily:" + token.toHexString(), token, price, dailyTimestampGroup, blockNumber, "daily")

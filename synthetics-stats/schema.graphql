@@ -1,0 +1,269 @@
+enum OrderStatus {
+  Created
+  Executed
+  Cancelled
+  Frozen
+}
+
+enum TradeActionType {
+  OrderCreated
+  OrderCancelled
+  OrderExecuted
+  OrderFrozen
+  OrderUpdated
+}
+
+enum ClaimCollateralActionType {
+  ClaimPriceImpact
+  ClaimFunding
+}
+
+type AffiliateRewardUpdate @entity(immutable: true) {
+  id: ID!
+  affiliate: String!
+  marketAddress: String!
+  tokenAddress: String!
+  delta: BigInt!
+  nextValue: BigInt!
+  nextPoolValue: BigInt!
+  transaction: Transaction!
+}
+
+type Order @entity {
+  # orderKey
+  id: ID!
+
+  account: String!
+  receiver: String!
+  callbackContract: String!
+  marketAddress: String!
+  swapPath: [String!]
+  initialCollateralTokenAddress: String!
+
+  sizeDeltaUsd: BigInt!
+  initialCollateralDeltaAmount: BigInt!
+  triggerPrice: BigInt!
+  acceptablePrice: BigInt!
+  executionFee: BigInt!
+  callbackGasLimit: BigInt!
+  minOutputAmount: BigInt!
+
+  updatedAtBlock: BigInt!
+
+  orderType: BigInt!
+
+  shouldUnwrapNativeToken: Boolean!
+  isLong: Boolean!
+
+  status: OrderStatus!
+
+  cancelledReason: String
+  cancelledReasonBytes: Bytes
+  frozenReason: String
+  frozenReasonBytes: Bytes
+
+  createdTxn: Transaction!
+  cancelledTxn: Transaction
+  executedTxn: Transaction
+}
+
+type PositionIncrease @entity(immutable: true) {
+  # orderKey
+  id: ID!
+  orderKey: String!
+  positionKey: String!
+  account: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
+  sizeInUsd: BigInt!
+  sizeInTokens: BigInt!
+  collateralAmount: BigInt!
+  sizeDeltaUsd: BigInt!
+  sizeDeltaInTokens: BigInt!
+  collateralDeltaAmount: BigInt!
+  executionPrice: BigInt!
+  priceImpactDiffUsd: BigInt!
+  orderType: BigInt!
+  borrowingFactor: BigInt!
+  longTokenFundingAmountPerSize: BigInt!
+  shortTokenFundingAmountPerSize: BigInt!
+  priceImpactAmount: BigInt!
+  pnlUsd: BigInt!
+  isLong: Boolean!
+
+  transaction: Transaction
+}
+
+type PositionDecrease @entity(immutable: true) {
+  # orderKey
+  id: ID!
+  orderKey: String!
+  positionKey: String!
+  account: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
+  sizeInUsd: BigInt!
+  sizeInTokens: BigInt!
+  collateralAmount: BigInt!
+  sizeDeltaUsd: BigInt!
+  sizeDeltaInTokens: BigInt!
+  collateralDeltaAmount: BigInt!
+  executionPrice: BigInt!
+  priceImpactDiffUsd: BigInt!
+  orderType: BigInt!
+  borrowingFactor: BigInt!
+  longTokenFundingAmountPerSize: BigInt!
+  shortTokenFundingAmountPerSize: BigInt!
+  priceImpactAmount: BigInt!
+  pnlUsd: BigInt!
+  isLong: Boolean!
+
+  transaction: Transaction
+}
+
+type PositionFeesInfo @entity(immutable: true) {
+  # orderKey:eventName
+  id: ID!
+  eventName: String!
+  orderKey: String!
+  marketAddress: String!
+  collateralTokenAddress: String!
+
+  trader: String!
+  affiliate: String!
+
+  collateralTokenPriceMin: BigInt!
+  collateralTokenPriceMax: BigInt!
+
+  positionFeeAmount: BigInt!
+  borrowingFeeAmount: BigInt!
+  fundingFeeAmount: BigInt!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
+
+  totalRebateFactor: BigInt!
+  traderDiscountAmount: BigInt!
+  totalRebateAmount: BigInt!
+  affiliateRewardAmount: BigInt!
+
+  transaction: Transaction!
+}
+
+type SwapInfo @entity(immutable: true) {
+  # orderKey:marketAddress
+  id: ID!
+  orderKey: String!
+  receiver: String!
+  marketAddress: String!
+  tokenInAddress: String!
+  tokenOutAddress: String!
+  tokenInPrice: BigInt!
+  tokenOutPrice: BigInt!
+  amountIn: BigInt!
+  amountInAfterFees: BigInt!
+  amountOut: BigInt!
+  priceImpactUsd: BigInt!
+
+  transaction: Transaction!
+}
+
+type SwapFeesInfo @entity(immutable: true) {
+  # eventId
+  id: ID!
+  marketAddress: String!
+  tokenAddress: String!
+  action: String!
+  tokenPrice: BigInt!
+  feeReceiverAmount: BigInt!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
+
+  transaction: Transaction!
+}
+
+type CollectedMarketFeesInfo @entity {
+  # marketAddress:tokenAddress:period:timestampGroup
+  id: ID!
+  period: String!
+  marketAddress: String!
+  tokenAddress: String!
+  feeAmountForPool: BigInt!
+  feeUsdForPool: BigInt!
+  cummulativeFeeAmountForPool: BigInt!
+  cummulativeFeeUsdForPool: BigInt!
+  timestampGroup: Int!
+}
+
+type TradeAction @entity(immutable: true) {
+  id: ID!
+  eventName: String!
+
+  orderKey: String!
+  orderType: BigInt!
+
+  account: String!
+  marketAddress: String
+  swapPath: [String!]
+  initialCollateralTokenAddress: String!
+  initialCollateralDeltaAmount: BigInt!
+
+  # positions
+  sizeDeltaUsd: BigInt
+  triggerPrice: BigInt
+  acceptablePrice: BigInt
+  executionPrice: BigInt
+  collateralTokenPriceMin: BigInt
+  collateralTokenPriceMax: BigInt
+  priceImpactDiffUsd: BigInt
+  priceImpactAmount: BigInt
+  positionFeeAmount: BigInt
+  borrowingFeeAmount: BigInt
+  fundingFeeAmount: BigInt
+  pnlUsd: BigInt
+  isLong: Boolean
+
+  # swaps
+  minOutputAmount: BigInt
+  executionAmountOut: BigInt
+  shouldUnwrapNativeToken: Boolean
+
+  reason: String
+  reasonBytes: Bytes
+
+  transaction: Transaction!
+}
+
+type ClaimCollateralAction @entity(immutable: true) {
+  # transactionHash:account:eventName
+  id: ID!
+  eventName: ClaimCollateralActionType!
+  account: String!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
+
+  transaction: Transaction!
+}
+
+type PoolAmountUpdate @entity(immutable: true) {
+  id: ID!
+  marketAddress: String!
+  tokenAddress: String!
+  delta: BigInt!
+  nextValue: BigInt!
+  transaction: Transaction!
+}
+
+type Transaction @entity {
+  id: ID!
+  from: String!
+  to: String!
+  hash: String!
+  timestamp: Int!
+  blockNumber: Int!
+  transactionIndex: Int!
+}
