@@ -22,6 +22,7 @@ type AccountOpenPosition @entity {
   market: String!
   collateralToken: String!
   isLong: Boolean!
-  size: BigInt!
+  sizeInTokens: BigInt!
+  sizeInUsd: BigInt!
   realizedPnl: BigInt!
 }

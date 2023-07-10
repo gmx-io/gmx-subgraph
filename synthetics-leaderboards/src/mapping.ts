@@ -45,16 +45,17 @@ export function handleEventLog1(event: EventLog1): void {
     accountPosition.market = market;
     accountPosition.collateralToken = collateralToken;
     accountPosition.isLong = isLong;
-    accountPosition.realizedPnl = BigInt.fromString("0");
+    accountPosition.realizedPnl = BigInt.fromI32(0);
   }
 
-  accountPosition.size = sizeInTokens; // TODO: or should it rather be sizeInUsd?
+  accountPosition.sizeInTokens = sizeInTokens;
+  accountPosition.sizeInUsd = sizeInUsd;
   accountPosition.realizedPnl = accountPosition.realizedPnl.plus(basePnlUsd);
 
   _updateAccountPerformanceForPeriod(HOURLY, accountPosition, eventData, event);
   _updateAccountPerformanceForPeriod(DAILY, accountPosition, eventData, event);
 
-  if (sizeInUsd.equals(BigInt.fromString("0"))) {
+  if (sizeInUsd.equals(BigInt.fromI32(0))) {
     store.remove("AccountOpenPosition", accountPosition.id);
   } else {
     accountPosition.save();
@@ -88,15 +89,15 @@ const _updateAccountPerformanceForPeriod = (
   const sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
   const collateralAmount = eventData.getUintItem("collateralAmount")!;
   const collateralTokenPrice = eventData.getUintItem("collateralTokenPrice.min")!;
-  const periodStart = i32(_periodStart(period, event).getTime() / 1000).toString();
-  const accountPerfId = accountPosition.account + ":" + periodStart + ":" + period;
+  const periodStart = i32(_periodStart(period, event).getTime() / 1000);
+  const accountPerfId = accountPosition.account + ":" + periodStart.toString() + ":" + period;
 
   let accountPerf = AccountPerf.load(accountPerfId);
 
   if (accountPerf === null) {
     accountPerf = new AccountPerf(accountPerfId);
     accountPerf.account = accountPosition.account;
-    accountPerf.timestamp = BigInt.fromString(periodStart).toI32();
+    accountPerf.timestamp = periodStart;
     accountPerf.period = period;
     accountPerf.volume = BigInt.fromI32(0);
     accountPerf.wins = BigInt.fromI32(0);
@@ -113,13 +114,13 @@ const _updateAccountPerformanceForPeriod = (
     accountPerf.maxCollateral = collateralAmountUsd;
   }
 
-  if (sizeInUsd.equals(BigInt.fromString("0"))) {
+  if (sizeInUsd.equals(BigInt.fromI32(0))) {
     accountPerf.totalPnl = accountPerf.totalPnl.plus(accountPosition.realizedPnl);
 
-    if (accountPosition.realizedPnl.ge(BigInt.fromString("0"))) {
-      accountPerf.wins = accountPerf.wins.plus(BigInt.fromString("1"));
+    if (accountPosition.realizedPnl.ge(BigInt.fromI32(0))) {
+      accountPerf.wins = accountPerf.wins.plus(BigInt.fromI32(1));
     } else {
-      accountPerf.losses = accountPerf.losses.plus(BigInt.fromString("1"));
+      accountPerf.losses = accountPerf.losses.plus(BigInt.fromI32(1));
     }
   }
 
