@@ -51,6 +51,7 @@ export function handleEventLog1(event: EventLog1): void {
     accountPosition.realizedPnl = BigInt.fromI32(0);
     accountPosition.entryPrice = executionPrice;
     accountPosition.maxSize = BigInt.fromI32(0);
+    accountPosition.maxCollateral = BigInt.fromI32(0);
     accountPosition.sumSize = BigInt.fromI32(0);
     accountPosition.sumCollateral = BigInt.fromI32(0);
     accountPosition.changeCount = BigInt.fromI32(0);
