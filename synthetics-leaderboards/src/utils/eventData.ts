@@ -9,6 +9,7 @@ import {
   EventLog1EventDataBytes32ItemsItemsStruct,
   EventLog1EventDataBytesItemsArrayItemsStruct,
   EventLog1EventDataStringItemsArrayItemsStruct,
+  EventLog1EventDataIntItemsItemsStruct,
 } from "../../generated/EventEmitter/EventEmitter";
 
 export class EventData {
@@ -89,9 +90,9 @@ export class EventData {
   }
 
   getIntItem(key: string): BigInt | null {
-    return getItemByKey<BigInt, EventLog1EventDataUintItemsItemsStruct>(
+    return getItemByKey<BigInt, EventLog1EventDataIntItemsItemsStruct>(
       this.rawData.intItems.items as Array<
-        EventLog1EventDataUintItemsItemsStruct
+        EventLog1EventDataIntItemsItemsStruct
       >,
       key
     );

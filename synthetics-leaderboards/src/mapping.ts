@@ -30,7 +30,7 @@ export function handleEventLog1(event: EventLog1): void {
   const sizeInUsd = eventData.getUintItem("sizeInUsd")!;
   const positionKey = eventData.getBytes32Item("positionKey")!.toHexString(); // account + ":" + market + ":" + collateralToken + ":" + (isLong ? "long" : "short")
 
-  let basePnlUsd = eventData.getUintItem("basePnlUsd");
+  let basePnlUsd = eventData.getIntItem("basePnlUsd");
 
   if (basePnlUsd === null) {
     basePnlUsd = BigInt.fromI32(0);
