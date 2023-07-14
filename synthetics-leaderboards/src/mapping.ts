@@ -32,6 +32,7 @@ export function handleEventLog1(event: EventLog1): void {
   const sizeInUsd = eventData.getUintItem("sizeInUsd")!;
   const executionPrice = eventData.getUintItem("executionPrice")!;
   const positionKey = eventData.getBytes32Item("positionKey")!.toHexString(); // account + ":" + market + ":" + collateralToken + ":" + (isLong ? "long" : "short")
+  const collateralAmountUsd = collateralAmount.times(collateralTokenPrice);
 
   let basePnlUsd = eventData.getIntItem("basePnlUsd");
 
@@ -57,14 +58,13 @@ export function handleEventLog1(event: EventLog1): void {
     accountPosition.changeCount = BigInt.fromI32(0);
   }
 
-  const collateralAmountUsd = collateralAmount.times(collateralTokenPrice);
-
   accountPosition.changeCount = accountPosition.changeCount.plus(BigInt.fromI32(1));
   accountPosition.realizedPnl = accountPosition.realizedPnl.plus(basePnlUsd);
   accountPosition.sizeInTokens = sizeInTokens;
   accountPosition.sizeInUsd = sizeInUsd;
   accountPosition.sumSize = accountPosition.sumSize.plus(sizeInUsd);
   accountPosition.sumCollateral = accountPosition.sumCollateral.plus(collateralAmountUsd);
+  accountPosition.collateralAmount = collateralAmount;
 
   if (accountPosition.maxSize.lt(sizeInUsd)) {
     accountPosition.maxSize = sizeInUsd;
@@ -108,7 +108,6 @@ const _updateAccountPerformanceForPeriod = (
 ): void => {
 
   const sizeInUsd = eventData.getUintItem("sizeInUsd")!;
-  const sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
   const periodStart = i32(_periodStart(period, event).getTime() / 1000);
   const accountPerfId = accountPosition.account + ":" + periodStart.toString() + ":" + period;
 
@@ -119,7 +118,6 @@ const _updateAccountPerformanceForPeriod = (
     accountPerf.account = accountPosition.account;
     accountPerf.timestamp = periodStart;
     accountPerf.period = period;
-    accountPerf.volume = BigInt.fromI32(0);
     accountPerf.wins = BigInt.fromI32(0);
     accountPerf.losses = BigInt.fromI32(0);
     accountPerf.totalPnl = BigInt.fromI32(0);
@@ -130,10 +128,15 @@ const _updateAccountPerformanceForPeriod = (
     accountPerf.sumMaxCollateral = BigInt.fromI32(0);
   }
 
-  accountPerf.volume = accountPerf.volume.plus(sizeDeltaUsd);
+  let basePnlUsd = eventData.getIntItem("basePnlUsd");
+
+  if (basePnlUsd === null) {
+    basePnlUsd = BigInt.fromI32(0);
+  }
+
+  accountPerf.totalPnl = accountPerf.totalPnl.plus(basePnlUsd);
 
   if (sizeInUsd.equals(BigInt.fromI32(0))) {
-    accountPerf.totalPnl = accountPerf.totalPnl.plus(accountPosition.realizedPnl);
     accountPerf.sumSize = accountPerf.sumSize.plus(accountPosition.sumSize);
     accountPerf.sumCollateral = accountPerf.sumCollateral.plus(accountPosition.sumCollateral);
     accountPerf.sumMaxSize = accountPerf.sumMaxSize.plus(accountPosition.maxSize);

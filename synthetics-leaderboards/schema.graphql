@@ -11,7 +11,6 @@ type AccountPerf @entity {
   account: String!
   wins: BigInt!
   losses: BigInt!
-  volume: BigInt!
   totalPnl: BigInt!
   sumSize: BigInt! # leverage = sumSize / sumCollateral
   sumCollateral: BigInt! # leverage = sumSize / sumCollateral
@@ -26,6 +25,7 @@ type AccountOpenPosition @entity {
   market: String!
   collateralToken: String!
   isLong: Boolean!
+  collateralAmount: BigInt!
   sizeInTokens: BigInt!
   sizeInUsd: BigInt!
   realizedPnl: BigInt!
