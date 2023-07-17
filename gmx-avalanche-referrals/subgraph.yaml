@@ -184,9 +184,9 @@ dataSources:
     name: EventEmitter
     network: avalanche
     source:
-      address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
+      address: "0xDb17B211c34240B014ab6d61d4A31FA0C0e20c26"
       abi: EventEmitter
-      startBlock: 21131529
+      startBlock: 32162455
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

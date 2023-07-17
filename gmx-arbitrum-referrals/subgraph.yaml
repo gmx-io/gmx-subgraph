@@ -184,9 +184,9 @@ dataSources:
     name: EventEmitter
     network: arbitrum-one
     source:
-      address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
+      address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb"
       abi: EventEmitter
-      startBlock: 9391374
+      startBlock: 107737756
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
