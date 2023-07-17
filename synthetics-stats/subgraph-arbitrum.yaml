@@ -7,11 +7,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: EventEmitter
-    network: fuji
+    network: arbitrum-one
     source:
-      address: "0xc67D98AC5803aFD776958622CeEE332A0B2CabB9"
+      address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb"
       abi: EventEmitter
-      startBlock: 23300000
+      startBlock: 107737756
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

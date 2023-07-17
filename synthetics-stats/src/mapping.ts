@@ -38,6 +38,7 @@ import {
   savePositionFeesInfo,
   saveSwapFeesInfo,
 } from "./entities/fees";
+import { Order } from "../generated/schema";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -50,23 +51,35 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderExecutedState(eventData, transaction);
 
+    if (order == null) {
+      return;
+    }
+
     if (
       order.orderType == orderTypes.get("MarketSwap") ||
       order.orderType == orderTypes.get("LimitSwap")
     ) {
-      saveSwapExecutedTradeAction(eventId, order, transaction);
+      saveSwapExecutedTradeAction(eventId, order as Order, transaction);
     } else if (
       order.orderType == orderTypes.get("MarketIncrease") ||
       order.orderType == orderTypes.get("LimitIncrease")
     ) {
-      savePositionIncreaseExecutedTradeAction(eventId, order, transaction);
+      savePositionIncreaseExecutedTradeAction(
+        eventId,
+        order as Order,
+        transaction
+      );
     } else if (
       order.orderType == orderTypes.get("MarketDecrease") ||
       order.orderType == orderTypes.get("LimitDecrease") ||
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(eventId, order, transaction);
+      savePositionDecreaseExecutedTradeAction(
+        eventId,
+        order as Order,
+        transaction
+      );
     }
     return;
   }
@@ -74,20 +87,26 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
-    saveOrderCancelledTradeAction(
-      eventId,
-      order,
-      order.cancelledReason as string,
-      order.cancelledReasonBytes as Bytes,
-      transaction
-    );
+    if (order !== null) {
+      saveOrderCancelledTradeAction(
+        eventId,
+        order as Order,
+        order.cancelledReason as string,
+        order.cancelledReasonBytes as Bytes,
+        transaction
+      );
+    }
+
     return;
   }
 
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderUpdate(eventData);
-    saveOrderUpdatedTradeAction(eventId, order, transaction);
+    if (order !== null) {
+      saveOrderUpdatedTradeAction(eventId, order as Order, transaction);
+    }
+
     return;
   }
 
@@ -104,9 +123,14 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderFrozenState(eventData);
+
+    if (order == null) {
+      return;
+    }
+
     saveOrderFrozenTradeAction(
       eventId,
-      order,
+      order as Order,
       order.frozenReason as string,
       order.frozenReasonBytes as Bytes,
       transaction

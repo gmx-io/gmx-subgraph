@@ -7,11 +7,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: EventEmitter
-    network: fuji
+    network: avalanche
     source:
-      address: "0xc67D98AC5803aFD776958622CeEE332A0B2CabB9"
+      address: "0xDb17B211c34240B014ab6d61d4A31FA0C0e20c26"
       abi: EventEmitter
-      startBlock: 23300000
+      startBlock: 32162455
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
