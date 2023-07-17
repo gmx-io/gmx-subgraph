@@ -92,7 +92,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease" || eventName == "PositionDecrease") {
     let account = eventData.getAddressItem("account")!;
-    let sizeDelta = eventData.getUintItem("sizeInUsd")!;
+    let sizeDelta = eventData.getUintItem("sizeDeltaUsd")!;
     let traderToReferralCode = TraderToReferralCode.load(account.toHexString());
     if (traderToReferralCode == null) {
       return;
@@ -782,7 +782,7 @@ function _handlePositionAction(
   entity.referralCode = referralCode;
   entity.affiliate = affiliate.toHexString();
   entity.tierId = affiliateEntity.tierId;
-  entity.marginFee = BigInt.fromI32(10);
+  entity.marginFee = BigInt.fromI32(5);
   entity.totalRebate = tierEntity!.totalRebate;
   entity.discountShare =
     affiliateEntity.discountShare > ZERO
