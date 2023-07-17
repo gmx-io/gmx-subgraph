@@ -9,14 +9,14 @@ import {
   SetTraderReferralCode,
 } from "../generated/ReferralStorage/ReferralStorage";
 import {
-  AnswerUpdated as AnswerUpdatedEvent
-} from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
-import {
   IncreasePositionReferral,
   DecreasePositionReferral,
 } from "../generated/PositionManager/PositionManager";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent } from "../generated/OrderBook/OrderBook";
+import {
+  AnswerUpdated as AnswerUpdatedEvent
+} from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
 import {
   ReferralVolumeRecord,
   AffiliateStat,
@@ -33,7 +33,7 @@ import {
   ExecuteDecreaseOrder,
   PositionReferralAction,
   TraderToReferralCode,
-  ChainlinkPrice
+  TokenPrice
 } from "../generated/schema";
 import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
@@ -42,7 +42,7 @@ import {
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { getTokenByPriceFeed, getTokenDecimals } from "./tokens";
+import { getTokenByPriceFeed } from "./utils/tokens";
 
 class AffiliateResult {
   created: boolean;
@@ -66,25 +66,6 @@ let FLOAT = BigInt.fromI32(10).pow(30);
     
 // margin fee has 4 decimals, position fee factor has 30 decimals
 let POSITION_FEE_FACTOR_V1 = BigInt.fromI32(10).times(FLOAT).div(BASIS_POINTS_DIVISOR);
-
-export function handleEventLog2(event: EventLog2): void {
-  let eventName = event.params.eventName;
-  // let eventData = new EventData(
-  //   event.params.eventData as EventLogEventDataStruct
-  // );
-
-  if (eventName == "OrderCreated") {
-    // saveStats(eventData);
-
-    // let market = eventData.getAddressItemString("market")!;
-    return;
-  }
-}
-
-export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
-  let tokens = getTokenByPriceFeed(event.address.toHexString());
-  _storeChainlinkPrice(tokens, event.params.current)
-}
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -119,6 +100,12 @@ export function handleEventLog1(event: EventLog1): void {
       "v2"
     );
 
+  } else if (eventName == "OraclePriceUpdate") {
+    _updateTokenPrice(
+      eventData.getAddressItem("token")!,
+      eventData.getUintItem("maxPrice")!
+    );
+
   } else if (eventName == "AffiliateRewardClaimed") {
     let typeId = BigInt.fromI32(1000);
     _createOrUpdateDistribution(
@@ -131,6 +118,30 @@ export function handleEventLog1(event: EventLog1): void {
     );
     return;
   }
+}
+
+// Chainlink prices are required for V1 distributions before V2 prices existed
+export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
+  let token = getTokenByPriceFeed(event.address.toHexString());
+  if (token) {
+    // Chainlink prices have 8 decimals
+    // WETH and WAVAX have 18 decimals, price should be in 12 decimals
+    let price = event.params.current.times(BigInt.fromI32(10000));
+    _updateTokenPrice(token!, price);
+  }
+}
+
+function _updateTokenPrice(
+  tokenAddress: Address,
+  price: BigInt
+): void {
+  let id = tokenAddress.toHexString();
+  let entity = TokenPrice.load(id);
+  if (entity == null) {
+    entity = new TokenPrice(id);
+  }
+  entity.value = price;
+  entity.save();
 }
 
 function _createOrUpdateDistribution(
@@ -924,31 +935,16 @@ function _getOrCreateAffiliateWithCreatedFlag(id: string): AffiliateResult {
     entity.tierId = ZERO;
     entity.discountShare = ZERO;
     entity.save();
-    created = true;
+
   }
   return new AffiliateResult(entity as Affiliate, created);
 }
 
-function _storeChainlinkPrice(tokens: string[], value: BigInt): void {
-  for (let i = 0; i < tokens.length; i++) {
-    let id = tokens[i];
-    let entity = new ChainlinkPrice(id)
-    entity.value = value
-    entity.save()
-  }
-}
-
 function _getAmountInUsd(tokenAddress: string, amount: BigInt): BigInt {
-  let price = ChainlinkPrice.load(tokenAddress)
-  if (price == null) {
-    return ZERO
-  }
-  let decimals = getTokenDecimals(tokenAddress)
-  if (decimals == 0) {
+  let tokenPrice = TokenPrice.load(tokenAddress)
+  if (tokenPrice == null) {
     return ZERO
   }
   
-  // 30 USD decimals
-  // 8 Chainlink decimals
-  return amount.times(price.value).times(BigInt.fromI32(10).pow(22 - decimals as u8))
+  return amount.times(tokenPrice.value);
 }

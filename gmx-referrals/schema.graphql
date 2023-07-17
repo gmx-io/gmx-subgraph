@@ -182,11 +182,10 @@ type PositionReferralAction @entity {
   timestamp: BigInt!
 }
 
-type ChainlinkPrice @entity {
+type TokenPrice @entity {
   id: ID! # token
   value: BigInt!
-}
-
+} 
 
 enum Period {
   hourly
