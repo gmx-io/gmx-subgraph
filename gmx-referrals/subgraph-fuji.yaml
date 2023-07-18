@@ -201,6 +201,7 @@ dataSources:
           handler: handleEventLog1
       file: ./src/mapping.ts
 
+  # every price feed should be added to ./src/priceFeeds.ts
   - kind: ethereum/contract
     name: ChainlinkAggregatorAVAX
     network: fuji

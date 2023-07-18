@@ -39,10 +39,9 @@ import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
 import {
   EventLog1,
-  EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { getTokenByPriceFeed } from "./utils/tokens";
+import { getTokenByPriceFeed } from "./priceFeeds";
 
 class AffiliateResult {
   created: boolean;
@@ -123,12 +122,10 @@ export function handleEventLog1(event: EventLog1): void {
 // Chainlink prices are required for V1 distributions before V2 prices existed
 export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
   let token = getTokenByPriceFeed(event.address.toHexString());
-  if (token) {
-    // Chainlink prices have 8 decimals
-    // WETH and WAVAX have 18 decimals, price should be in 12 decimals
-    let price = event.params.current.times(BigInt.fromI32(10000));
-    _updateTokenPrice(token!, price);
-  }
+  // Chainlink prices have 8 decimals
+  // WETH and WAVAX have 18 decimals, price should be in 12 decimals
+  let price = event.params.current.times(BigInt.fromI32(10000));
+  _updateTokenPrice(token!, price);
 }
 
 function _updateTokenPrice(
