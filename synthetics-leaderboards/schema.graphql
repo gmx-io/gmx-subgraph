@@ -12,11 +12,12 @@ type AccountPerf @entity {
   wins: BigInt!
   losses: BigInt!
   totalPnl: BigInt!
-  sumSize: BigInt! # leverage = sumSize / sumCollateral
-  sumCollateral: BigInt! # leverage = sumSize / sumCollateral
-  sumMaxCollateral: BigInt!
-  sumMaxSize: BigInt! # avgMaxPositionSize = sumMaxPositionSize / positionCount
-  positionCount: BigInt! # avgMaxPositionSize = sumMaxPositionSize / positionCount
+  totalCollateral: BigInt!
+  maxCollateral: BigInt!
+  cumsumSize: BigInt!
+  cumsumCollateral: BigInt!
+  sumMaxSize: BigInt! # closed positions
+  closedCount: BigInt!
 }
 
 type AccountOpenPosition @entity {
@@ -31,8 +32,4 @@ type AccountOpenPosition @entity {
   realizedPnl: BigInt!
   entryPrice: BigInt!
   maxSize: BigInt!
-  maxCollateral: BigInt!
-  sumSize: BigInt!
-  sumCollateral: BigInt!
-  changeCount: BigInt!
 }
