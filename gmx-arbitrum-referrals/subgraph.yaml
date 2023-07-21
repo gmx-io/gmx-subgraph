@@ -265,3 +265,171 @@ dataSources:
         - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
           handler: handleAnswerUpdated
       file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorWBTC
+    network: arbitrum-one
+    source:
+      address: "0x3c8f2d5af2e0f5ef7c23a08df6ad168ece071d4b"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorARB
+    network: arbitrum-one
+    source:
+      address: "0x46de66f10343b59bacc37df9b3f67cd0ccc121a3"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorSOL
+    network: arbitrum-one
+    source:
+      address: "0x8c4308f7cbd7fb829645853cd188500d7da8610a"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorLINK
+    network: arbitrum-one
+    source:
+      address: "0xa136978a2c8a92ec5eacc5179642aa2e1c1eae18"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorUNI
+    network: arbitrum-one
+    source:
+      address: "0xefc5061b7a8aef31f789f1ba5b3b8256674f2b71"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorDAI
+    network: arbitrum-one
+    source:
+      address: "0xcb35fe6e53e71b30301ec4a3948da4ad3c65ace4"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorFRAX
+    network: arbitrum-one
+    source:
+      address: "0x5d041081725468aa43e72ff0445fde2ad1ade775"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorMIM
+    network: arbitrum-one
+    source:
+      address: "0x0ae17556f9698fc47c365a746ab9cddcb17f3809"
+      abi: ChainlinkAggregator
+      startBlock: 9391374
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
