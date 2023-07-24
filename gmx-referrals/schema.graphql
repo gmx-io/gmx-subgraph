@@ -161,27 +161,6 @@ type GlobalStat @entity {
   period: Period!
 }
 
-type ExecuteDecreaseOrder @entity {
-  id: ID! # block + logIndex
-  sizeDelta: BigInt!
-  account: String!
-  timestamp: BigInt!
-}
-
-type PositionReferralAction @entity {
-  id: ID!
-  account: String!
-  referralCode: String!
-  affiliate: String!
-  isIncrease: Boolean!
-  volume: BigInt!
-
-  transactionHash: String!
-  blockNumber: Int!
-  logIndex: Int!
-  timestamp: BigInt!
-}
-
 type TokenPrice @entity {
   id: ID! # token
   value: BigInt!
@@ -192,4 +171,12 @@ enum Period {
   daily
   weekly
   total
+}
+
+
+type ExecuteDecreaseOrder @entity {
+  id: ID! # block + logIndex
+  sizeDelta: BigInt!
+  account: String!
+  timestamp: BigInt!
 }

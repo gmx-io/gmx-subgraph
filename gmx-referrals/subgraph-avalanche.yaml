@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: OrderBook
-    network: avalanche
+    network: arbitrum-one
     source:
-      address: "0x4296e307f108B2f583FF2F7B7270ee7831574Ae5"
+      address: "0x09f77e8a13de9a35a7231028187e9fd5db8a2acb"
       abi: OrderBook
-      startBlock: 13065036
+      startBlock: 9391374
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -22,7 +22,7 @@ dataSources:
         - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
           handler: handleExecuteDecreaseOrder
       file: ./src/mapping.ts
-
+      
   - kind: ethereum/contract
     name: BatchSender
     network: avalanche

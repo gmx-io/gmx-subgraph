@@ -22,7 +22,7 @@ dataSources:
         - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
           handler: handleExecuteDecreaseOrder
       file: ./src/mapping.ts
-
+      
   - kind: ethereum/contract
     name: BatchSender
     network: arbitrum-one

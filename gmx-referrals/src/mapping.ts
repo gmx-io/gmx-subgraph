@@ -13,7 +13,6 @@ import {
   DecreasePositionReferral,
 } from "../generated/PositionManager/PositionManager";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
-import { ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent } from "../generated/OrderBook/OrderBook";
 import {
   AnswerUpdated as AnswerUpdatedEvent
 } from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
@@ -30,8 +29,6 @@ import {
   ReferralStatData,
   Distribution,
   ReferralCode,
-  ExecuteDecreaseOrder,
-  PositionReferralAction,
   TraderToReferralCode,
   TokenPrice
 } from "../generated/schema";
@@ -213,19 +210,6 @@ export function handleDecreasePositionReferral(
   event: DecreasePositionReferral
 ): void {
   let sizeDelta = event.params.sizeDelta;
-  if (sizeDelta == ZERO) {
-    // sizeDelta is incorrectly emitted for decrease orders
-    let prevLogIndex = event.logIndex - ONE;
-    let executeDecreaseOrderId =
-      event.transaction.hash.toHexString() + ":" + prevLogIndex.toString();
-    let executeDecreaseOrderEntity = ExecuteDecreaseOrder.load(
-      executeDecreaseOrderId
-    );
-    if (executeDecreaseOrderEntity != null) {
-      sizeDelta = executeDecreaseOrderEntity.sizeDelta;
-    }
-  }
-
   _handlePositionAction(
     event.block.number,
     event.transaction.hash,
@@ -772,19 +756,6 @@ function _handlePositionAction(
   if (referral.toHexString() == ZERO_ADDRESS || referralCode == ZERO_BYTES32) {
     return;
   }
-
-  let actionId = transactionHash.toHexString() + ":" + eventLogIndex.toString();
-  let action = new PositionReferralAction(actionId);
-  action.isIncrease = isIncrease;
-  action.account = referral.toHexString();
-  action.referralCode = referralCode;
-  action.affiliate = affiliate.toHexString();
-  action.transactionHash = transactionHash.toHexString();
-  action.blockNumber = blockNumber.toI32();
-  action.logIndex = eventLogIndex.toI32();
-  action.timestamp = timestamp;
-  action.volume = volume;
-  action.save();
 
   let affiliateEntity = _getOrCreateAffiliate(affiliate.toHexString());
   let tierEntity = _getOrCreateTier(affiliateEntity.tierId.toString());
