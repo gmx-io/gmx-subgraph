@@ -60,6 +60,11 @@ export enum intervalUnixTime {
   MONTH2 = 5256000
 }
 
+export let LZWETH = "0x695921034f0387eAc4e11620EE91b1b15A6A09fE"
+export let WETH = "0xfe7eDa5F2c56160d406869A8aA4B2F365d544C7B"
+export let LZBTC = "0xf1648C50d2863f780c57849D812b4B7686031A3D"
+export let BTC = "0x448d59B4302aB5d2dadf9611bED9457491926c8e"
+
 
 
 export function negate(n: BigInt): BigInt {
@@ -80,6 +85,13 @@ export function getTokenUsdAmount(amount: BigInt, tokenAddress: string, decimals
 
 
 export function getTokenPrice(tokenAddress: string): BigInt {
+  if (tokenAddress == LZBTC) {
+    tokenAddress = BTC
+  }
+  if (tokenAddress == LZWETH) {
+    tokenAddress = WETH
+  }
+
   const chainlinkPriceEntity = PriceLatest.load(tokenAddress)
 
   if (chainlinkPriceEntity == null) {
@@ -117,6 +129,13 @@ export function calculatePositionDeltaPercentage(delta: BigInt, collateral: BigI
 }
 
 export function _storePriceLatest(tokenAddress: string, price: BigInt, event: ethereum.Event): PriceLatest {
+  if (tokenAddress == LZBTC) {
+    tokenAddress = BTC
+  }
+  if (tokenAddress == LZWETH) {
+    tokenAddress = WETH
+  }
+  
   let entity = PriceLatest.load(tokenAddress)
   if (entity === null) {
     entity = new PriceLatest(tokenAddress)
@@ -130,6 +149,13 @@ export function _storePriceLatest(tokenAddress: string, price: BigInt, event: et
 }
 
 export function _storePricefeed(event: ethereum.Event, token: string, interval: intervalUnixTime, price: BigInt): void {
+  if (token == LZBTC) {
+    token = BTC
+  }
+  if (token == LZWETH) {
+    token = WETH
+  }
+
   const intervalID = getIntervalId(interval, event)
   const id = getIntervalIdentifier(event, token, interval)
 

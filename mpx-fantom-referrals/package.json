@@ -5,7 +5,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy-test": "graph codegen && graph deploy --product hosted-service gdev8317/gmx-avalanche-referrals-staging --deploy-key $(cat .access_token)",
-    "deploy-prod": "graph codegen && graph deploy --product hosted-service morphex-labs/morphex-fantom-referrals"
+    "deploy-prod": "graph codegen && graph deploy --product hosted-service morphex-labs/morphex-fantom-referrals-new"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.42.3",

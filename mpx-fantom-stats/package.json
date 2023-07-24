@@ -1,10 +1,10 @@
 {
-  "name": "gmx",
+  "name": "morphex-stats",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-stats",
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-stats-new",
     "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-staging --deploy-key $(cat .access_token)"
   },
   "dependencies": {

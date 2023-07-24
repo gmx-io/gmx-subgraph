@@ -30,9 +30,9 @@ dataSources:
     name: transferGlp
     network: fantom
     source:
-      address: "0xd5c313DE2d33bf36014e6c659F13acE112B80a8E"
+      address: "0xF476F7F88E70470c976d9DF7c5C003dB1E1980Cb"
       abi: ERC20
-      startBlock: 56889636
+      startBlock: 66183039
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -91,9 +91,9 @@ dataSources:
     name: FeeGlpTrackerClaim
     network: fantom
     source:
-      address: "0xd3c5ded5f1207c80473d39230e5b0ed11b39f905"
+      address: "0x0Af7E9F3396423C30a4dF4a79882d118ea89e2F2"
       abi: RewardTracker
-      startBlock: 56916341
+      startBlock: 66187092
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -173,9 +173,9 @@ dataSources:
     name: FastPriceFeed
     network: fantom
     source:
-      address: "0xD09eF52d1BB74D67B0c508b932E90f8a6B7F1884"
+      address: "0xDc7C389be5da32e326A261dC0126feCa7AE04d79"
       abi: FastPriceEvents
-      startBlock: 56986974
+      startBlock: 66190051
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -213,9 +213,9 @@ dataSources:
     name: GlpManager
     network: fantom
     source:
-      address: "0xA3Ea99f8aE06bA0d9A6Cf7618d06AEa4564340E9"
+      address: "0x3A15Bac2D87C89F08147353fc9aE27080631b73d"
       abi: GlpManager
-      startBlock: 56889660
+      startBlock: 66183064
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -235,9 +235,9 @@ dataSources:
     name: positionRouter
     network: fantom
     source:
-      address: "0x26e6c47682ffc1824d7ac5512752fc671da5e607"
+      address: "0x5D90059b8116906bF8c1c7B7E3920A4b6e9DF4dB"
       abi: positionRouter
-      startBlock: 56893486
+      startBlock: 66183273
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -257,9 +257,9 @@ dataSources:
     name: gmxVault
     network: fantom
     source:
-      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+      address: "0x245cD6d33578de9aF75a3C0c636c726b1A8cbdAa"
       abi: gmxVault
-      startBlock: 56888890
+      startBlock: 66181775
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

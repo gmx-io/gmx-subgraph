@@ -1,10 +1,10 @@
 {
-  "name": "mpx-arbitrum-prices",
+  "name": "mpx-fantom-prices",
   "license": "MIT",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-prices",
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-prices-new",
     "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-arbitrum-prices --deploy-key $(cat .access_token)"
   },
   "dependencies": {

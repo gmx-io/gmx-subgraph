@@ -47,26 +47,26 @@ dataSources:
           handler: handleAnswerUpdatedUSDC
       file: ./src/pricesMapping.ts
 
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorDAI
-    network: fantom
-    source:
-      address: "0x15e682Ba1F3e68D507Eb8D21F2D2a90bA82559Ae"
-      abi: ChainlinkAggregator
-      startBlock: 56889660
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedDAI
-      file: ./src/pricesMapping.ts
+  # - kind: ethereum/contract
+  #   name: ChainlinkAggregatorDAI
+  #   network: fantom
+  #   source:
+  #     address: "0x15e682Ba1F3e68D507Eb8D21F2D2a90bA82559Ae"
+  #     abi: ChainlinkAggregator
+  #     startBlock: 56889660
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - ChainlinkPrice
+  #     abis:
+  #       - name: ChainlinkAggregator
+  #         file: ./abis/ChainlinkAggregator.json
+  #     eventHandlers:
+  #       - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+  #         handler: handleAnswerUpdatedDAI
+  #     file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
     name: ChainlinkAggregatorUSDT
@@ -135,9 +135,9 @@ dataSources:
     name: GlpManager
     network: fantom
     source:
-      address: "0xA3Ea99f8aE06bA0d9A6Cf7618d06AEa4564340E9"
+      address: "0x3A15Bac2D87C89F08147353fc9aE27080631b73d"
       abi: GlpManager
-      startBlock: 56889660
+      startBlock: 66183064
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -158,9 +158,9 @@ dataSources:
     name: OrderBook
     network: fantom
     source:
-      address: "0x46940Dc651bFe3F2CC3E04cf9dC5579B50Cf0765"
+      address: "0x3CF6fE161Ee517B5002feFa31Ed478681FAed8C9"
       abi: OrderBook
-      startBlock: 56892313
+      startBlock: 66183209
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -197,9 +197,9 @@ dataSources:
     name: FastPriceEvents
     network: fantom
     source:
-      address: "0xD09eF52d1BB74D67B0c508b932E90f8a6B7F1884"
+      address: "0xDc7C389be5da32e326A261dC0126feCa7AE04d79"
       abi: FastPriceEvents
-      startBlock: 56986974
+      startBlock: 66190051
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -218,9 +218,9 @@ dataSources:
     name: Vault2
     network: fantom
     source:
-      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+      address: "0x245cD6d33578de9aF75a3C0c636c726b1A8cbdAa"
       abi: Vault
-      startBlock: 56888890
+      startBlock: 66181775
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -245,9 +245,9 @@ dataSources:
     name: Vault
     network: fantom
     source:
-      address: "0x3CB54f0eB62C371065D739A34a775CC16f46563e"
+      address: "0x245cD6d33578de9aF75a3C0c636c726b1A8cbdAa"
       abi: Vault
-      startBlock: 56888890
+      startBlock: 66181775
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

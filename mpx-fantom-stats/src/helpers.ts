@@ -7,12 +7,17 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let WETH = "0x74b23882a30290451a17c44f4f05243b6b58c76d"
-export let BTC = "0x321162cd933e2be498cd2267a90534a804051b11"
+// tokens without prefix are axelar tokens except ftm
+
+export let LZWETH = "0x695921034f0387eAc4e11620EE91b1b15A6A09fE"
+export let WETH = "0xfe7eDa5F2c56160d406869A8aA4B2F365d544C7B"
+export let LZBTC = "0xf1648C50d2863f780c57849D812b4B7686031A3D"
+export let BTC = "0x448d59B4302aB5d2dadf9611bED9457491926c8e"
 export let WFTM = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
-export let USDC = "0x04068da6c83afcfa0e13ba15a6696662335d5b75"
-export let USDT = "0x049d68029688eabf473097a2fc38ef61633a3c7a"
-export let DAI = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e"
+export let LZUSDC = "0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf"
+export let USDC = "0x1B6382DBDEa11d97f24495C9A90b7c88469134a4"
+export let LZUSDT = "0xcc1b99dDAc1a33c201a742A1851662E87BC7f22C"
+export let USDT = "0xd226392C23fb3476274ED6759D4a478db3197d82"
 export let MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
 
 
@@ -37,13 +42,26 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
+  if (token == LZBTC) {
+    token = BTC
+  }
+  if (token == LZWETH) {
+    token = WETH
+  }
+  if (token == LZUSDC) {
+    token = USDC
+  }
+  if (token == LZUSDT) {
+    token = USDT
+  }
+
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)
   tokenDecimals.set(BTC, 8)
   tokenDecimals.set(WFTM, 18)
   tokenDecimals.set(USDC, 6)
   tokenDecimals.set(USDT, 6)
-  tokenDecimals.set(DAI, 18)
+  // tokenDecimals.set(DAI, 18)
   tokenDecimals.set(MPX, 18)
 
   return tokenDecimals.get(token) as u8
@@ -57,6 +75,19 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
+  if (token == LZBTC) {
+    token = BTC
+  }
+  if (token == LZWETH) {
+    token = WETH
+  }
+  if (token == LZUSDC) {
+    token = USDC
+  }
+  if (token == LZUSDT) {
+    token = USDT
+  }
+
   if (token != MPX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
@@ -78,7 +109,7 @@ export function getTokenPrice(token: String): BigInt {
   prices.set(WETH, BigInt.fromI32(1500) * PRECISION)
   prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
   prices.set(WFTM, PRECISION)
-  prices.set(DAI, PRECISION)
+  // prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
   prices.set(USDT, PRECISION)
   prices.set(MPX, PRECISION)

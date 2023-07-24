@@ -6,9 +6,9 @@ dataSources:
     name: FastPriceEvents
     network: fantom
     source:
-      address: "0xD09eF52d1BB74D67B0c508b932E90f8a6B7F1884"
+      address: "0xDc7C389be5da32e326A261dC0126feCa7AE04d79"
       abi: FastPriceEvents
-      startBlock: 56986974  # FastPriceEvents was deployed
+      startBlock: 66190051  # FastPriceEvents was deployed
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

@@ -6,9 +6,9 @@ dataSources:
     name: OrderBook
     network: fantom
     source:
-      address: "0x46940Dc651bFe3F2CC3E04cf9dC5579B50Cf0765"
+      address: "0x3CF6fE161Ee517B5002feFa31Ed478681FAed8C9"
       abi: OrderBook
-      startBlock: 56892313
+      startBlock: 66183209
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,9 +48,9 @@ dataSources:
     name: PositionManager
     network: fantom
     source:
-      address: "0x366152Fc0FC4680e0A05ce9739a4210228C72BA3"
+      address: "0x2F66E711294328587e16E8912ae08bAD979feaAb"
       abi: PositionManager
-      startBlock: 56894198
+      startBlock: 66184262
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -96,9 +96,9 @@ dataSources:
     name: PositionRouter
     network: fantom
     source:
-      address: "0x26e6C47682FfC1824d7aC5512752FC671dA5e607"
+      address: "0x5D90059b8116906bF8c1c7B7E3920A4b6e9DF4dB"
       abi: PositionRouter
-      startBlock: 56893486
+      startBlock: 66183273
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -144,9 +144,9 @@ dataSources:
     name: ReferralStorage
     network: fantom
     source:
-      address: "0x8DEfd6b1C07ff577D2b271D3de143FB3E724288e"
+      address: "0x2Cf6AbE297Ac93E6995E22Bf554ee4eD1a7E7d44"
       abi: ReferralStorage
-      startBlock: 56894666
+      startBlock: 66185505
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

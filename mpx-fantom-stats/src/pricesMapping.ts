@@ -11,7 +11,7 @@ import {
   WFTM,
   timestampToPeriod,
   USDC,
-  DAI,
+  // DAI,
   USDT
 } from "./helpers"
 
@@ -58,9 +58,9 @@ export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
 }
 
-export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
-}
+// export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
+//   _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
+// }
 
 export function handleAnswerUpdatedUSDT(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDT, event.params.current, event.block.timestamp, event.block.number)
