@@ -2,6 +2,29 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
+
+  # only required for mainnet subgraphs, there is no OrderBook on testnet
+  - kind: ethereum/contract
+    name: OrderBook
+    network: avalanche
+    source:
+      address: "0x4296e307f108B2f583FF2F7B7270ee7831574Ae5"
+      abi: OrderBook
+      startBlock: 13065036
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ExecuteDecreaseOrder
+      abis:
+        - name: OrderBook
+          file: ./abis/OrderBook.json
+      eventHandlers:
+        - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
+          handler: handleExecuteDecreaseOrder
+      file: ./src/mapping.ts
+
   - kind: ethereum/contract
     name: BatchSender
     network: avalanche
