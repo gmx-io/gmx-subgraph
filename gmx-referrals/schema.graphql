@@ -173,7 +173,6 @@ enum Period {
   total
 }
 
-
 type ExecuteDecreaseOrder @entity {
   id: ID! # block + logIndex
   sizeDelta: BigInt!

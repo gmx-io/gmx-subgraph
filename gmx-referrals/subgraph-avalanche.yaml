@@ -3,27 +3,6 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: OrderBook
-    network: arbitrum-one
-    source:
-      address: "0x09f77e8a13de9a35a7231028187e9fd5db8a2acb"
-      abi: OrderBook
-      startBlock: 9391374
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ExecuteDecreaseOrder
-      abis:
-        - name: OrderBook
-          file: ./abis/OrderBook.json
-      eventHandlers:
-        - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
-          handler: handleExecuteDecreaseOrder
-      file: ./src/mapping.ts
-      
-  - kind: ethereum/contract
     name: BatchSender
     network: avalanche
     source:

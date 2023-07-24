@@ -415,18 +415,6 @@ export function handleSetTraderReferralCode(
   dailyAffiliateStatEntity.save();
 }
 
-export function handleExecuteDecreaseOrder(
-  event: ExecuteDecreaseOrderEvent
-): void {
-  let id =
-    event.transaction.hash.toHexString() + ":" + event.logIndex.toString();
-  let entity = new ExecuteDecreaseOrder(id);
-  entity.sizeDelta = event.params.sizeDelta;
-  entity.account = event.params.account.toHexString();
-  entity.timestamp = event.block.timestamp;
-  entity.save();
-}
-
 function _getOrCreateTier(id: string): Tier {
   let entity = Tier.load(id);
   if (entity == null) {
