@@ -214,6 +214,19 @@ export function handleDecreasePositionReferral(
   event: DecreasePositionReferral
 ): void {
   let sizeDelta = event.params.sizeDelta;
+  if (sizeDelta == ZERO) {
+    // sizeDelta is incorrectly emitted for decrease orders
+    let prevLogIndex = event.logIndex - ONE;
+    let executeDecreaseOrderId =
+      event.transaction.hash.toHexString() + ":" + prevLogIndex.toString();
+    let executeDecreaseOrderEntity = ExecuteDecreaseOrder.load(
+      executeDecreaseOrderId
+    );
+    if (executeDecreaseOrderEntity != null) {
+      sizeDelta = executeDecreaseOrderEntity.sizeDelta;
+    }
+  }
+
   _handlePositionAction(
     event.block.number,
     event.transaction.hash,
