@@ -17,6 +17,9 @@ import {
   AnswerUpdated as AnswerUpdatedEvent
 } from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
 import {
+  ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent
+} from '../generated/OrderBook/OrderBook'
+import {
   ReferralVolumeRecord,
   AffiliateStat,
   AffiliateStatData,
@@ -30,7 +33,8 @@ import {
   Distribution,
   ReferralCode,
   TraderToReferralCode,
-  TokenPrice
+  TokenPrice,
+  ExecuteDecreaseOrder
 } from "../generated/schema";
 import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
@@ -414,6 +418,19 @@ export function handleSetTraderReferralCode(
     totalAffiliateStatEntity.registeredReferralsCountCumulative;
   dailyAffiliateStatEntity.save();
 }
+
+export function handleExecuteDecreaseOrder(
+  event: ExecuteDecreaseOrderEvent
+): void {
+  let id =
+    event.transaction.hash.toHexString() + ":" + event.logIndex.toString();
+  let entity = new ExecuteDecreaseOrder(id);
+  entity.sizeDelta = event.params.sizeDelta;
+  entity.account = event.params.account.toHexString();
+  entity.timestamp = event.block.timestamp;
+  entity.save();
+}
+
 
 function _getOrCreateTier(id: string): Tier {
   let entity = Tier.load(id);
