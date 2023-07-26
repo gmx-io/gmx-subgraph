@@ -22,14 +22,18 @@ type AccountPerf @entity {
 
 type AccountOpenPosition @entity {
   id: ID!
-  account: String!
-  market: String!
-  collateralToken: String!
-  isLong: Boolean!
+  account: String
+  market: String
+  collateralToken: String
+  isLong: Boolean
   collateralAmount: BigInt!
   sizeInTokens: BigInt!
   sizeInUsd: BigInt!
   realizedPnl: BigInt!
   entryPrice: BigInt!
   maxSize: BigInt!
+
+  fundingFee: BigInt!
+  positionFee: BigInt!
+  borrowingFee: BigInt!
 }

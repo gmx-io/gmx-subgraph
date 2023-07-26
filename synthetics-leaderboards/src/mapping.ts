@@ -7,76 +7,86 @@ const HOURLY = "hourly";
 const DAILY = "daily";
 const TOTAL = "total";
 
-// const PERIOD = {
-//   HOURLY: "hourly",
-//   DAILY: "daily",
-//   TOTAL: "total",
-// };
-// type Period = string; // "hourly" | "daily" | "total" // typeof PERIOD[keyof typeof PERIOD];
-
 export function handleEventLog1(event: EventLog1): void {
   const eventName = event.params.eventName;
+  const isFeeEvent = eventName == "PositionFeesCollected";
+  const isIncEvent = eventName == "PositionIncrease";
+  const isDecEvent = eventName == "PositionDecrease";
 
-  if (eventName != "PositionIncrease" && eventName != "PositionDecrease") {
+  if (!isFeeEvent && !isIncEvent && !isDecEvent) {
     return;
   }
 
-  const eventData = new EventData(event.params.eventData as EventLog1EventDataStruct);
-  const account = eventData.getAddressItem("account")!.toHexString();
-  const market = eventData.getAddressItem("market")!.toHexString();
-  const collateralToken = eventData.getAddressItem("collateralToken")!.toHexString();
-  const isLong = eventData.getBoolItem("isLong");
-  const sizeInTokens = eventData.getUintItem("sizeInTokens")!;
-  const sizeInUsd = eventData.getUintItem("sizeInUsd")!;
-  const collateralAmount = eventData.getUintItem("collateralAmount")!;
-  const executionPrice = eventData.getUintItem("executionPrice")!;
-  const positionKey = eventData.getBytes32Item("positionKey")!.toHexString(); // account + ":" + market + ":" + collateralToken + ":" + (isLong ? "long" : "short")
+  const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
+  const position = getOrCreatePosition(data);
 
-  let basePnlUsd = eventData.getIntItem("basePnlUsd");
-
-  if (basePnlUsd === null) {
-    basePnlUsd = BigInt.fromI32(0);
+  if (isFeeEvent) {
+    return handlePositionFeesEvent(position, event);
   }
 
-  let accountPosition = AccountOpenPosition.load(positionKey.toString());
+  const sizeInUsd = data.getUintItem("sizeInUsd")!;
+  const basePnlUsd = data.getIntItem("basePnlUsd") || BigInt.fromI32(0);
 
-  if (accountPosition === null) {
-    accountPosition = new AccountOpenPosition(positionKey.toString());
+  position.realizedPnl = position.realizedPnl.plus(basePnlUsd);
+  position.collateralAmount = data.getUintItem("collateralAmount")!;
+  position.sizeInTokens = data.getUintItem("sizeInTokens")!;
+  position.sizeInUsd = sizeInUsd;
+  position.maxSize = position.maxSize.lt(sizeInUsd) ? sizeInUsd : position.maxSize;
 
-    accountPosition.account = account;
-    accountPosition.market = market;
-    accountPosition.collateralToken = collateralToken;
-    accountPosition.isLong = isLong;
-    accountPosition.realizedPnl = BigInt.fromI32(0);
-    accountPosition.entryPrice = executionPrice;
-    accountPosition.maxSize = BigInt.fromI32(0);
+  if (position.account) {
+    updateAccountPerformanceForPeriod(TOTAL, position, data, event);
+    updateAccountPerformanceForPeriod(DAILY, position, data, event);
+    updateAccountPerformanceForPeriod(HOURLY, position, data, event);
   }
-
-  accountPosition.realizedPnl = accountPosition.realizedPnl.plus(basePnlUsd);
-  accountPosition.sizeInTokens = sizeInTokens;
-  accountPosition.sizeInUsd = sizeInUsd;
-  accountPosition.collateralAmount = collateralAmount;
-
-  if (accountPosition.maxSize.lt(sizeInUsd)) {
-    accountPosition.maxSize = sizeInUsd;
-  }
-
-  _updateAccountPerformanceForPeriod(TOTAL, accountPosition, eventData, event);
-  _updateAccountPerformanceForPeriod(DAILY, accountPosition, eventData, event);
-  _updateAccountPerformanceForPeriod(HOURLY, accountPosition, eventData, event);
 
   if (sizeInUsd.equals(BigInt.fromI32(0))) {
-    store.remove("AccountOpenPosition", accountPosition.id);
+    store.remove("AccountOpenPosition", position.id);
   } else {
-    accountPosition.save();
+    position.save();
   }
 
   return;
 }
 
-const _periodStart = (period: string, event: EventLog1): Date => {
+const initPosition = (p: AccountOpenPosition, data: EventData) => {
+  if (p.account !== null) {
+    return p; // already initialized
+  }
+
+  const account = data.getAddressItem("account");
+  if (account === null) {
+    return p; // this is a fee event that doesn't have data required for initialization
+  }
+
+  p.account = account.toHexString();
+  p.market = data.getAddressItem("market")!.toHexString();
+  p.collateralToken = data.getAddressItem("collateralToken")!.toHexString();
+  p.entryPrice = data.getUintItem("executionPrice")!;
+  p.isLong = data.getBoolItem("isLong");
+  p.realizedPnl = BigInt.fromI32(0);
+  p.maxSize = BigInt.fromI32(0);
+
+  return p;
+};
+
+const getOrCreatePosition = (data: EventData) => {
+  // const key = `${account}:${market}:${collateralToken}:${isLong ? "long" : "short"}`;
+  const key = data.getBytes32Item("positionKey")!.toHexString();
+
+  return initPosition(AccountOpenPosition.load(key) || new AccountOpenPosition(key), data);
+};
+
+const handlePositionFeesEvent = (position: AccountOpenPosition, event: EventLog1): void => {
+  const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
+
+  position.fundingFee = data.getUintItem("fundingFeeAmount")!;
+  position.positionFee = data.getUintItem("positionFeeAmount")!;
+  position.borrowingFee = data.getUintItem("borrowingFeeAmount")!;
+};
+
+const periodStart = (period: string, event: EventLog1): Date => {
   if (period == TOTAL) {
-    return new Date(1685618741000);
+    return new Date(1685618741000); // contract deployment date
   }
 
   const today = new Date(event.block.timestamp.toI64() * 1000);
@@ -92,78 +102,78 @@ const _periodStart = (period: string, event: EventLog1): Date => {
   return today;
 };
 
-const _updateAccountPerformanceForPeriod = (
+const updateAccountPerformanceForPeriod = (
   period: string,
-  accountPosition: AccountOpenPosition,
-  eventData: EventData,
+  position: AccountOpenPosition,
+  data: EventData,
   event: EventLog1,
 ): AccountPerf => {
   const eventName = event.params.eventName;
   const isIncrease = eventName != "PositionIncrease";
 
-  const sizeInUsd = eventData.getUintItem("sizeInUsd")!;
-  const periodStart = i32(_periodStart(period, event).getTime() / 1000);
-  const accountPerfId = accountPosition.account + ":" + period + ":" + periodStart.toString();
+  const sizeInUsd = data.getUintItem("sizeInUsd")!;
+  const timestamp = i32(periodStart(period, event).getTime() / 1000);
+  const key = position.account + ":" + period + ":" + timestamp.toString();
 
-  let accountPerf = AccountPerf.load(accountPerfId);
+  let perf = AccountPerf.load(key);
 
-  if (accountPerf === null) {
-    accountPerf = new AccountPerf(accountPerfId);
-    accountPerf.account = accountPosition.account;
-    accountPerf.period = period;
-    accountPerf.timestamp = periodStart;
-    accountPerf.wins = BigInt.fromI32(0);
-    accountPerf.losses = BigInt.fromI32(0);
-    accountPerf.totalPnl = BigInt.fromI32(0);
-    accountPerf.totalCollateral = BigInt.fromI32(0);
-    accountPerf.maxCollateral = BigInt.fromI32(0);
-    accountPerf.cumsumCollateral = BigInt.fromI32(0);
-    accountPerf.cumsumSize = BigInt.fromI32(0);
-    accountPerf.sumMaxSize = BigInt.fromI32(0);
-    accountPerf.closedCount = BigInt.fromI32(0);
+  if (perf === null) {
+    perf = new AccountPerf(key);
+    perf.account = position.account!;
+    perf.period = period;
+    perf.timestamp = timestamp;
+    perf.wins = BigInt.fromI32(0);
+    perf.losses = BigInt.fromI32(0);
+    perf.totalPnl = BigInt.fromI32(0);
+    perf.totalCollateral = BigInt.fromI32(0);
+    perf.maxCollateral = BigInt.fromI32(0);
+    perf.cumsumCollateral = BigInt.fromI32(0);
+    perf.cumsumSize = BigInt.fromI32(0);
+    perf.sumMaxSize = BigInt.fromI32(0);
+    perf.closedCount = BigInt.fromI32(0);
   }
 
-  let basePnlUsd = eventData.getIntItem("basePnlUsd");
+  let basePnlUsd = data.getIntItem("basePnlUsd");
 
   if (basePnlUsd === null) {
     basePnlUsd = BigInt.fromI32(0);
   }
 
-  const collateralAmount = eventData.getUintItem("collateralAmount")!;
-  let collateralDelta = eventData.getIntItem("collateralDeltaAmount");
+  const collateralAmount = data.getUintItem("collateralAmount")!;
+  let collateralDelta = data.getIntItem("collateralDeltaAmount");
   if (collateralDelta === null) {
     collateralDelta = BigInt.fromI32(0);
   }
 
-  const collateralTokenPrice = eventData.getUintItem("collateralTokenPrice.min")!;
+  const collateralTokenPrice = data.getUintItem("collateralTokenPrice.min")!;
   const collateralAmountUsd = collateralAmount.times(collateralTokenPrice);
   const collateralDeltaUsd = collateralDelta.times(collateralTokenPrice);
 
-  accountPerf.totalPnl = accountPerf.totalPnl.plus(basePnlUsd);
-  accountPerf.totalCollateral = accountPerf.totalCollateral.plus(
+  perf.totalPnl = perf.totalPnl.plus(basePnlUsd);
+  perf.totalCollateral = perf.totalCollateral.plus(
     isIncrease ? collateralDeltaUsd : collateralDeltaUsd.neg()
   );
 
-  const inputCollateral = accountPerf.totalCollateral.minus(accountPerf.totalPnl);
-  if (accountPerf.maxCollateral.lt(inputCollateral)) {
-    accountPerf.maxCollateral = inputCollateral;
+  const inputCollateral = perf.totalCollateral.minus(perf.totalPnl);
+  if (perf.maxCollateral.lt(inputCollateral)) {
+    perf.maxCollateral = inputCollateral;
   }
 
-  accountPerf.cumsumSize = accountPerf.cumsumSize.plus(accountPosition.sizeInUsd);
-  accountPerf.cumsumCollateral = accountPerf.cumsumCollateral.plus(collateralAmountUsd);
+  perf.cumsumSize = perf.cumsumSize.plus(position.sizeInUsd);
+  perf.cumsumCollateral = perf.cumsumCollateral.plus(collateralAmountUsd);
 
   if (sizeInUsd.equals(BigInt.fromI32(0))) {
-    accountPerf.sumMaxSize = accountPerf.sumMaxSize.plus(accountPosition.maxSize);
-    accountPerf.closedCount = accountPerf.closedCount.plus(BigInt.fromI32(1));
+    perf.sumMaxSize = perf.sumMaxSize.plus(position.maxSize);
+    perf.closedCount = perf.closedCount.plus(BigInt.fromI32(1));
 
-    if (accountPosition.realizedPnl.ge(BigInt.fromI32(0))) {
-      accountPerf.wins = accountPerf.wins.plus(BigInt.fromI32(1));
+    if (position.realizedPnl.ge(BigInt.fromI32(0))) {
+      perf.wins = perf.wins.plus(BigInt.fromI32(1));
     } else {
-      accountPerf.losses = accountPerf.losses.plus(BigInt.fromI32(1));
+      perf.losses = perf.losses.plus(BigInt.fromI32(1));
     }
   }
 
-  accountPerf.save();
+  perf.save();
 
-  return accountPerf;
+  return perf;
 };
