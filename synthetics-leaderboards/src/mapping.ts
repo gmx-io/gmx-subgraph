@@ -18,20 +18,29 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
-  const position = getOrCreatePosition(data);
+  const position = getOrCreatePosition(data, eventName);
 
   if (isFeeEvent) {
     return handlePositionFeesEvent(position, event);
   }
 
   const sizeInUsd = data.getUintItem("sizeInUsd")!;
-  const basePnlUsd = data.getIntItem("basePnlUsd") || BigInt.fromI32(0);
+  let basePnlUsd = data.getIntItem("basePnlUsd");
+  if (basePnlUsd === null) {
+    basePnlUsd = BigInt.fromI32(0);
+  }
 
   position.realizedPnl = position.realizedPnl.plus(basePnlUsd);
   position.collateralAmount = data.getUintItem("collateralAmount")!;
   position.sizeInTokens = data.getUintItem("sizeInTokens")!;
   position.sizeInUsd = sizeInUsd;
   position.maxSize = position.maxSize.lt(sizeInUsd) ? sizeInUsd : position.maxSize;
+
+  let priceImpactDiffUsd = data.getIntItem("priceImpactDiffUsd");
+  if (priceImpactDiffUsd === null) {
+    priceImpactDiffUsd = BigInt.fromI32(0);
+  }
+  position.priceImpactUsd = position.priceImpactUsd.plus(priceImpactDiffUsd);
 
   if (position.account) {
     updateAccountPerformanceForPeriod(TOTAL, position, data, event);
@@ -48,43 +57,65 @@ export function handleEventLog1(event: EventLog1): void {
   return;
 }
 
-const initPosition = (p: AccountOpenPosition, data: EventData) => {
-  if (p.account !== null) {
-    return p; // already initialized
-  }
-
-  const account = data.getAddressItem("account");
-  if (account === null) {
-    return p; // this is a fee event that doesn't have data required for initialization
-  }
-
-  p.account = account.toHexString();
-  p.market = data.getAddressItem("market")!.toHexString();
-  p.collateralToken = data.getAddressItem("collateralToken")!.toHexString();
-  p.entryPrice = data.getUintItem("executionPrice")!;
-  p.isLong = data.getBoolItem("isLong");
-  p.realizedPnl = BigInt.fromI32(0);
-  p.maxSize = BigInt.fromI32(0);
-
-  return p;
-};
-
-const getOrCreatePosition = (data: EventData) => {
+function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPosition {
   // const key = `${account}:${market}:${collateralToken}:${isLong ? "long" : "short"}`;
   const key = data.getBytes32Item("positionKey")!.toHexString();
+  let position = AccountOpenPosition.load(key);
+  if (position === null) {
+    if (eventName != "PositionIncrease") {
+      throw new Error(`Unable to create a new position entity from "${eventName}" event`);
+    }
+    position = new AccountOpenPosition(key);
 
-  return initPosition(AccountOpenPosition.load(key) || new AccountOpenPosition(key), data);
-};
+    position.account = data.getAddressItem("account")!.toHexString();
+    position.market = data.getAddressItem("market")!.toHexString();
+    position.collateralToken = data.getAddressItem("collateralToken")!.toHexString();
+    position.entryPrice = data.getUintItem("executionPrice")!;
+    position.isLong = data.getBoolItem("isLong");
+    position.realizedPnl = BigInt.fromI32(0);
+    position.maxSize = BigInt.fromI32(0);
+    position.fundingFeeUsd = BigInt.fromI32(0);
+    position.positionFeeUsd = BigInt.fromI32(0);
+    position.borrowingFeeUsd = BigInt.fromI32(0);
+    position.priceImpactUsd = BigInt.fromI32(0);
+  }
 
-const handlePositionFeesEvent = (position: AccountOpenPosition, event: EventLog1): void => {
+  return position;
+}
+
+function handlePositionFeesEvent(position: AccountOpenPosition, event: EventLog1): void {
   const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
 
-  position.fundingFee = data.getUintItem("fundingFeeAmount")!;
-  position.positionFee = data.getUintItem("positionFeeAmount")!;
-  position.borrowingFee = data.getUintItem("borrowingFeeAmount")!;
-};
+  const collateralTokenPrice = data.getUintItem("collateralTokenPrice.min")!;
 
-const periodStart = (period: string, event: EventLog1): Date => {
+  const fundingFee = data.getUintItem("fundingFeeAmount")!;
+  const positionFee = data.getUintItem("positionFeeAmount")!;
+  const borrowingFee = data.getUintItem("borrowingFeeAmount")!;
+
+  const fundingFeeUsd = fundingFee.times(collateralTokenPrice);
+  const positionFeeUsd = positionFee.times(collateralTokenPrice);
+  const borrowingFeeUsd = borrowingFee.times(collateralTokenPrice);
+
+  position.fundingFeeUsd = position.fundingFeeUsd.plus(fundingFeeUsd);
+  position.positionFeeUsd = position.positionFeeUsd.plus(positionFeeUsd);
+  position.borrowingFeeUsd = position.borrowingFeeUsd.plus(borrowingFeeUsd);
+
+  const periods = [TOTAL, DAILY, HOURLY];
+  for (let i = 0; i < periods.length; i++) {
+    const period = periods[i];
+    const perf: AccountPerf = getOrCreateAccountPerfForPeriod(position.account, period, event);
+
+    perf.fundingFeeUsd = perf.fundingFeeUsd.plus(fundingFeeUsd);
+    perf.positionFeeUsd = perf.positionFeeUsd.plus(positionFeeUsd);
+    perf.borrowingFeeUsd = perf.borrowingFeeUsd.plus(borrowingFeeUsd);
+
+    perf.save();
+  }
+
+  position.save();
+}
+
+function periodStart(period: string, event: EventLog1): Date {
   if (period == TOTAL) {
     return new Date(1685618741000); // contract deployment date
   }
@@ -100,26 +131,17 @@ const periodStart = (period: string, event: EventLog1): Date => {
   today.setUTCMilliseconds(0);
 
   return today;
-};
+}
 
-const updateAccountPerformanceForPeriod = (
-  period: string,
-  position: AccountOpenPosition,
-  data: EventData,
-  event: EventLog1,
-): AccountPerf => {
-  const eventName = event.params.eventName;
-  const isIncrease = eventName != "PositionIncrease";
-
-  const sizeInUsd = data.getUintItem("sizeInUsd")!;
+function getOrCreateAccountPerfForPeriod(account: string, period: string, event: EventLog1): AccountPerf {
   const timestamp = i32(periodStart(period, event).getTime() / 1000);
-  const key = position.account + ":" + period + ":" + timestamp.toString();
+  const key = account + ":" + period + ":" + timestamp.toString();
 
   let perf = AccountPerf.load(key);
 
   if (perf === null) {
     perf = new AccountPerf(key);
-    perf.account = position.account!;
+    perf.account = account;
     perf.period = period;
     perf.timestamp = timestamp;
     perf.wins = BigInt.fromI32(0);
@@ -131,19 +153,41 @@ const updateAccountPerformanceForPeriod = (
     perf.cumsumSize = BigInt.fromI32(0);
     perf.sumMaxSize = BigInt.fromI32(0);
     perf.closedCount = BigInt.fromI32(0);
+    perf.fundingFeeUsd = BigInt.fromI32(0);
+    perf.positionFeeUsd = BigInt.fromI32(0);
+    perf.borrowingFeeUsd = BigInt.fromI32(0);
+    perf.priceImpactUsd = BigInt.fromI32(0);
   }
 
-  let basePnlUsd = data.getIntItem("basePnlUsd");
+  return perf as AccountPerf;
+}
 
+function updateAccountPerformanceForPeriod(
+  period: string,
+  position: AccountOpenPosition,
+  data: EventData,
+  event: EventLog1,
+): AccountPerf {
+  const eventName = event.params.eventName;
+  const isIncrease = eventName != "PositionIncrease";
+  const perf = getOrCreateAccountPerfForPeriod(position.account, period, event);
+  let basePnlUsd = data.getIntItem("basePnlUsd");
   if (basePnlUsd === null) {
     basePnlUsd = BigInt.fromI32(0);
   }
 
+  const sizeInUsd = data.getUintItem("sizeInUsd")!;
   const collateralAmount = data.getUintItem("collateralAmount")!;
   let collateralDelta = data.getIntItem("collateralDeltaAmount");
   if (collateralDelta === null) {
     collateralDelta = BigInt.fromI32(0);
   }
+
+  let priceImpactDiffUsd = data.getIntItem("priceImpactDiffUsd");
+  if (priceImpactDiffUsd === null) {
+    priceImpactDiffUsd = BigInt.fromI32(0);
+  }
+  perf.priceImpactUsd = perf.priceImpactUsd.plus(priceImpactDiffUsd);
 
   const collateralTokenPrice = data.getUintItem("collateralTokenPrice.min")!;
   const collateralAmountUsd = collateralAmount.times(collateralTokenPrice);
@@ -176,4 +220,4 @@ const updateAccountPerformanceForPeriod = (
   perf.save();
 
   return perf;
-};
+}

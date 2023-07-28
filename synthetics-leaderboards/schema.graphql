@@ -18,22 +18,26 @@ type AccountPerf @entity {
   cumsumCollateral: BigInt!
   sumMaxSize: BigInt! # closed positions
   closedCount: BigInt!
+  fundingFeeUsd: BigInt!
+  positionFeeUsd: BigInt!
+  borrowingFeeUsd: BigInt!
+  priceImpactUsd: BigInt!
 }
 
 type AccountOpenPosition @entity {
   id: ID!
-  account: String
-  market: String
-  collateralToken: String
-  isLong: Boolean
+  account: String!
+  market: String!
+  collateralToken: String!
+  isLong: Boolean!
   collateralAmount: BigInt!
   sizeInTokens: BigInt!
   sizeInUsd: BigInt!
   realizedPnl: BigInt!
   entryPrice: BigInt!
   maxSize: BigInt!
-
-  fundingFee: BigInt!
-  positionFee: BigInt!
-  borrowingFee: BigInt!
+  fundingFeeUsd: BigInt!
+  positionFeeUsd: BigInt!
+  borrowingFeeUsd: BigInt!
+  priceImpactUsd: BigInt!
 }

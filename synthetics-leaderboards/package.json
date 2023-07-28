@@ -2,9 +2,10 @@
   "name": "leaders",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
-    "build": "graph build",
+    "codegen": "graph codegen ./subgraph-goerli.yaml",
+    "build": "graph build ./subgraph-goerli.yaml",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ leaders",
+    "deploy-hosted": "graph deploy --product hosted-service ullin-oi/leaderboards ./subgraph-goerli.yaml",
     "create-local": "graph create --node http://localhost:8020/ leaders",
     "remove-local": "graph remove --node http://localhost:8020/ leaders",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 leaders",
