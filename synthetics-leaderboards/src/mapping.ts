@@ -1,4 +1,4 @@
-import { BigInt, store } from "@graphprotocol/graph-ts";
+import { BigInt, store, log } from "@graphprotocol/graph-ts";
 import { EventLog1, EventLog1EventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { AccountOpenPosition, AccountPerf } from "../generated/schema";
 import { EventData } from "./utils/eventData";
@@ -18,6 +18,13 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
+
+  if (isFeeEvent && data.getBytes32Item("positionKey") === null) {
+    // FIXME: this clause is a temp hack to work around fee events without
+    //        position key that normally wouldn't occur
+    return;
+  }
+
   const position = getOrCreatePosition(data, eventName);
 
   if (isFeeEvent) {
@@ -40,13 +47,12 @@ export function handleEventLog1(event: EventLog1): void {
   if (priceImpactDiffUsd === null) {
     priceImpactDiffUsd = BigInt.fromI32(0);
   }
+
   position.priceImpactUsd = position.priceImpactUsd.plus(priceImpactDiffUsd);
 
-  if (position.account) {
-    updateAccountPerformanceForPeriod(TOTAL, position, data, event);
-    updateAccountPerformanceForPeriod(DAILY, position, data, event);
-    updateAccountPerformanceForPeriod(HOURLY, position, data, event);
-  }
+  updateAccountPerformanceForPeriod(TOTAL, position, data, event);
+  updateAccountPerformanceForPeriod(DAILY, position, data, event);
+  updateAccountPerformanceForPeriod(HOURLY, position, data, event);
 
   if (sizeInUsd.equals(BigInt.fromI32(0))) {
     store.remove("AccountOpenPosition", position.id);
@@ -62,7 +68,7 @@ function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPos
   const key = data.getBytes32Item("positionKey")!.toHexString();
   let position = AccountOpenPosition.load(key);
   if (position === null) {
-    if (eventName != "PositionIncrease") {
+    if (eventName != "PositionIncrease" && eventName != "PositionDecrease") {
       throw new Error(`Unable to create a new position entity from "${eventName}" event`);
     }
     position = new AccountOpenPosition(key);
@@ -194,9 +200,7 @@ function updateAccountPerformanceForPeriod(
   const collateralDeltaUsd = collateralDelta.times(collateralTokenPrice);
 
   perf.totalPnl = perf.totalPnl.plus(basePnlUsd);
-  perf.totalCollateral = perf.totalCollateral.plus(
-    isIncrease ? collateralDeltaUsd : collateralDeltaUsd.neg()
-  );
+  perf.totalCollateral = perf.totalCollateral.plus(collateralDeltaUsd);
 
   const inputCollateral = perf.totalCollateral.minus(perf.totalPnl);
   if (perf.maxCollateral.lt(inputCollateral)) {
