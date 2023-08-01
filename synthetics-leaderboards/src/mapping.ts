@@ -1,4 +1,4 @@
-import { BigInt, store, log } from "@graphprotocol/graph-ts";
+import { BigInt, store, log, Address } from "@graphprotocol/graph-ts";
 import { EventLog1, EventLog1EventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { AccountOpenPosition, AccountPerf } from "../generated/schema";
 import { EventData } from "./utils/eventData";
@@ -18,13 +18,6 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   const data = new EventData(event.params.eventData as EventLog1EventDataStruct);
-
-  if (isFeeEvent && data.getBytes32Item("positionKey") === null) {
-    // FIXME: this clause is a temp hack to work around fee events without
-    //        position key that normally wouldn't occur
-    return;
-  }
-
   const position = getOrCreatePosition(data, eventName);
 
   if (isFeeEvent) {
@@ -42,6 +35,12 @@ export function handleEventLog1(event: EventLog1): void {
   position.sizeInTokens = data.getUintItem("sizeInTokens")!;
   position.sizeInUsd = sizeInUsd;
   position.maxSize = position.maxSize.lt(sizeInUsd) ? sizeInUsd : position.maxSize;
+  position.sizeUpdatedAt = event.block.number;
+
+  if (position.entryPrice.isZero()) {
+    position.entryPrice = data.getUintItem("executionPrice")!;
+    position.isLong = data.getBoolItem("isLong");
+  }
 
   let priceImpactDiffUsd = data.getIntItem("priceImpactDiffUsd");
   if (priceImpactDiffUsd === null) {
@@ -54,7 +53,7 @@ export function handleEventLog1(event: EventLog1): void {
   updateAccountPerformanceForPeriod(DAILY, position, data, event);
   updateAccountPerformanceForPeriod(HOURLY, position, data, event);
 
-  if (sizeInUsd.equals(BigInt.fromI32(0))) {
+  if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt.equals(position.sizeUpdatedAt)) {
     store.remove("AccountOpenPosition", position.id);
   } else {
     position.save();
@@ -63,20 +62,63 @@ export function handleEventLog1(event: EventLog1): void {
   return;
 }
 
+const fixtures = new Map<string, string>();
+fixtures.set(
+  "0x988da51065bb90ce6c4953c067b0b9af2483fa23e0bcd7297c00b1f7be0f8ced",
+  "0x98b88369adb870c84817e3e89c2998d9ef53377758e39c8cbccc02f4ec2c5254",
+);
+fixtures.set(
+  "0xed10b07f4fcc9c0ee484553105e7d6f6a04bc91297a7ac8b283acd72c03d5d8c",
+  "0x98b88369adb870c84817e3e89c2998d9ef53377758e39c8cbccc02f4ec2c5254",
+);
+fixtures.set(
+  "0x5c39c32bee32c7512d45f15f8a8982f8858496211c8e7ff5f47587c04d579310",
+  "0x1456c082dfc4bbb2f59cd38a4e9365533063dc4a0757f6fc6495b7f186abe939",
+);
+
 function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPosition {
+  let keyBytes32 = data.getBytes32Item("positionKey"); // FIXME: temp hack, should be non-nullable!
+  let key: string;
+  if (keyBytes32 === null) {
+    const orderKey = data.getBytes32Item("orderKey");
+    if (orderKey === null || !fixtures.has(orderKey.toHexString())) {
+      const order = orderKey === null ? "null" : orderKey.toString();
+      const msg = `${eventName} error: undefined order key: ${order}`;
+      log.error(msg, []);
+      throw new Error(msg);
+    }
+    key = fixtures.get(orderKey.toHexString());
+  } else {
+    key = keyBytes32.toHexString();
+  }
+
   // const key = `${account}:${market}:${collateralToken}:${isLong ? "long" : "short"}`;
-  const key = data.getBytes32Item("positionKey")!.toHexString();
+  // const key = data.getBytes32Item("positionKey")!.toHexString();
   let position = AccountOpenPosition.load(key);
   if (position === null) {
-    if (eventName != "PositionIncrease" && eventName != "PositionDecrease") {
-      throw new Error(`Unable to create a new position entity from "${eventName}" event`);
-    }
+    // if (eventName != "PositionIncrease" && eventName != "PositionDecrease") {
+    //   log.error(`Position ${key} ${eventName} occurs before trade`, []);
+    //   throw new Error(`Unable to create a new position entity from "${eventName}" event`);
+    // }
+
     position = new AccountOpenPosition(key);
 
-    position.account = data.getAddressItem("account")!.toHexString();
+    let entryPrice = data.getUintItem("executionPrice");
+    if (entryPrice === null) {
+      entryPrice = BigInt.fromI32(0);
+    }
+
+    let account: Address;
+    if (eventName == "PositionFeesCollected") {
+      account = data.getAddressItem("trader")!;
+    } else {
+      account = data.getAddressItem("account")!;
+    }
+
+    position.account = account.toHexString();
     position.market = data.getAddressItem("market")!.toHexString();
     position.collateralToken = data.getAddressItem("collateralToken")!.toHexString();
-    position.entryPrice = data.getUintItem("executionPrice")!;
+    position.entryPrice = entryPrice;
     position.isLong = data.getBoolItem("isLong");
     position.realizedPnl = BigInt.fromI32(0);
     position.maxSize = BigInt.fromI32(0);
@@ -84,6 +126,12 @@ function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPos
     position.positionFeeUsd = BigInt.fromI32(0);
     position.borrowingFeeUsd = BigInt.fromI32(0);
     position.priceImpactUsd = BigInt.fromI32(0);
+    position.feesUpdatedAt = BigInt.fromI32(0);
+    position.sizeUpdatedAt = BigInt.fromI32(0);
+
+    position.sizeInUsd = BigInt.fromI32(0);
+    position.collateralAmount = BigInt.fromI32(0);
+    position.sizeInTokens = BigInt.fromI32(0);
   }
 
   return position;
@@ -105,6 +153,7 @@ function handlePositionFeesEvent(position: AccountOpenPosition, event: EventLog1
   position.fundingFeeUsd = position.fundingFeeUsd.plus(fundingFeeUsd);
   position.positionFeeUsd = position.positionFeeUsd.plus(positionFeeUsd);
   position.borrowingFeeUsd = position.borrowingFeeUsd.plus(borrowingFeeUsd);
+  position.feesUpdatedAt = event.block.number;
 
   const periods = [TOTAL, DAILY, HOURLY];
   for (let i = 0; i < periods.length; i++) {
@@ -118,7 +167,13 @@ function handlePositionFeesEvent(position: AccountOpenPosition, event: EventLog1
     perf.save();
   }
 
-  position.save();
+  if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt.equals(position.sizeUpdatedAt)) {
+    store.remove("AccountOpenPosition", position.id);
+  } else {
+    position.save();
+  }
+
+  return;
 }
 
 function periodStart(period: string, event: EventLog1): Date {
