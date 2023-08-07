@@ -44,16 +44,19 @@ export function handleEventLog1(event: EventLog1): void {
     position.isLong = data.getBoolItem("isLong");
   }
 
-  let priceImpactDiffUsd = data.getIntItem("priceImpactDiffUsd");
-  if (priceImpactDiffUsd === null) {
-    priceImpactDiffUsd = BigInt.fromI32(0);
+  const priceImpactUsd = data.getIntItem("priceImpactUsd")!;
+  let priceImpactDiffUsd: BigInt;
+  if (position.priceImpactUsd.isZero()) {
+    priceImpactDiffUsd = priceImpactUsd;
+  } else {
+    priceImpactDiffUsd = priceImpactUsd.minus(position.priceImpactUsd);
   }
 
-  position.priceImpactUsd = position.priceImpactUsd.plus(priceImpactDiffUsd);
+  position.priceImpactUsd = priceImpactUsd;
 
-  updateAccountPerformanceForPeriod(TOTAL, position, data, event, isNewPositionEntity);
-  updateAccountPerformanceForPeriod(DAILY, position, data, event, isNewPositionEntity);
-  updateAccountPerformanceForPeriod(HOURLY, position, data, event, isNewPositionEntity);
+  updateAccountPerformanceForPeriod(TOTAL, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
+  updateAccountPerformanceForPeriod(DAILY, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
+  updateAccountPerformanceForPeriod(HOURLY, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
 
   if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt == position.sizeUpdatedAt) {
     store.remove("AccountOpenPosition", position.id);
@@ -168,7 +171,7 @@ function handlePositionFeesEvent(position: AccountOpenPosition, event: EventLog1
 
 function periodStart(period: string, event: EventLog1): Date {
   if (period == TOTAL) {
-    return new Date(1685618741000); // contract deployment date
+    return new Date(1687250908000); // TODO: come up with a better
   }
 
   const today = new Date(event.block.timestamp.toI64() * 1000);
@@ -219,6 +222,7 @@ function updateAccountPerformanceForPeriod(
   data: EventData,
   event: EventLog1,
   isNewPositionEntity: boolean,
+  priceImpactDiffUsd: BigInt,
 ): AccountPerf {
   const eventName = event.params.eventName;
   const isIncrease = eventName == "PositionIncrease";
@@ -243,10 +247,6 @@ function updateAccountPerformanceForPeriod(
     collateralDelta = collateralDelta.neg();
   }
 
-  let priceImpactDiffUsd = data.getIntItem("priceImpactDiffUsd");
-  if (priceImpactDiffUsd === null) {
-    priceImpactDiffUsd = BigInt.fromI32(0);
-  }
   perf.priceImpactUsd = perf.priceImpactUsd.plus(priceImpactDiffUsd);
 
   const collateralTokenPrice = data.getUintItem("collateralTokenPrice.min")!;
@@ -255,19 +255,9 @@ function updateAccountPerformanceForPeriod(
 
   perf.totalPnl = perf.totalPnl.plus(basePnlUsd);
 
-  // if (isNewPositionEntity && perf.totalCollateral.isZero() && (collateralDelta.isZero() || collateralDelta.lt(BigInt.fromI32(0)))) {
-  //   log.error(`Position seems to have trades before contract deployment date: collateral ${
-  //     collateralAmount.toString()
-  //   } - collateral delta ${collateralDelta.toString()} is not equal to 0, event ${eventName}, is new ${
-  //     isNewPositionEntity ? "yes" : "no"
-  //   } collateralUsd ${collateralAmountUsd}, collateralDeltaUsd ${collateralDeltaUsd}`, []);
-  // }
-
   const collateralBefore = collateralAmount.minus(collateralDelta);
   if (isNewPositionEntity && !collateralBefore.isZero()) {
-    // log.warning(`Position seems to have trades before contract deployment date: collateral usd ${
-    //   collateralAmountUsd.toString
-    // } - collateral delta usd ${collateralDelta.toString()} is not equal to 0`, []);
+    // TODO: this is a debug clause handling trade history issue, remove as it gets resolved
     perf.totalCollateral = perf.totalCollateral.plus(collateralAmountUsd);
   } else {
     perf.totalCollateral = perf.totalCollateral.plus(collateralDeltaUsd);
@@ -278,26 +268,8 @@ function updateAccountPerformanceForPeriod(
     perf.maxCollateral = inputCollateral;
   }
 
-  if (isNewPositionEntity) {
-    log.info(`New position account perf update account ${
-      perf.account
-    }, event ${
-      eventName
-    }, collateral before ${
-      collateralBefore.toString()
-    }, collateral after ${
-      collateralAmount.toString()
-    }, total pnl ${
-      perf.totalPnl.toString()
-    }, input collateral ${
-      inputCollateral.toString()
-    }, max collateral ${
-      perf.maxCollateral.toString()
-    }`, []);
-  }
-
-
   if (perf.cumsumSize.isZero() && sizeInUsd.isZero()) {
+    // TODO: this is a debug clause handling trade history issue, remove as it gets resolved
     let delta = data.getUintItem("sizeDeltaUsd")!;
     if (isIncrease) {
       perf.cumsumSize = delta.neg();
@@ -309,15 +281,14 @@ function updateAccountPerformanceForPeriod(
   const sizeDeltaInUsd = data.getUintItem("sizeDeltaUsd")!;
 
   if (isNewPositionEntity && period == TOTAL) {
-    const safeStr = (v: BigInt | null): string => v === null ? "null" : v.toString();
-    const size = data.getUintItem("sizeInTokens");
+    const sizeInTokens = data.getUintItem("sizeInTokens");
     const sizeDeltaInTokens = data.getUintItem("sizeDeltaInTokens");
-    let sizeBefore: BigInt | null = null;
-    if (size !== null && sizeDeltaInTokens !== null) {
+    let sizeBeforeInTokens: BigInt | null = null;
+    if (sizeInTokens !== null && sizeDeltaInTokens !== null) {
       if (isIncrease) {
-        sizeBefore = size.minus(sizeDeltaInTokens);
+        sizeBeforeInTokens = sizeInTokens.minus(sizeDeltaInTokens);
       } else {
-        sizeBefore = size.plus(sizeDeltaInTokens);
+        sizeBeforeInTokens = sizeInTokens.plus(sizeDeltaInTokens);
       }
     }
 
@@ -339,134 +310,16 @@ function updateAccountPerformanceForPeriod(
     if (collateralAmountUsd !== null && collateralDeltaUsd !== null) {
       collateralBeforeInUsd = collateralAmountUsd.minus(collateralDeltaUsd);
     }
-
-    if (
-      (sizeBefore && !sizeBefore.isZero()) ||
-      (collateralBefore && !collateralBefore.isZero()) // ||
-      // (sizeBeforeInUsd && !sizeBeforeInUsd.isZero()) ||
-      // (collateralBeforeInUsd && !collateralBeforeInUsd.isZero())
-    ) {
-      log.warning(`New account ${
-        perf.account
-      } position ${
-        position.id
-      } appeared with non-zero size or collateral before change. Size ${
-        safeStr(size)
-      }, size delta ${
-        safeStr(sizeDeltaInTokens)
-      }, size before ${
-        safeStr(sizeBefore)
-      }, size in usd ${
-        safeStr(sizeInUsd)
-      }, size delta in usd ${
-        safeStr(sizeDeltaInUsd)
-      }, size before in usd ${
-        safeStr(sizeBeforeInUsd)
-      }, collateral ${
-        safeStr(collateralAmount)
-      }, collateral delta ${
-        safeStr(collateralDelta)
-      }, collateral before ${
-        safeStr(collateralBefore)
-      }, collateral in usd ${
-        safeStr(collateralAmountUsd)
-      }, collateral delta in usd ${
-        safeStr(collateralDeltaUsd)
-      }, collateral before in usd ${
-        safeStr(collateralBeforeInUsd)
-      }, event ${
-        eventName
-      }, block ${
-        event.block.number.toString()
-      }, tx ${
-        event.transaction.hash.toHexString()
-      }`, []);
-    } else {
-      log.info(`New position detected for account ${
-        perf.account
-      }, key ${position.id}, size ${
-        safeStr(size)
-      }, size delta ${
-        safeStr(sizeDeltaInUsd)
-      }, size before ${
-        safeStr(sizeBefore)
-      }, collateral ${
-        safeStr(collateralAmount)
-      }, collateral delta ${
-        safeStr(collateralDelta)
-      }, collateral before ${
-        safeStr(collateralBefore)
-      }`, []);
-    }
   }
 
   perf.cumsumSize = perf.cumsumSize.plus(sizeInUsd);
 
-  // if (period == TOTAL && perf.cumsumSize.isZero()) {
-  //   const sit = data.getUintItem("sizeInTokens");
-  //   let sitStr: string;
-  //   if (sit === null) {
-  //     sitStr = "null";
-  //   } else {
-  //     sitStr = sit.toString();
-  //   }
-
-  //   const sdit = data.getUintItem("sizeDeltaInTokens");
-  //   let sditStr: string;
-  //   if (sdit === null) {
-  //     sditStr = "null";
-  //   } else {
-  //     sditStr = sdit.toString();
-  //   }
-
-  //   const sdiu = data.getUintItem("sizeDeltaUsd");
-  //   let sdiuStr: string;
-  //   if (sdiu === null) {
-  //     sdiuStr = "null";
-  //   } else {
-  //     sdiuStr = sdiu.toString();
-  //   }
-
-  //   let siuStr: string;
-  //   if (sizeInUsd === null) {
-  //     siuStr = "null";
-  //   } else {
-  //     siuStr = sizeInUsd.toString();
-  //   }
-  //   log.error(
-  //     `Errorneous cumsum size for account ${position.account.toString()}, ` +
-  //     `size ${sitStr}, ` +
-  //     `size Delta ${sditStr}, ` +
-  //     `size USD value ${siuStr}, ` +
-  //     `size Delta USD ${sdiuStr}, ` +
-  //     `cumsum size USD ${perf.cumsumSize.toString()}, ` +
-  //     `event: ${eventName}`,
-  //     []
-  //   );
-  // }
-
   if (perf.cumsumCollateral.isZero() && collateralAmountUsd.isZero()) {
+    // TODO: this is a debug clause handling trade history issue, remove as it gets resolved
     perf.cumsumCollateral = collateralDeltaUsd.neg();
   }
 
   perf.cumsumCollateral = perf.cumsumCollateral.plus(collateralAmountUsd);
-
-  // if (period == TOTAL && perf.cumsumCollateral.isZero()) {
-  //   log.error(
-  //     `Errorneous cumsum collateral for account ${position.account.toString()}, ` +
-  //     `collateral Delta ${collateralDelta.toString()}, ` +
-  //     `collateral Amount ${collateralAmount.toString()}, ` +
-  //     `collateral Price ${collateralTokenPrice.toString()}, ` +
-  //     `collateral USD value ${collateralAmountUsd.toString()}, ` +
-  //     `collateral Delta USD ${collateralDeltaUsd.toString()}, ` +
-  //     `total collateral USD ${perf.totalCollateral.toString()}, ` +
-  //     `input collateral USD ${inputCollateral.toString()}, ` +
-  //     `max collateral USD ${perf.maxCollateral.toString()}, ` +
-  //     `cumsum collateral USD ${perf.cumsumCollateral.toString()}, ` +
-  //     `event: ${eventName}`,
-  //     []
-  //   );
-  // }
 
   if (sizeInUsd.equals(BigInt.fromI32(0))) {
     perf.sumMaxSize = perf.sumMaxSize.plus(position.maxSize);
