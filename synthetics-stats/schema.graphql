@@ -267,3 +267,21 @@ type Transaction @entity {
   blockNumber: Int!
   transactionIndex: Int!
 }
+
+type VolumeInfo @entity {
+  id: ID!
+  period: String!
+  volumeUsd: BigInt!
+  marginVolumeUsd: BigInt!
+  swapVolumeUsd: BigInt!
+}
+
+type HourlyVolumeByToken @entity {
+  id: ID!
+  tokenA: String!
+  tokenB: String!
+  timestamp: Int!
+  volumeUsd: BigInt!
+  marginVolumeUsd: BigInt!
+  swapVolumeUsd: BigInt!
+}

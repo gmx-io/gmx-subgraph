@@ -39,6 +39,7 @@ import {
   saveSwapFeesInfo,
 } from "./entities/fees";
 import { Order } from "../generated/schema";
+import { saveHourlyVolumeByToken, saveVolumeInfo } from "./entities/volume";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -140,7 +141,15 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
+    let amountIn = eventData.getUintItem("amountIn")!;
+    let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
+    let tokenIn = eventData.getAddressItemString("tokenIn")!;
+    let tokenOut = eventData.getAddressItemString("tokenOut")!;
+    let volumeUsd = amountIn!.times(tokenInPrice!);
+
     saveSwapInfo(eventData, transaction);
+    saveVolumeInfo("swap", transaction.timestamp, volumeUsd);
+    saveHourlyVolumeByToken("swap", transaction.timestamp, volumeUsd, tokenIn, tokenOut);
     return;
   }
 
@@ -202,13 +211,23 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
+    let marketAddress = eventData.getAddressItemString("market")!;
+
     savePositionIncrease(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
+    saveHourlyVolumeByToken("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!, collateralTokenAddress, marketAddress);
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
+    let marketAddress = eventData.getAddressItemString("market")!;
+ 
     savePositionDecrease(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
+    saveHourlyVolumeByToken("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!, collateralTokenAddress, marketAddress)
     return;
   }
 
