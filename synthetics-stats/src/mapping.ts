@@ -38,8 +38,8 @@ import {
   savePositionFeesInfo,
   saveSwapFeesInfo,
 } from "./entities/fees";
-import { MarketInfo, Order } from "../generated/schema";
-import { saveHourlyVolumeByToken, saveVolumeInfo } from "./entities/volume";
+import { Order } from "../generated/schema";
+import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { saveMarketInfo } from "./entities/market";
 
 export function handleEventLog1(event: EventLog1): void {
@@ -149,13 +149,11 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let amountIn = eventData.getUintItem("amountIn")!;
     let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
-    let tokenIn = eventData.getAddressItemString("tokenIn")!;
-    let tokenOut = eventData.getAddressItemString("tokenOut")!;
     let volumeUsd = amountIn!.times(tokenInPrice!);
 
     saveSwapInfo(eventData, transaction);
     saveVolumeInfo("swap", transaction.timestamp, volumeUsd);
-    saveHourlyVolumeByToken("swap", transaction.timestamp, volumeUsd, tokenIn, tokenOut);
+    saveSwapVolumeInfo(eventData, transaction);
     return;
   }
 
@@ -217,25 +215,19 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
-    let marketAddress = eventData.getAddressItemString("market")!;
-    let marketInfo = MarketInfo.load(marketAddress)!;
 
     savePositionIncrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
-    saveHourlyVolumeByToken("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!, collateralTokenAddress, marketInfo.indexToken);
+    savePositionVolumeInfo(eventData, transaction);
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
-    let marketAddress = eventData.getAddressItemString("market")!;
-    let marketInfo = MarketInfo.load(marketAddress)!;
  
     savePositionDecrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
-    saveHourlyVolumeByToken("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!, collateralTokenAddress, marketInfo.indexToken)
+    savePositionVolumeInfo(eventData, transaction);
     return;
   }
 

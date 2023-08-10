@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { HourlyVolumeByToken, VolumeInfo } from "../../generated/schema";
+import { MarketInfo, PositionVolumeInfo, SwapVolumeInfo, Transaction, VolumeInfo } from "../../generated/schema";
 import { timestampToPeriodStart } from "../utils/time";
+import { EventData } from "../utils/eventData";
 
 export function saveVolumeInfo(type: string, timestamp: i32, volume: BigInt): void {
   let hourlyVolumeInfo = getOrCreateVolumeInfo(timestamp, "1h");
@@ -30,7 +31,7 @@ function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
   let volumeId = period === "total" ? "total" : timestampGroup.toString();
   let volumeInfo = VolumeInfo.load(volumeId);
-  
+
   if (volumeInfo === null) {
     volumeInfo = new VolumeInfo(volumeId);
     volumeInfo.period = period;
@@ -41,37 +42,76 @@ function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
   return volumeInfo as VolumeInfo;
 }
 
+export function saveSwapVolumeInfo(eventData: EventData, transaction: Transaction): void {
+  let PERIODS = new Array<string>(3);
+  PERIODS[0] = "1h";
+  PERIODS[1] = "1d";
+  PERIODS[2] = "total";
 
-export function saveHourlyVolumeByToken(type: string, timestamp: i32, volume: BigInt, tokenA: string, tokenB: string): void {
-  let hourlyVolumeInfo = getOrCreateHourlyVolumeByToken(timestamp, tokenA, tokenB);
+  let timestamp = transaction.timestamp;
+  let tokenIn = eventData.getAddressItemString("tokenIn")!;
+  let tokenOut = eventData.getAddressItemString("tokenOut")!;
+  let amountIn = eventData.getUintItem("amountIn")!;
+  let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
+  let volumeUsd = amountIn.times(tokenInPrice);
 
-  hourlyVolumeInfo.volumeUsd = hourlyVolumeInfo.volumeUsd.plus(volume);
-  if (type === "swap") {
-    hourlyVolumeInfo.swapVolumeUsd = hourlyVolumeInfo.swapVolumeUsd.plus(volume);
-  } else if (type === "margin") {
-    hourlyVolumeInfo.marginVolumeUsd = hourlyVolumeInfo.marginVolumeUsd.plus(volume);
-  }
-
-  hourlyVolumeInfo.save();
+  createOrUpdateSwapVolumeInfo(PERIODS, timestamp, volumeUsd, tokenIn, tokenOut);
 }
 
+function createOrUpdateSwapVolumeInfo(periodsToCreate: string[], timestamp: i32, volumeUsd: BigInt, tokenIn: string, tokenOut: string): void {
+  for (let i = 0; i < periodsToCreate.length; i++) {
+    let period = periodsToCreate[i];
+    let timestampGroup = timestampToPeriodStart(timestamp, period);
+    let id = period === "total" ? "total" : getVolumeInfoByTokenId(tokenIn, tokenOut) + ":" + timestampGroup.toString();
+    let volumeInfo = SwapVolumeInfo.load(id);
 
-function getOrCreateHourlyVolumeByToken(timestamp: i32, tokenA: string, tokenB: string): HourlyVolumeByToken {
-  let timestampGroup = timestampToPeriodStart(timestamp, "1h");
-  let volumeId =   getVolumeInfoByTokenId(tokenA, tokenB) + ":" + timestampGroup.toString();
+    if (volumeInfo === null) {
+      volumeInfo = new SwapVolumeInfo(id);
+      volumeInfo.tokenIn = tokenIn;
+      volumeInfo.tokenOut = tokenOut;
+      volumeInfo.timestamp =timestampGroup;
+      volumeInfo.period = period;
+      volumeInfo.volumeUsd = BigInt.fromI32(0);
+    }
 
-  let hourlyVolumeByToken = HourlyVolumeByToken.load(volumeId);
-
-  if (hourlyVolumeByToken === null) {
-    hourlyVolumeByToken = new HourlyVolumeByToken(volumeId);
-    hourlyVolumeByToken.tokenA = tokenA;
-    hourlyVolumeByToken.tokenB = tokenB;
-    hourlyVolumeByToken.timestamp = timestampGroup;
-    hourlyVolumeByToken.volumeUsd = BigInt.fromI32(0);
-    hourlyVolumeByToken.swapVolumeUsd = BigInt.fromI32(0);
-    hourlyVolumeByToken.marginVolumeUsd = BigInt.fromI32(0);
+    volumeInfo.volumeUsd = volumeInfo.volumeUsd.plus(volumeUsd);
+    volumeInfo.save();
   }
-  return hourlyVolumeByToken as HourlyVolumeByToken;
+}
+
+export function savePositionVolumeInfo(eventData: EventData, transaction: Transaction): void {
+  let PERIODS = new Array<string>(3);
+  PERIODS[0] = "1h";
+  PERIODS[1] = "1d";
+  PERIODS[2] = "total";
+  let timestamp = transaction.timestamp;
+  let collateralToken = eventData.getAddressItemString("collateralToken")!;
+  let marketToken = eventData.getAddressItemString("market")!;
+  let marketInfo = MarketInfo.load(marketToken)!;
+  let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
+
+  createOrUpdatePositionVolumeInfo(PERIODS, timestamp, sizeInUsd, collateralToken, marketInfo.indexToken);
+}
+
+function createOrUpdatePositionVolumeInfo(periodsToCreate: string[], timestamp: i32, volumeUsd: BigInt, collateralToken: string, indexToken: string): void {
+  for (let i = 0; i < periodsToCreate.length; i++) {
+    let period = periodsToCreate[i];
+    let timestampGroup = timestampToPeriodStart(timestamp, period);
+    let id = period === "total" ? "total" : getVolumeInfoByTokenId(collateralToken, indexToken) + ":" + timestampGroup.toString();
+    let volumeInfo = PositionVolumeInfo.load(id);
+
+    if (volumeInfo === null) {
+      volumeInfo = new PositionVolumeInfo(id);
+      volumeInfo.collateralToken = collateralToken;
+      volumeInfo.indexToken = indexToken;
+      volumeInfo.timestamp =timestampGroup;
+      volumeInfo.period = period;
+      volumeInfo.volumeUsd = BigInt.fromI32(0);
+    }
+
+    volumeInfo.volumeUsd = volumeInfo.volumeUsd.plus(volumeUsd);
+    volumeInfo.save();
+  }
 }
 
 function getVolumeInfoByTokenId(tokenA: string, tokenB: string): string {

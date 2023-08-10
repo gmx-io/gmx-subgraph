@@ -284,12 +284,22 @@ type VolumeInfo @entity {
   swapVolumeUsd: BigInt!
 }
 
-type HourlyVolumeByToken @entity {
+type SwapVolumeInfo @entity {
+  # tokenIn:tokenOut:timestamp
   id: ID!
-  tokenA: String!
-  tokenB: String!
+  period: String!
+  tokenIn: String!
+  tokenOut: String!
   timestamp: Int!
   volumeUsd: BigInt!
-  marginVolumeUsd: BigInt!
-  swapVolumeUsd: BigInt!
+}
+
+type PositionVolumeInfo @entity {
+  # collateralToken:indexToken:timestamp
+  id: ID!
+  period: String!
+  collateralToken: String!
+  indexToken: String!
+  timestamp: Int!
+  volumeUsd: BigInt!
 }
