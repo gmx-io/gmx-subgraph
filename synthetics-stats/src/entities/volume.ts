@@ -1,7 +1,6 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { MarketInfo, PositionVolumeInfo, SwapVolumeInfo, Transaction, VolumeInfo } from "../../generated/schema";
+import { MarketInfo, PositionVolumeInfo, SwapVolumeInfo, VolumeInfo } from "../../generated/schema";
 import { timestampToPeriodStart } from "../utils/time";
-import { EventData } from "../utils/eventData";
 
 export function saveVolumeInfo(type: string, timestamp: i32, volume: BigInt): void {
   let hourlyVolumeInfo = getOrCreateVolumeInfo(timestamp, "1h");
@@ -42,14 +41,7 @@ function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
   return volumeInfo as VolumeInfo;
 }
 
-export function saveSwapVolumeInfo(eventData: EventData, transaction: Transaction): void {
-  let timestamp = transaction.timestamp;
-  let tokenIn = eventData.getAddressItemString("tokenIn")!;
-  let tokenOut = eventData.getAddressItemString("tokenOut")!;
-  let amountIn = eventData.getUintItem("amountIn")!;
-  let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
-  let volumeUsd = amountIn.times(tokenInPrice);
-
+export function saveSwapVolumeInfo(timestamp: i32, tokenIn: string, tokenOut: string, volumeUsd: BigInt): void {
   let hourlyVolumeInfo = getOrCreateSwapVolumeInfo(timestamp, tokenIn, tokenOut, "1h");
   let dailyVolumeInfo = getOrCreateSwapVolumeInfo(timestamp, tokenIn, tokenOut, "1d");
   let totalVolumeInfo = getOrCreateSwapVolumeInfo(timestamp, tokenIn, tokenOut, "total");
@@ -79,12 +71,8 @@ function getOrCreateSwapVolumeInfo(timestamp: i32, tokenIn: string, tokenOut: st
   return volumeInfo as SwapVolumeInfo;
 }
 
-export function savePositionVolumeInfo(eventData: EventData, transaction: Transaction): void {
-  let timestamp = transaction.timestamp;
-  let collateralToken = eventData.getAddressItemString("collateralToken")!;
-  let marketToken = eventData.getAddressItemString("market")!;
+export function savePositionVolumeInfo(timestamp: i32, collateralToken: string, marketToken: string, sizeInUsd: BigInt): void {
   let marketInfo = MarketInfo.load(marketToken)!;
-  let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
 
   let hourlyVolumeInfo = getOrCreatePositionVolumeInfo(timestamp, collateralToken, marketInfo.indexToken, "1h");
   let dailyVolumeInfo = getOrCreatePositionVolumeInfo(timestamp, collateralToken, marketInfo.indexToken, "1d");

@@ -147,13 +147,15 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
+    let tokenIn = eventData.getAddressItemString("tokenIn")!;
+    let tokenOut = eventData.getAddressItemString("tokenOut")!;
     let amountIn = eventData.getUintItem("amountIn")!;
     let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
     let volumeUsd = amountIn!.times(tokenInPrice!);
 
     saveSwapInfo(eventData, transaction);
     saveVolumeInfo("swap", transaction.timestamp, volumeUsd);
-    saveSwapVolumeInfo(eventData, transaction);
+    saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
     return;
   }
 
@@ -215,19 +217,25 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralToken = eventData.getAddressItemString("collateralToken")!;
+    let marketToken = eventData.getAddressItemString("marketToken")!;
+    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
 
     savePositionIncrease(eventData, transaction);
-    saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
-    savePositionVolumeInfo(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralToken = eventData.getAddressItemString("collateralToken")!;
+    let marketToken = eventData.getAddressItemString("marketToken")!;
+    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
  
     savePositionDecrease(eventData, transaction);
-    saveVolumeInfo("margin", transaction.timestamp, eventData.getUintItem("sizeInUsd")!);
-    savePositionVolumeInfo(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
     return;
   }
 
