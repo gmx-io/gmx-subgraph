@@ -41,9 +41,15 @@ import {
   saveSwapFeesInfo,
 } from "./entities/fees";
 import { Order } from "../generated/schema";
-import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
-import { saveMarketInfo, saveMarketPoolValueInfoForPeriod } from "./entities/market";
-
+import {
+  savePositionVolumeInfo,
+  saveSwapVolumeInfo,
+  saveVolumeInfo,
+} from "./entities/volume";
+import {
+  saveMarketInfo,
+  saveMarketPoolValueInfoForPeriod,
+} from "./entities/markets";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -52,8 +58,8 @@ export function handleEventLog1(event: EventLog1): void {
   );
   let eventId = getIdFromEvent(event);
 
-  if(eventName == "MarketCreated") {
-    saveMarketInfo(eventData)
+  if (eventName == "MarketCreated") {
+    saveMarketInfo(eventData);
     return;
   }
 
@@ -267,7 +273,12 @@ export function handleEventLog1(event: EventLog1): void {
 
     savePositionIncrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
-    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
+    savePositionVolumeInfo(
+      transaction.timestamp,
+      collateralToken,
+      marketToken,
+      sizeInUsd
+    );
     return;
   }
 
@@ -276,10 +287,15 @@ export function handleEventLog1(event: EventLog1): void {
     let collateralToken = eventData.getAddressItemString("collateralToken")!;
     let marketToken = eventData.getAddressItemString("market")!;
     let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
- 
+
     savePositionDecrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
-    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
+    savePositionVolumeInfo(
+      transaction.timestamp,
+      collateralToken,
+      marketToken,
+      sizeInUsd
+    );
     return;
   }
 

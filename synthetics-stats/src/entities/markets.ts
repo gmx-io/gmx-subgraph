@@ -1,17 +1,29 @@
-import { MarketPoolValueInfo } from "../../generated/schema";
+import { MarketInfo, MarketPoolValueInfo } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { timestampToPeriodStart } from "../utils/time";
+
+export function saveMarketInfo(eventData: EventData): MarketInfo {
+  let id = eventData.getAddressItemString("marketToken")!;
+  let marketInfo = new MarketInfo(id);
+  marketInfo.marketToken = id;
+  marketInfo.indexToken = eventData.getAddressItemString("indexToken")!;
+  marketInfo.longToken = eventData.getAddressItemString("longToken")!;
+  marketInfo.shortToken = eventData.getAddressItemString("shortToken")!;
+  marketInfo.save();
+
+  return marketInfo as MarketInfo;
+}
 
 export function saveMarketPoolValueInfoForPeriod(
   eventData: EventData,
   period: string,
   timestamp: i32
 ): void {
- let entity = getOrCreateMarketPoolValueInfo(eventData, period, timestamp);
- 
- entity.marketTokensSupply = eventData.getUintItem("marketTokensSupply")!;
- entity.poolValue = eventData.getIntItem("poolValue")!;
- entity.save();
+  let entity = getOrCreateMarketPoolValueInfo(eventData, period, timestamp);
+
+  entity.marketTokensSupply = eventData.getUintItem("marketTokensSupply")!;
+  entity.poolValue = eventData.getIntItem("poolValue")!;
+  entity.save();
 }
 
 function getOrCreateMarketPoolValueInfo(
