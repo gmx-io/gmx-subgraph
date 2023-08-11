@@ -57,7 +57,7 @@ export function saveSwapVolumeInfo(timestamp: i32, tokenIn: string, tokenOut: st
 
 function getOrCreateSwapVolumeInfo(timestamp: i32, tokenIn: string, tokenOut: string, period: string): SwapVolumeInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
-  let id = period === "total" ? "total" : getVolumeInfoByTokenId(tokenIn, tokenOut) + ":" + timestampGroup.toString();
+  let id = period === "total" ? "total" : getVolumeInfoId(tokenIn, tokenOut) + ":" + timestampGroup.toString();
   let volumeInfo = SwapVolumeInfo.load(id);
 
   if (volumeInfo === null) {
@@ -90,7 +90,7 @@ export function savePositionVolumeInfo(timestamp: i32, collateralToken: string, 
 
 function getOrCreatePositionVolumeInfo(timestamp: i32, collateralToken: string, indexToken: string, period: string): PositionVolumeInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
-  let id = period === "total" ? "total" : getVolumeInfoByTokenId(collateralToken, indexToken) + ":" + timestampGroup.toString();
+  let id = period === "total" ? "total" : getVolumeInfoId(collateralToken, indexToken) + ":" + timestampGroup.toString();
   let volumeInfo = PositionVolumeInfo.load(id);
 
   if (volumeInfo === null) {
@@ -104,6 +104,6 @@ function getOrCreatePositionVolumeInfo(timestamp: i32, collateralToken: string, 
   return volumeInfo as PositionVolumeInfo;
 }
 
-function getVolumeInfoByTokenId(tokenA: string, tokenB: string): string {
+function getVolumeInfoId(tokenA: string, tokenB: string): string {
   return tokenA + ":" + tokenB;
 }

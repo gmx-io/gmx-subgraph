@@ -218,7 +218,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
     let collateralToken = eventData.getAddressItemString("collateralToken")!;
-    let marketToken = eventData.getAddressItemString("marketToken")!;
+    let marketToken = eventData.getAddressItemString("market")!;
     let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
 
     savePositionIncrease(eventData, transaction);
@@ -230,7 +230,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
     let collateralToken = eventData.getAddressItemString("collateralToken")!;
-    let marketToken = eventData.getAddressItemString("marketToken")!;
+    let marketToken = eventData.getAddressItemString("market")!;
     let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
  
     savePositionDecrease(eventData, transaction);
