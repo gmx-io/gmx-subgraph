@@ -41,7 +41,9 @@ import {
   saveSwapFeesInfo,
 } from "./entities/fees";
 import { Order } from "../generated/schema";
-import { saveMarketPoolValueInfoForPeriod } from "./entities/markets";
+import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
+import { saveMarketInfo, saveMarketPoolValueInfoForPeriod } from "./entities/market";
+
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -49,6 +51,11 @@ export function handleEventLog1(event: EventLog1): void {
     event.params.eventData as EventLogEventDataStruct
   );
   let eventId = getIdFromEvent(event);
+
+  if(eventName == "MarketCreated") {
+    saveMarketInfo(eventData)
+    return;
+  }
 
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
@@ -143,7 +150,15 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
+    let tokenIn = eventData.getAddressItemString("tokenIn")!;
+    let tokenOut = eventData.getAddressItemString("tokenOut")!;
+    let amountIn = eventData.getUintItem("amountIn")!;
+    let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
+    let volumeUsd = amountIn!.times(tokenInPrice!);
+
     saveSwapInfo(eventData, transaction);
+    saveVolumeInfo("swap", transaction.timestamp, volumeUsd);
+    saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
     return;
   }
 
@@ -246,13 +261,25 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralToken = eventData.getAddressItemString("collateralToken")!;
+    let marketToken = eventData.getAddressItemString("market")!;
+    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
+
     savePositionIncrease(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
     return;
   }
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
+    let collateralToken = eventData.getAddressItemString("collateralToken")!;
+    let marketToken = eventData.getAddressItemString("market")!;
+    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
+ 
     savePositionDecrease(eventData, transaction);
+    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeInUsd);
     return;
   }
 

@@ -281,3 +281,39 @@ type Transaction @entity {
   blockNumber: Int!
   transactionIndex: Int!
 }
+
+type MarketInfo @entity {
+  id: ID!
+  marketToken: String!
+  indexToken: String!
+  longToken: String!
+  shortToken: String!
+}
+
+type VolumeInfo @entity {
+  id: ID!
+  period: String!
+  volumeUsd: BigInt!
+  marginVolumeUsd: BigInt!
+  swapVolumeUsd: BigInt!
+}
+
+type SwapVolumeInfo @entity {
+  # tokenIn:tokenOut:timestamp
+  id: ID!
+  period: String!
+  tokenIn: String!
+  tokenOut: String!
+  timestamp: Int!
+  volumeUsd: BigInt!
+}
+
+type PositionVolumeInfo @entity {
+  # collateralToken:indexToken:timestamp
+  id: ID!
+  period: String!
+  collateralToken: String!
+  indexToken: String!
+  timestamp: Int!
+  volumeUsd: BigInt!
+}
