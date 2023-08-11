@@ -9,12 +9,55 @@ import {
 import { timestampToPeriodStart } from "../utils/time";
 import { EventData } from "../utils/eventData";
 
-export function saveCollectedMarketFeesForPeriod(
+class MarketAPRParams {
+  constructor(
+    public marketAddress: string,
+    public marketTokensSupply: BigInt,
+    public feeUsdPerMarketToken: BigInt,
+    public poolValue: BigInt,
+    public feeUsdPerPoolUsd: BigInt
+  ) {}
+}
+
+export function getMarketAPRParams(
+  marketAddress: string,
+  feeUsdForPool: BigInt
+): MarketAPRParams {
+  // totalMarketPoolValueInfo is null for the first MarketPoolValueInfo event since it's emitter after the first SwapFeesCollected event
+  let totalMarketPoolValueInfo = MarketPoolValueInfo.load(
+    marketAddress + ":total"
+  );
+
+  let marketTokensSupply = totalMarketPoolValueInfo
+    ? totalMarketPoolValueInfo.marketTokensSupply
+    : BigInt.fromI32(0);
+  let feeUsdPerMarketToken = marketTokensSupply.isZero()
+    ? BigInt.fromI32(0)
+    : feeUsdForPool.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply);
+  let poolValue = totalMarketPoolValueInfo
+    ? totalMarketPoolValueInfo.poolValue
+    : BigInt.fromI32(0);
+  let feeUsdPerPoolUsd = poolValue.isZero()
+    ? BigInt.fromI32(0)
+    : feeUsdForPool.times(BigInt.fromI32(10).pow(30)).div(poolValue);
+
+  let marketAprParams = new MarketAPRParams(
+    marketAddress,
+    marketTokensSupply,
+    feeUsdPerMarketToken,
+    poolValue,
+    feeUsdPerPoolUsd
+  );
+
+  return marketAprParams;
+}
+
+export function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
-  period: string,
+  marketAprParams: MarketAPRParams,
   timestamp: i32
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
@@ -24,22 +67,8 @@ export function saveCollectedMarketFeesForPeriod(
     "total"
   );
 
-  let feesForPeriod = getOrCreateCollectedMarketFees(
-    marketAddress,
-    tokenAddress,
-    timestamp,
-    period
-  );
-  
-  // totalMarketPoolValueInfo is null for the first MarketPoolValueInfo event since it's emitter after the first SwapFeesCollected event
-  let totalMarketPoolValueInfo = MarketPoolValueInfo.load(marketAddress + ":total");
-  let marketTokensSupply = totalMarketPoolValueInfo ? totalMarketPoolValueInfo.marketTokensSupply : BigInt.fromI32(0);
-  let feeUsdPerMarketToken = marketTokensSupply.isZero() ? BigInt.fromI32(0) : feeUsdForPool.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply);
-  let poolValue = totalMarketPoolValueInfo ? totalMarketPoolValueInfo.poolValue : BigInt.fromI32(0);
-  let feeUsdPerPoolUsd = poolValue.isZero() ? BigInt.fromI32(0) : feeUsdForPool.times(BigInt.fromI32(10).pow(30)).div(poolValue);
-  
-  totalFees.marketTokensSupply = marketTokensSupply;
-  totalFees.poolValue = poolValue;
+  totalFees.marketTokensSupply = marketAprParams.marketTokensSupply;
+  totalFees.poolValue = marketAprParams.poolValue;
   totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
     feeAmountForPool
   );
@@ -50,21 +79,51 @@ export function saveCollectedMarketFeesForPeriod(
     feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
-  totalFees.feeUsdPerMarketToken = totalFees.feeUsdPerMarketToken.plus(feeUsdPerMarketToken);
-  totalFees.feeUsdPerPoolUsd = totalFees.feeUsdPerPoolUsd.plus(feeUsdPerPoolUsd);
+  totalFees.feeUsdPerMarketToken = totalFees.feeUsdPerMarketToken.plus(
+    marketAprParams.feeUsdPerMarketToken
+  );
+  totalFees.feeUsdPerPoolUsd = totalFees.feeUsdPerPoolUsd.plus(
+    marketAprParams.feeUsdPerPoolUsd
+  );
   totalFees.save();
 
-  feesForPeriod.marketTokensSupply = marketTokensSupply;
-  feesForPeriod.poolValue = poolValue;
+  return totalFees;
+}
+
+export function saveCollectedMarketFeesForPeriod(
+  marketAddress: string,
+  tokenAddress: string,
+  feeAmountForPool: BigInt,
+  feeUsdForPool: BigInt,
+  totalFees: CollectedMarketFeesInfo,
+  marketAprParams: MarketAPRParams,
+  period: string,
+  timestamp: i32
+): CollectedMarketFeesInfo {
+  let feesForPeriod = getOrCreateCollectedMarketFees(
+    marketAddress,
+    tokenAddress,
+    timestamp,
+    period
+  );
+
+  feesForPeriod.marketTokensSupply = marketAprParams.marketTokensSupply;
+  feesForPeriod.poolValue = marketAprParams.poolValue;
+
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
+
   feesForPeriod.feeAmountForPool = feesForPeriod.feeAmountForPool.plus(
     feeAmountForPool
   );
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
-  feesForPeriod.feeUsdPerMarketToken = feesForPeriod.feeUsdPerMarketToken.plus(feeUsdPerMarketToken);
-  feesForPeriod.feeUsdPerPoolUsd = feesForPeriod.feeUsdPerPoolUsd.plus(feeUsdPerPoolUsd);
+  feesForPeriod.feeUsdPerMarketToken = feesForPeriod.feeUsdPerMarketToken.plus(
+    marketAprParams.feeUsdPerMarketToken
+  );
+  feesForPeriod.feeUsdPerPoolUsd = feesForPeriod.feeUsdPerPoolUsd.plus(
+    marketAprParams.feeUsdPerPoolUsd
+  );
   feesForPeriod.save();
 
   return feesForPeriod;
