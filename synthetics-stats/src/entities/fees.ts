@@ -1,6 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
+  MarketPoolValueInfo,
   PositionFeesInfo,
   SwapFeesInfo,
   Transaction,
@@ -29,7 +30,16 @@ export function saveCollectedMarketFeesForPeriod(
     timestamp,
     period
   );
-
+  
+  // totalMarketPoolValueInfo is null for the first MarketPoolValueInfo event since it's emitter after the first SwapFeesCollected event
+  let totalMarketPoolValueInfo = MarketPoolValueInfo.load(marketAddress + ":total");
+  let marketTokensSupply = totalMarketPoolValueInfo ? totalMarketPoolValueInfo.marketTokensSupply : BigInt.fromI32(0);
+  let feeUsdPerMarketToken = marketTokensSupply.isZero() ? BigInt.fromI32(0) : feeUsdForPool.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply);
+  let poolValue = totalMarketPoolValueInfo ? totalMarketPoolValueInfo.poolValue : BigInt.fromI32(0);
+  let feeUsdPerPoolUsd = poolValue.isZero() ? BigInt.fromI32(0) : feeUsdForPool.times(BigInt.fromI32(10).pow(30)).div(poolValue);
+  
+  totalFees.marketTokensSupply = marketTokensSupply;
+  totalFees.poolValue = poolValue;
   totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
     feeAmountForPool
   );
@@ -40,8 +50,12 @@ export function saveCollectedMarketFeesForPeriod(
     feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
+  totalFees.feeUsdPerMarketToken = totalFees.feeUsdPerMarketToken.plus(feeUsdPerMarketToken);
+  totalFees.feeUsdPerPoolUsd = totalFees.feeUsdPerPoolUsd.plus(feeUsdPerPoolUsd);
   totalFees.save();
 
+  feesForPeriod.marketTokensSupply = marketTokensSupply;
+  feesForPeriod.poolValue = poolValue;
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
@@ -49,6 +63,8 @@ export function saveCollectedMarketFeesForPeriod(
     feeAmountForPool
   );
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
+  feesForPeriod.feeUsdPerMarketToken = feesForPeriod.feeUsdPerMarketToken.plus(feeUsdPerMarketToken);
+  feesForPeriod.feeUsdPerPoolUsd = feesForPeriod.feeUsdPerPoolUsd.plus(feeUsdPerPoolUsd);
   feesForPeriod.save();
 
   return feesForPeriod;
@@ -156,6 +172,10 @@ function getOrCreateCollectedMarketFees(
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
+    collectedFees.marketTokensSupply = BigInt.fromI32(0);
+    collectedFees.poolValue = BigInt.fromI32(0);
+    collectedFees.feeUsdPerMarketToken = BigInt.fromI32(0);
+    collectedFees.feeUsdPerPoolUsd = BigInt.fromI32(0);
   }
 
   return collectedFees as CollectedMarketFeesInfo;

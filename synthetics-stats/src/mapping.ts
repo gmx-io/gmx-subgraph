@@ -39,6 +39,7 @@ import {
   saveSwapFeesInfo,
 } from "./entities/fees";
 import { Order } from "../generated/schema";
+import { saveMarketPoolValueInfoForPeriod } from "./entities/markets";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -141,6 +142,11 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
     saveSwapInfo(eventData, transaction);
+    return;
+  }
+  
+  if (eventName == "MarketPoolValueInfo") {
+    saveMarketPoolValueInfoForPeriod(eventData, "total", event.block.timestamp.toI32());
     return;
   }
 

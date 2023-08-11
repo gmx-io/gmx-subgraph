@@ -193,8 +193,22 @@ type CollectedMarketFeesInfo @entity {
   tokenAddress: String!
   feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
+  feeUsdPerMarketToken: BigInt!
+  feeUsdPerPoolUsd: BigInt!
+  marketTokensSupply: BigInt!
+  poolValue: BigInt!
   cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
+  timestampGroup: Int!
+}
+
+type MarketPoolValueInfo @entity {
+  # marketAddress:period:timestampGroup
+  id: ID!
+  period: String!
+  marketAddress: String!
+  poolValue: BigInt!
+  marketTokensSupply: BigInt!
   timestampGroup: Int!
 }
 
