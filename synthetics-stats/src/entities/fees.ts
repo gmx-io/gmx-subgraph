@@ -1,63 +1,18 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
-  MarketPoolValueInfo,
   PositionFeesInfo,
   SwapFeesInfo,
   Transaction,
 } from "../../generated/schema";
-import { timestampToPeriodStart } from "../utils/time";
 import { EventData } from "../utils/eventData";
-
-class MarketAPRParams {
-  constructor(
-    public marketAddress: string,
-    public marketTokensSupply: BigInt,
-    public feeUsdPerMarketToken: BigInt,
-    public poolValue: BigInt,
-    public feeUsdPerPoolUsd: BigInt
-  ) {}
-}
-
-export function getMarketAPRParams(
-  marketAddress: string,
-  feeUsdForPool: BigInt
-): MarketAPRParams {
-  // totalMarketPoolValueInfo is null for the first MarketPoolValueInfo event since it's emitter after the first SwapFeesCollected event
-  let totalMarketPoolValueInfo = MarketPoolValueInfo.load(
-    marketAddress + ":total"
-  );
-
-  let marketTokensSupply = totalMarketPoolValueInfo
-    ? totalMarketPoolValueInfo.marketTokensSupply
-    : BigInt.fromI32(0);
-  let feeUsdPerMarketToken = marketTokensSupply.isZero()
-    ? BigInt.fromI32(0)
-    : feeUsdForPool.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply);
-  let poolValue = totalMarketPoolValueInfo
-    ? totalMarketPoolValueInfo.poolValue
-    : BigInt.fromI32(0);
-  let feeUsdPerPoolUsd = poolValue.isZero()
-    ? BigInt.fromI32(0)
-    : feeUsdForPool.times(BigInt.fromI32(10).pow(30)).div(poolValue);
-
-  let marketAprParams = new MarketAPRParams(
-    marketAddress,
-    marketTokensSupply,
-    feeUsdPerMarketToken,
-    poolValue,
-    feeUsdPerPoolUsd
-  );
-
-  return marketAprParams;
-}
+import { timestampToPeriodStart } from "../utils/time";
 
 export function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
-  marketAprParams: MarketAPRParams,
   timestamp: i32
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
@@ -67,8 +22,6 @@ export function saveCollectedMarketFeesTotal(
     "total"
   );
 
-  totalFees.marketTokensSupply = marketAprParams.marketTokensSupply;
-  totalFees.poolValue = marketAprParams.poolValue;
   totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
     feeAmountForPool
   );
@@ -79,12 +32,6 @@ export function saveCollectedMarketFeesTotal(
     feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
-  totalFees.feeUsdPerMarketToken = totalFees.feeUsdPerMarketToken.plus(
-    marketAprParams.feeUsdPerMarketToken
-  );
-  totalFees.feeUsdPerPoolUsd = totalFees.feeUsdPerPoolUsd.plus(
-    marketAprParams.feeUsdPerPoolUsd
-  );
   totalFees.save();
 
   return totalFees;
@@ -96,7 +43,6 @@ export function saveCollectedMarketFeesForPeriod(
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
   totalFees: CollectedMarketFeesInfo,
-  marketAprParams: MarketAPRParams,
   period: string,
   timestamp: i32
 ): CollectedMarketFeesInfo {
@@ -107,9 +53,6 @@ export function saveCollectedMarketFeesForPeriod(
     period
   );
 
-  feesForPeriod.marketTokensSupply = marketAprParams.marketTokensSupply;
-  feesForPeriod.poolValue = marketAprParams.poolValue;
-
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
@@ -118,12 +61,6 @@ export function saveCollectedMarketFeesForPeriod(
     feeAmountForPool
   );
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
-  feesForPeriod.feeUsdPerMarketToken = feesForPeriod.feeUsdPerMarketToken.plus(
-    marketAprParams.feeUsdPerMarketToken
-  );
-  feesForPeriod.feeUsdPerPoolUsd = feesForPeriod.feeUsdPerPoolUsd.plus(
-    marketAprParams.feeUsdPerPoolUsd
-  );
   feesForPeriod.save();
 
   return feesForPeriod;
@@ -231,10 +168,6 @@ function getOrCreateCollectedMarketFees(
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
-    collectedFees.marketTokensSupply = BigInt.fromI32(0);
-    collectedFees.poolValue = BigInt.fromI32(0);
-    collectedFees.feeUsdPerMarketToken = BigInt.fromI32(0);
-    collectedFees.feeUsdPerPoolUsd = BigInt.fromI32(0);
   }
 
   return collectedFees as CollectedMarketFeesInfo;
