@@ -2,13 +2,15 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
+
+  # only required for mainnet subgraphs, there is no OrderBook on testnet
   - kind: ethereum/contract
     name: OrderBook
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x09f77e8a13de9a35a7231028187e9fd5db8a2acb"
+      address: "0x4296e307f108B2f583FF2F7B7270ee7831574Ae5"
       abi: OrderBook
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -25,11 +27,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: BatchSender
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x1070f775e8eb466154BBa8FA0076C4Adc7FE17e8"
+      address: "0xF0f929162751DD723fBa5b86A9B3C88Dc1D4957b"
       abi: BatchSender
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -46,11 +48,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionManager
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x87a4088Bd721F83b6c2E5102e2FA47022Cb1c831"
+      address: "0xF2ec2e52c3b5F8b8bd5A3f93945d05628A233216"
       abi: PositionManager
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -70,11 +72,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionManager_v2
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x75E42e6f01baf1D6022bEa862A28774a9f8a4A0C"
+      address: "0xA21B83E579f4315951bA658654c371520BDcB866"
       abi: PositionManager
-      startBlock: 29852256
+      startBlock: 21005974
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -94,11 +96,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionRouter
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x3d6ba331e3d9702c5e8a8d254e5d8a285f223aba"
+      address: "0x195256074192170d1530527abC9943759c7167d8"
       abi: PositionRouter
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -118,11 +120,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: PositionRouter_v2
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0xb87a436B93fFE9D75c5cFA7bAcFff96430b09868"
+      address: "0xffF6D276Bc37c61A23f06410Dce4A400f66420f8"
       abi: PositionRouter
-      startBlock: 29856759
+      startBlock: 21006712
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -142,11 +144,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: ReferralStorage
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0xe6fab3F0c7199b0d34d7FbE83394fc0e0D06e99d"
+      address: "0x827ED045002eCdAbEb6e2b0d1604cf5fC3d322F8"
       abi: ReferralStorage
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -182,11 +184,11 @@ dataSources:
 
   - kind: ethereum/contract
     name: EventEmitter
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0x53233539a597A2f5712d17a5A5aB4e32c41852D1"
+      address: "0xDb17B211c34240B014ab6d61d4A31FA0C0e20c26"
       abi: EventEmitter
-      startBlock: 9391374
+      startBlock: 32162455
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -199,59 +201,16 @@ dataSources:
       eventHandlers:
         - event: EventLog1(address,string,indexed string,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
           handler: handleEventLog1
-        - event: EventLog2(address,string,indexed string,indexed bytes32,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
-          handler: handleEventLog2
       file: ./src/mapping.ts
 
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorETH
-    network: arbitrum-one
-    source:
-      address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
-      abi: ChainlinkAggregator
-      startBlock: 9391374
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdated
-      file: ./src/mapping.ts
-
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorUSDT
-    network: arbitrum-one
-    source:
-      address: "0xCb35fE6E53e71b30301Ec4a3948Da4Ad3c65ACe4"
-      abi: ChainlinkAggregator
-      startBlock: 9391374
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdated
-      file: ./src/mapping.ts
-
+  # every price feed should be added to ./src/priceFeeds.ts
   - kind: ethereum/contract
     name: ChainlinkAggregatorAVAX
-    network: arbitrum-one
+    network: avalanche
     source:
-      address: "0xcf17b68a40f10d3DcEedd9a092F1Df331cE3D9da"
+      address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
       abi: ChainlinkAggregator
-      startBlock: 9391374
+      startBlock: 13065036
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

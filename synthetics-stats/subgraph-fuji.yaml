@@ -9,9 +9,9 @@ dataSources:
     name: EventEmitter
     network: fuji
     source:
-      address: "0x5973b2B2352AE3E3fa6B86AAc74c26512Ca4c433"
+      address: "0xc67D98AC5803aFD776958622CeEE332A0B2CabB9"
       abi: EventEmitter
-      startBlock: 20726152
+      startBlock: 23600000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

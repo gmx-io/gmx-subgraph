@@ -62,13 +62,13 @@ export function saveOrder(
 export function saveOrderCancelledState(
   eventData: EventData,
   transaction: Transaction
-): Order {
+): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.status = "Cancelled";
@@ -85,13 +85,13 @@ export function saveOrderCancelledState(
 export function saveOrderExecutedState(
   eventData: EventData,
   transaction: Transaction
-): Order {
+): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.status = "Executed";
@@ -102,13 +102,13 @@ export function saveOrderExecutedState(
   return order as Order;
 }
 
-export function saveOrderFrozenState(eventData: EventData): Order {
+export function saveOrderFrozenState(eventData: EventData): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.status = "Frozen";
@@ -120,13 +120,13 @@ export function saveOrderFrozenState(eventData: EventData): Order {
   return order as Order;
 }
 
-export function saveOrderUpdate(eventData: EventData): Order {
+export function saveOrderUpdate(eventData: EventData): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
@@ -139,13 +139,15 @@ export function saveOrderUpdate(eventData: EventData): Order {
   return order as Order;
 }
 
-export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
+export function saveOrderSizeDeltaAutoUpdate(
+  eventData: EventData
+): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.sizeDeltaUsd = eventData.getUintItem("nextSizeDeltaUsd")!;
@@ -155,13 +157,15 @@ export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order {
   return order as Order;
 }
 
-export function saveOrderCollateralAutoUpdate(eventData: EventData): Order {
+export function saveOrderCollateralAutoUpdate(
+  eventData: EventData
+): Order | null {
   let key = eventData.getBytes32Item("key")!.toHexString();
 
   let order = Order.load(key);
 
   if (order == null) {
-    throw new Error("Order not found " + key);
+    return null;
   }
 
   order.initialCollateralDeltaAmount = eventData.getUintItem(

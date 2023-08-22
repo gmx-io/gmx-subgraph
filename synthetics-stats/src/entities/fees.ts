@@ -5,15 +5,14 @@ import {
   SwapFeesInfo,
   Transaction,
 } from "../../generated/schema";
-import { timestampToPeriodStart } from "../utils/time";
 import { EventData } from "../utils/eventData";
+import { timestampToPeriodStart } from "../utils/time";
 
-export function saveCollectedMarketFeesForPeriod(
+export function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
-  period: string,
   timestamp: i32
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
@@ -21,13 +20,6 @@ export function saveCollectedMarketFeesForPeriod(
     tokenAddress,
     timestamp,
     "total"
-  );
-
-  let feesForPeriod = getOrCreateCollectedMarketFees(
-    marketAddress,
-    tokenAddress,
-    timestamp,
-    period
   );
 
   totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
@@ -42,9 +34,29 @@ export function saveCollectedMarketFeesForPeriod(
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
   totalFees.save();
 
+  return totalFees;
+}
+
+export function saveCollectedMarketFeesForPeriod(
+  marketAddress: string,
+  tokenAddress: string,
+  feeAmountForPool: BigInt,
+  feeUsdForPool: BigInt,
+  totalFees: CollectedMarketFeesInfo,
+  period: string,
+  timestamp: i32
+): CollectedMarketFeesInfo {
+  let feesForPeriod = getOrCreateCollectedMarketFees(
+    marketAddress,
+    tokenAddress,
+    timestamp,
+    period
+  );
+
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
+
   feesForPeriod.feeAmountForPool = feesForPeriod.feeAmountForPool.plus(
     feeAmountForPool
   );

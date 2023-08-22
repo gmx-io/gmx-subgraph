@@ -1,24 +1,24 @@
 import { BigInt, Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
-  // ReferralStorage,
   GovSetCodeOwner,
   RegisterCode,
   SetCodeOwner,
-  // SetHandler,
   SetReferrerDiscountShare,
   SetReferrerTier,
   SetTier,
   SetTraderReferralCode,
 } from "../generated/ReferralStorage/ReferralStorage";
 import {
-  AnswerUpdated as AnswerUpdatedEvent
-} from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
-import {
   IncreasePositionReferral,
   DecreasePositionReferral,
 } from "../generated/PositionManager/PositionManager";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
-import { ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent } from "../generated/OrderBook/OrderBook";
+import {
+  AnswerUpdated as AnswerUpdatedEvent
+} from '../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
+import {
+  ExecuteDecreaseOrder as ExecuteDecreaseOrderEvent
+} from '../generated/OrderBook/OrderBook'
 import {
   ReferralVolumeRecord,
   AffiliateStat,
@@ -32,19 +32,17 @@ import {
   ReferralStatData,
   Distribution,
   ReferralCode,
-  ExecuteDecreaseOrder,
-  PositionReferralAction,
   TraderToReferralCode,
-  ChainlinkPrice
+  TokenPrice,
+  ExecuteDecreaseOrder
 } from "../generated/schema";
 import { timestampToPeriod } from "../../utils";
 import { EventData } from "./utils/eventData";
 import {
   EventLog1,
-  EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { getTokenByPriceFeed, getTokenDecimals } from "./tokens";
+import { getTokenByPriceFeed } from "./priceFeeds";
 
 class AffiliateResult {
   created: boolean;
@@ -64,43 +62,29 @@ const ZERO_BYTES32 =
 let ZERO = BigInt.fromI32(0);
 let ONE = BigInt.fromI32(1);
 let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000);
-
-export function handleEventLog2(event: EventLog2): void {
-  let eventName = event.params.eventName;
-  // let eventData = new EventData(
-  //   event.params.eventData as EventLogEventDataStruct
-  // );
-
-  if (eventName == "OrderCreated") {
-    // saveStats(eventData);
-
-    // let market = eventData.getAddressItemString("market")!;
-    return;
-  }
-}
-
-export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
-  let tokens = getTokenByPriceFeed(event.address.toHexString());
-  _storeChainlinkPrice(tokens, event.params.current)
-}
+let FLOAT = BigInt.fromI32(10).pow(30);
+    
+// margin fee has 4 decimals, position fee factor has 30 decimals
+let POSITION_FEE_FACTOR_V1 = BigInt.fromI32(10).times(FLOAT).div(BASIS_POINTS_DIVISOR);
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
   );
-
-  if (eventName == "PositionIncrease" || eventName == "PositionDecrease") {
-    let account = eventData.getAddressItem("account")!;
-    let sizeDelta = eventData.getUintItem("sizeInUsd")!;
-    let traderToReferralCode = TraderToReferralCode.load(account.toHexString());
-    if (traderToReferralCode == null) {
+  
+  if (eventName == "PositionFeesCollected") {
+    let referralCode = eventData.getBytes32Item("referralCode")!;
+    let affiliate = eventData.getAddressItem("affiliate")!;
+    
+    if (referralCode.toHexString() == ZERO_BYTES32) {
       return;
     }
 
-    let referralCode = traderToReferralCode.referralCode;
-    let referralCodeEntity = ReferralCode.load(referralCode!);
-    let affiliate = referralCodeEntity!.owner;
+    let account = eventData.getAddressItem("trader")!;
+    let sizeDelta = eventData.getUintItem("tradeSizeUsd")!;
+    let isIncrease = eventData.getBoolItem("isIncrease")!;
+    let positionFeeFactor = eventData.getUintItem("positionFeeFactor")!;
 
     _handlePositionAction(
       event.block.number,
@@ -109,12 +93,19 @@ export function handleEventLog1(event: EventLog1): void {
       event.block.timestamp,
       account,
       sizeDelta,
-      referralCode.toString(),
-      Address.fromString(affiliate),
-      eventName == "PositionIncrease",
+      referralCode.toHexString(),
+      affiliate,
+      isIncrease,
+      positionFeeFactor,
       "v2"
     );
-    return;
+
+  } else if (eventName == "OraclePriceUpdate") {
+    _updateTokenPrice(
+      eventData.getAddressItem("token")!,
+      eventData.getUintItem("maxPrice")!
+    );
+
   } else if (eventName == "AffiliateRewardClaimed") {
     let typeId = BigInt.fromI32(1000);
     _createOrUpdateDistribution(
@@ -127,6 +118,28 @@ export function handleEventLog1(event: EventLog1): void {
     );
     return;
   }
+}
+
+// Chainlink prices are required for V1 distributions before V2 prices existed
+export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
+  let token = getTokenByPriceFeed(event.address.toHexString());
+  // Chainlink prices have 8 decimals
+  // WETH and WAVAX have 18 decimals, price should be in 12 decimals
+  let price = event.params.current.times(BigInt.fromI32(10000));
+  _updateTokenPrice(token!, price);
+}
+
+function _updateTokenPrice(
+  tokenAddress: Address,
+  price: BigInt
+): void {
+  let id = tokenAddress.toHexString();
+  let entity = TokenPrice.load(id);
+  if (entity == null) {
+    entity = new TokenPrice(id);
+  }
+  entity.value = price;
+  entity.save();
 }
 
 function _createOrUpdateDistribution(
@@ -224,6 +237,7 @@ export function handleDecreasePositionReferral(
     event.params.referralCode.toHex(),
     event.params.referrer,
     false,
+    POSITION_FEE_FACTOR_V1,
     "v1"
   );
 }
@@ -241,6 +255,7 @@ export function handleIncreasePositionReferral(
     event.params.referralCode.toHex(),
     event.params.referrer,
     true,
+    POSITION_FEE_FACTOR_V1,
     "v1"
   );
 }
@@ -428,6 +443,7 @@ export function handleExecuteDecreaseOrder(
   entity.timestamp = event.block.timestamp;
   entity.save();
 }
+
 
 function _getOrCreateTier(id: string): Tier {
   let entity = Tier.load(id);
@@ -752,21 +768,9 @@ function _handlePositionAction(
   referralCode: string,
   affiliate: Address,
   isIncrease: boolean,
+  positionFeeFactor: BigInt,
   version: Version
 ): void {
-  let actionId = transactionHash.toHexString() + ":" + eventLogIndex.toString();
-  let action = new PositionReferralAction(actionId);
-  action.isIncrease = isIncrease;
-  action.account = referral.toHexString();
-  action.referralCode = referralCode;
-  action.affiliate = affiliate.toHexString();
-  action.transactionHash = transactionHash.toHexString();
-  action.blockNumber = blockNumber.toI32();
-  action.logIndex = eventLogIndex.toI32();
-  action.timestamp = timestamp;
-  action.volume = volume;
-  action.save();
-
   if (referral.toHexString() == ZERO_ADDRESS || referralCode == ZERO_BYTES32) {
     return;
   }
@@ -782,7 +786,6 @@ function _handlePositionAction(
   entity.referralCode = referralCode;
   entity.affiliate = affiliate.toHexString();
   entity.tierId = affiliateEntity.tierId;
-  entity.marginFee = BigInt.fromI32(10);
   entity.totalRebate = tierEntity!.totalRebate;
   entity.discountShare =
     affiliateEntity.discountShare > ZERO
@@ -792,7 +795,7 @@ function _handlePositionAction(
   entity.transactionHash = transactionHash.toHexString();
   entity.timestamp = timestamp;
 
-  let feesUsd = entity.volume.times(entity.marginFee).div(BASIS_POINTS_DIVISOR);
+  let feesUsd = entity.volume.times(positionFeeFactor).div(FLOAT);
   let totalRebateUsd = feesUsd
     .times(entity.totalRebate)
     .div(BASIS_POINTS_DIVISOR);
@@ -918,31 +921,16 @@ function _getOrCreateAffiliateWithCreatedFlag(id: string): AffiliateResult {
     entity.tierId = ZERO;
     entity.discountShare = ZERO;
     entity.save();
-    created = true;
+
   }
   return new AffiliateResult(entity as Affiliate, created);
 }
 
-function _storeChainlinkPrice(tokens: string[], value: BigInt): void {
-  for (let i = 0; i < tokens.length; i++) {
-    let id = tokens[i];
-    let entity = new ChainlinkPrice(id)
-    entity.value = value
-    entity.save()
-  }
-}
-
 function _getAmountInUsd(tokenAddress: string, amount: BigInt): BigInt {
-  let price = ChainlinkPrice.load(tokenAddress)
-  if (price == null) {
-    return ZERO
-  }
-  let decimals = getTokenDecimals(tokenAddress)
-  if (decimals == 0) {
+  let tokenPrice = TokenPrice.load(tokenAddress)
+  if (tokenPrice == null) {
     return ZERO
   }
   
-  // 30 USD decimals
-  // 8 Chainlink decimals
-  return amount.times(price.value).times(BigInt.fromI32(10).pow(22 - decimals as u8))
+  return amount.times(tokenPrice.value);
 }
