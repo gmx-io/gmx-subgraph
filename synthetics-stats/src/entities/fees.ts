@@ -118,51 +118,101 @@ export function updateCollectedMarketFeesAprParams(
 }
 
 
-export function saveCollectedMarketFeesTotal(
-  marketAddress: string,
-  tokenAddress: string,
-  feeAmountForPool: BigInt,
-  feeUsdForPool: BigInt,
+export function saveCollectedMarketPositionsFeesTotal(
+  positionFeesInfo: PositionFeesInfo,
   timestamp: i32,
   shouldSetLastFeeUsdForPool: boolean
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
-    marketAddress,
-    tokenAddress,
+    positionFeesInfo.marketAddress,
+    positionFeesInfo.collateralTokenAddress,
     timestamp,
     "total"
   );
 
   totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
-    feeAmountForPool
+    positionFeesInfo.feeAmountForPool
   );
   totalFees.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool.plus(
-    feeUsdForPool
+    positionFeesInfo.feeUsdForPool
   );
   totalFees.feeAmountForPool = totalFees.feeAmountForPool.plus(
-    feeAmountForPool
+    positionFeesInfo.feeAmountForPool
   );
-  totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
+  totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(positionFeesInfo.feeUsdForPool);
+
+  totalFees.borrowingFeeAmountUsd = totalFees.borrowingFeeAmountUsd.plus(
+    positionFeesInfo.borrowingFeeAmountUsd
+  );
+
+  totalFees.fundingFeeAmountUsd = totalFees.fundingFeeAmountUsd.plus(
+    positionFeesInfo.fundingFeeAmountUsd
+  );
+
+  totalFees.uiFeeAmountUsd = totalFees.uiFeeAmountUsd.plus(
+    positionFeesInfo.uiFeeAmountUsd
+  );
+
+  totalFees.feeUsdReceiverAmount = totalFees.feeUsdReceiverAmount.plus(
+    positionFeesInfo.feeUsdReceiverAmount
+  );
+
   if (shouldSetLastFeeUsdForPool) {
-    totalFees._lastFeeUsdForPool = feeUsdForPool;
+    totalFees._lastFeeUsdForPool = positionFeesInfo.feeUsdForPool;
   }
   totalFees.save();
 
   return totalFees;
 }
 
-export function saveCollectedMarketFeesForPeriod(
-  marketAddress: string,
-  tokenAddress: string,
-  feeAmountForPool: BigInt,
-  feeUsdForPool: BigInt,
+export function saveCollectedMarketSwapFeesTotal(
+  swapFeesInfo: SwapFeesInfo,
+  timestamp: i32,
+  shouldSetLastFeeUsdForPool: boolean
+): CollectedMarketFeesInfo {
+  let totalFees = getOrCreateCollectedMarketFees(
+    swapFeesInfo.marketAddress,
+    swapFeesInfo.tokenAddress,
+    timestamp,
+    "total"
+  );
+
+  totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
+    swapFeesInfo.feeAmountForPool
+  );
+  totalFees.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool.plus(
+    swapFeesInfo.feeUsdForPool
+  );
+  totalFees.feeAmountForPool = totalFees.feeAmountForPool.plus(
+    swapFeesInfo.feeAmountForPool
+  );
+  totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(swapFeesInfo.feeUsdForPool);
+
+  totalFees.uiFeeAmountUsd = totalFees.uiFeeAmountUsd.plus(
+    swapFeesInfo.uiFeeAmountUsd
+  );
+
+  totalFees.feeUsdReceiverAmount = totalFees.feeUsdReceiverAmount.plus(
+    swapFeesInfo.feeUsdReceiverAmount
+  );
+
+  if (shouldSetLastFeeUsdForPool) {
+    totalFees._lastFeeUsdForPool = swapFeesInfo.feeUsdForPool;
+  }
+  totalFees.save();
+
+  return totalFees;
+}
+
+export function saveCollectedMarketPositionsFeesForPeriod(
+  positionFeesInfo: PositionFeesInfo,
   totalFees: CollectedMarketFeesInfo,
   period: string,
   timestamp: i32
 ): CollectedMarketFeesInfo {
   let feesForPeriod = getOrCreateCollectedMarketFees(
-    marketAddress,
-    tokenAddress,
+    positionFeesInfo.marketAddress,
+    positionFeesInfo.collateralTokenAddress,
     timestamp,
     period
   );
@@ -172,9 +222,41 @@ export function saveCollectedMarketFeesForPeriod(
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
 
   feesForPeriod.feeAmountForPool = feesForPeriod.feeAmountForPool.plus(
-    feeAmountForPool
+    positionFeesInfo.feeAmountForPool
   );
-  feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
+  feesForPeriod.feeUsdReceiverAmount = feesForPeriod.feeUsdReceiverAmount.plus(positionFeesInfo.feeUsdReceiverAmount);
+  feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(positionFeesInfo.feeUsdForPool);
+  feesForPeriod.uiFeeAmountUsd = feesForPeriod.uiFeeAmountUsd.plus(positionFeesInfo.uiFeeAmountUsd);
+  feesForPeriod.fundingFeeAmountUsd = feesForPeriod.fundingFeeAmountUsd.plus(positionFeesInfo.fundingFeeAmountUsd);
+  feesForPeriod.borrowingFeeAmountUsd = feesForPeriod.borrowingFeeAmountUsd.plus(positionFeesInfo.borrowingFeeAmountUsd);
+  feesForPeriod.save();
+
+  return feesForPeriod;
+}
+
+export function saveCollectedMarketSwapFeesForPeriod(
+  swapFeesInfo: SwapFeesInfo,
+  totalFees: CollectedMarketFeesInfo,
+  period: string,
+  timestamp: i32
+): CollectedMarketFeesInfo {
+  let feesForPeriod = getOrCreateCollectedMarketFees(
+    swapFeesInfo.marketAddress,
+    swapFeesInfo.tokenAddress,
+    timestamp,
+    period
+  );
+
+  feesForPeriod.cummulativeFeeAmountForPool =
+    totalFees.cummulativeFeeAmountForPool;
+  feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
+
+  feesForPeriod.feeAmountForPool = feesForPeriod.feeAmountForPool.plus(
+    swapFeesInfo.feeAmountForPool
+  );
+  feesForPeriod.feeUsdReceiverAmount = feesForPeriod.feeUsdReceiverAmount.plus(swapFeesInfo.feeUsdReceiverAmount);
+  feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(swapFeesInfo.feeUsdForPool);
+  feesForPeriod.uiFeeAmountUsd = feesForPeriod.uiFeeAmountUsd.plus(swapFeesInfo.uiFeeAmountUsd);
   feesForPeriod.save();
 
   return feesForPeriod;
@@ -193,7 +275,17 @@ export function saveSwapFeesInfo(
   swapFeesInfo.tokenPrice = eventData.getUintItem("tokenPrice")!;
   swapFeesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
   swapFeesInfo.feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
+  swapFeesInfo.uiFeeAmount = eventData.getUintItem("uiFeeAmount")!;
   swapFeesInfo.feeUsdForPool = swapFeesInfo.feeAmountForPool.times(
+    swapFeesInfo.tokenPrice
+  );
+  swapFeesInfo.feeUsdForPool = swapFeesInfo.feeAmountForPool.times(
+    swapFeesInfo.tokenPrice
+  );
+  swapFeesInfo.feeUsdReceiverAmount = swapFeesInfo.feeReceiverAmount.times(
+    swapFeesInfo.tokenPrice
+  );
+  swapFeesInfo.uiFeeAmountUsd = swapFeesInfo.uiFeeAmount.times(
     swapFeesInfo.tokenPrice
   );
 
@@ -236,7 +328,26 @@ export function savePositionFeesInfo(
   feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
   feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
   feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
+  feesInfo.feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
+  feesInfo.uiFeeAmount = eventData.getUintItem("uiFeeAmount")!;
+  feesInfo.totalCostAmountExcludingFunding = eventData.getUintItem("totalCostAmountExcludingFunding")!;
+  feesInfo.totalCostAmount = eventData.getUintItem("totalCostAmount")!;
+
   feesInfo.feeUsdForPool = feesInfo.feeAmountForPool.times(
+    feesInfo.collateralTokenPriceMin
+  );
+  feesInfo.feeUsdReceiverAmount = feesInfo.feeReceiverAmount.times(
+    feesInfo.collateralTokenPriceMin
+  );
+  feesInfo.uiFeeAmountUsd = feesInfo.uiFeeAmount.times(
+    feesInfo.collateralTokenPriceMin
+  );
+
+  feesInfo.fundingFeeAmountUsd = feesInfo.fundingFeeAmount.times(
+    feesInfo.collateralTokenPriceMin
+  );
+
+  feesInfo.borrowingFeeAmountUsd = feesInfo.borrowingFeeAmount.times(
     feesInfo.collateralTokenPriceMin
   );
 
@@ -292,6 +403,10 @@ function getOrCreateCollectedMarketFees(
     collectedFees.period = period;
     collectedFees.timestampGroup = timestampGroup;
     collectedFees.feeAmountForPool = BigInt.fromI32(0);
+    collectedFees.feeReceiverAmount = BigInt.fromI32(0);
+    collectedFees.uiFeeAmount = BigInt.fromI32(0);
+    collectedFees.feeUsdReceiverAmount = BigInt.fromI32(0);
+    collectedFees.uiFeeAmountUsd = BigInt.fromI32(0);
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
@@ -299,6 +414,8 @@ function getOrCreateCollectedMarketFees(
     collectedFees.poolValue = BigInt.fromI32(0);
     collectedFees.feeUsdPerMarketToken = BigInt.fromI32(0);
     collectedFees.feeUsdPerPoolUsd = BigInt.fromI32(0);
+    collectedFees.borrowingFeeAmountUsd = BigInt.fromI32(0);
+    collectedFees.fundingFeeAmountUsd = BigInt.fromI32(0);
   }
 
   return collectedFees as CollectedMarketFeesInfo;
