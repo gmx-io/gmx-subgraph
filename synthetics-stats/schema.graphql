@@ -139,11 +139,17 @@ type PositionFeesInfo @entity(immutable: true) {
   collateralTokenPriceMin: BigInt!
   collateralTokenPriceMax: BigInt!
 
+  feeAmountForPool: BigInt!
   positionFeeAmount: BigInt!
+  feeReceiverAmount: BigInt!
+  uiFeeAmount: BigInt!
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
-  feeAmountForPool: BigInt!
+
   feeUsdForPool: BigInt!
+  feeReceiverUsd: BigInt!
+  uiFeeUsd: BigInt!
+  totalRebateUsd: BigInt!
 
   totalRebateFactor: BigInt!
   traderDiscountAmount: BigInt!
@@ -180,7 +186,10 @@ type SwapFeesInfo @entity(immutable: true) {
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!
   feeAmountForPool: BigInt!
+  uiFeeAmount: BigInt!
+  feeReceiverUsd: BigInt!
   feeUsdForPool: BigInt!
+  uiFeeUsd: BigInt!
 
   transaction: Transaction!
 }
@@ -191,8 +200,17 @@ type CollectedMarketFeesInfo @entity {
   period: String!
   marketAddress: String!
   tokenAddress: String!
+
   feeAmountForPool: BigInt!
+  feeReceiverAmount: BigInt!
+  uiFeeAmount: BigInt!
+  totalRebateAmount: BigInt!
+
   feeUsdForPool: BigInt!
+  feeReceiverUsd: BigInt!
+  uiFeeUsd: BigInt!
+  totalRebateUsd: BigInt!
+
   cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
@@ -302,4 +320,21 @@ type PositionVolumeInfo @entity {
   indexToken: String!
   timestamp: Int!
   volumeUsd: BigInt!
+}
+
+type User @entity {
+  id: ID!
+  account: String!
+
+  totalSwapCount: Int!
+  totalPositionCount: Int!
+}
+
+type UserStat @entity {
+  id: ID!
+  totalSwapCount: Int!
+  totalPositionCount: Int!
+
+  period: String!
+  uniqueUsers: Int!
 }
