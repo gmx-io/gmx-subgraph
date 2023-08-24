@@ -154,6 +154,7 @@ export function saveSwapFeesInfo(
   swapFeesInfo.feeReceiverUsd = swapFeesInfo.feeReceiverAmount.times(
     swapFeesInfo.tokenPrice
   );
+  swapFeesInfo.uiFeeUsd = swapFeesInfo.uiFeeAmount.times(swapFeesInfo.tokenPrice);
 
   swapFeesInfo.transaction = transaction.id;
 
@@ -196,6 +197,14 @@ export function savePositionFeesInfo(
   feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
   feesInfo.feeReceiverAmount = eventData.getUintItem("feeReceiverAmountyarn")!;
   feesInfo.uiFeeAmount = eventData.getUintItem("uiFeeAmount")!;
+  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
+  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
+  feesInfo.traderDiscountAmount = eventData.getUintItem(
+    "traderDiscountAmount"
+  )!;
+  feesInfo.affiliateRewardAmount = eventData.getUintItem(
+    "affiliateRewardAmount"
+  )!;
 
   feesInfo.feeUsdForPool = feesInfo.feeAmountForPool.times(
     feesInfo.collateralTokenPriceMin
@@ -209,15 +218,6 @@ export function savePositionFeesInfo(
   feesInfo.totalRebateUsd = feesInfo.totalRebateAmount.times(
     feesInfo.collateralTokenPriceMin
   );
-
-  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
-  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
-  feesInfo.traderDiscountAmount = eventData.getUintItem(
-    "traderDiscountAmount"
-  )!;
-  feesInfo.affiliateRewardAmount = eventData.getUintItem(
-    "affiliateRewardAmount"
-  )!;
 
   feesInfo.transaction = transaction.id;
 
