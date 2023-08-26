@@ -1,0 +1,16 @@
+{
+  "name": "morphex-stats",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/bmx-base-stats",
+    "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-avalanche-staging --deploy-key $(cat .access_token)"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.42.3",
+    "@graphprotocol/graph-ts": "0.29.3",
+    "ethers": "^5.4.6",
+    "moment": "^2.29.1"
+  }
+}
