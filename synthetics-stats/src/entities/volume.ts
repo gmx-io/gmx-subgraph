@@ -26,7 +26,33 @@ export function saveVolumeInfo(
     );
     dailyVolumeInfo.swapVolumeUsd = dailyVolumeInfo.swapVolumeUsd.plus(volume);
     totalVolumeInfo.swapVolumeUsd = totalVolumeInfo.swapVolumeUsd.plus(volume);
-  } else if (type == "margin") {
+  }
+
+  if(type == "deposit"){
+    hourlyVolumeInfo.depositVolumeUsd = hourlyVolumeInfo.depositVolumeUsd.plus(
+      volume
+    );
+    dailyVolumeInfo.depositVolumeUsd = dailyVolumeInfo.depositVolumeUsd.plus(
+      volume
+    );
+    totalVolumeInfo.depositVolumeUsd = totalVolumeInfo.depositVolumeUsd.plus(
+      volume
+    );
+  }
+
+  if(type == "withdrawal"){
+    hourlyVolumeInfo.withdrawalVolumeUsd = hourlyVolumeInfo.withdrawalVolumeUsd.plus(
+      volume
+    );
+    dailyVolumeInfo.withdrawalVolumeUsd = dailyVolumeInfo.withdrawalVolumeUsd.plus(
+      volume
+    );
+    totalVolumeInfo.withdrawalVolumeUsd = totalVolumeInfo.withdrawalVolumeUsd.plus(
+      volume
+    );
+  }
+
+  if (type == "margin") {
     hourlyVolumeInfo.marginVolumeUsd = hourlyVolumeInfo.marginVolumeUsd.plus(
       volume
     );
@@ -54,6 +80,8 @@ function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
     volumeInfo.volumeUsd = BigInt.fromI32(0);
     volumeInfo.swapVolumeUsd = BigInt.fromI32(0);
     volumeInfo.marginVolumeUsd = BigInt.fromI32(0);
+    volumeInfo.depositVolumeUsd = BigInt.fromI32(0);
+    volumeInfo.withdrawalVolumeUsd = BigInt.fromI32(0);
   }
   return volumeInfo as VolumeInfo;
 }
