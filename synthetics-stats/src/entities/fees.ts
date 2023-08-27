@@ -113,8 +113,8 @@ export function saveSwapFeesInfoWithPeriod(feeAmountForPool: BigInt, feeReceiver
   let totalId = "total";
   let dailyId = dailyTimestampGroup.toString();
 
-  let dailyFees = getOrCreateSwapFeesInfoWithPeriod(dailyId);
-  let totalFees = getOrCreateSwapFeesInfoWithPeriod(totalId);
+  let dailyFees = getOrCreateSwapFeesInfoWithPeriod(dailyId, "1d");
+  let totalFees = getOrCreateSwapFeesInfoWithPeriod(totalId, "1d");
 
   let feeUsdForPool = feeAmountForPool.times(tokenPrice);
   let feeReceiverUsd = feeReceiverAmount.times(tokenPrice);
@@ -138,8 +138,8 @@ export function savePositionFeesInfoWithPeriod(positionFeeAmount: BigInt, positi
   let totalId = "total";
   let dailyId = dailyTimestampGroup.toString();
 
-  let dailyFees = getOrCreatePositionFeesInfoWithPeriod(dailyId);
-  let totalFees = getOrCreatePositionFeesInfoWithPeriod(totalId);
+  let dailyFees = getOrCreatePositionFeesInfoWithPeriod(dailyId, "1d");
+  let totalFees = getOrCreatePositionFeesInfoWithPeriod(totalId, "total");
 
   let positionFeeUsd = positionFeeAmount.times(tokenPrice);
   let positionFeeUsdForPool = positionFeeAmountForPool.times(tokenPrice);
@@ -160,12 +160,12 @@ export function savePositionFeesInfoWithPeriod(positionFeeAmount: BigInt, positi
   totalFees.save();
 }
 
-function getOrCreateSwapFeesInfoWithPeriod(id: string): SwapFeesInfoWithPeriod {
+function getOrCreateSwapFeesInfoWithPeriod(id: string, period: string): SwapFeesInfoWithPeriod {
   let feeInfo = SwapFeesInfoWithPeriod.load(id);
 
   if (feeInfo == null) {
     feeInfo = new SwapFeesInfoWithPeriod(id);
-    feeInfo.period = id;
+    feeInfo.period = period;
     feeInfo.totalFeeAmountForPool = BigInt.fromI32(0);
     feeInfo.totalFeeUsdForPool = BigInt.fromI32(0);
     feeInfo.totalFeeReceiverAmount = BigInt.fromI32(0);
@@ -175,12 +175,12 @@ function getOrCreateSwapFeesInfoWithPeriod(id: string): SwapFeesInfoWithPeriod {
   return feeInfo as SwapFeesInfoWithPeriod;
 }
 
-function getOrCreatePositionFeesInfoWithPeriod(id: string): PositionFeesInfoWithPeriod {
+function getOrCreatePositionFeesInfoWithPeriod(id: string, period: string): PositionFeesInfoWithPeriod {
   let feeInfo = PositionFeesInfoWithPeriod.load(id);
 
   if (feeInfo == null) {
     feeInfo = new PositionFeesInfoWithPeriod(id);
-    feeInfo.period = id;
+    feeInfo.period = period;
     feeInfo.totalBorrowingFeeUsd = BigInt.fromI32(0);
     feeInfo.totalPositionFeeAmount = BigInt.fromI32(0);
     feeInfo.totalPositionFeeUsd = BigInt.fromI32(0);
