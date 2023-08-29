@@ -114,7 +114,7 @@ export function saveSwapFeesInfoWithPeriod(feeAmountForPool: BigInt, feeReceiver
   let dailyId = dailyTimestampGroup.toString();
 
   let dailyFees = getOrCreateSwapFeesInfoWithPeriod(dailyId, "1d");
-  let totalFees = getOrCreateSwapFeesInfoWithPeriod(totalId, "1d");
+  let totalFees = getOrCreateSwapFeesInfoWithPeriod(totalId, "total");
 
   let feeUsdForPool = feeAmountForPool.times(tokenPrice);
   let feeReceiverUsd = feeReceiverAmount.times(tokenPrice);
