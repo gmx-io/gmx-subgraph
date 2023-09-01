@@ -282,6 +282,8 @@ type VolumeInfo @entity {
   volumeUsd: BigInt!
   marginVolumeUsd: BigInt!
   swapVolumeUsd: BigInt!
+  depositVolumeUsd: BigInt!
+  withdrawalVolumeUsd: BigInt!
 }
 
 type SwapVolumeInfo @entity {
@@ -302,4 +304,50 @@ type PositionVolumeInfo @entity {
   indexToken: String!
   timestamp: Int!
   volumeUsd: BigInt!
+}
+
+type User @entity {
+  # account address
+  id: ID!
+  account: String!
+
+  totalSwapCount: Int!
+  totalPositionCount: Int!
+  totalDepositCount: Int!
+  totalWithdrawalCount: Int!
+}
+
+type UserStat @entity {
+  # timestamp | total
+  id: ID!
+  totalSwapCount: Int!
+  totalPositionCount: Int!
+  totalDepositCount: Int!
+  totalWithdrawalCount: Int!
+
+  period: String!
+  uniqueUsers: Int!
+}
+
+type SwapFeesInfoWithPeriod @entity {
+  # timestamp | total
+  id: ID!
+  period: String!
+  totalFeeReceiverAmount: BigInt!
+  totalFeeAmountForPool: BigInt!
+
+  totalFeeReceiverUsd: BigInt!
+  totalFeeUsdForPool: BigInt!
+}
+
+type PositionFeesInfoWithPeriod @entity {
+  # timestamp | total
+  id: ID!
+  period: String!
+  totalPositionFeeAmountForPool: BigInt!
+  totalPositionFeeUsdForPool: BigInt!
+
+  totalPositionFeeAmount: BigInt!
+  totalPositionFeeUsd: BigInt!
+  totalBorrowingFeeUsd: BigInt!
 }
