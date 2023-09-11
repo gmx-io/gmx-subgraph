@@ -1,8 +1,8 @@
-import { BigInt, store, log, Address } from "@graphprotocol/graph-ts";
+import { BigInt, store, log, Address, dataSource } from "@graphprotocol/graph-ts";
 import { EventLog1, EventLog1EventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { AccountOpenPosition, AccountPerf } from "../generated/schema";
 import { EventData } from "./utils/eventData";
-import { fujiOrders } from "./utils/fixtures-fuji";
+import fixtures from "./fixtures";
 
 const HOURLY = "hourly";
 const DAILY = "daily";
@@ -72,15 +72,19 @@ function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPos
   let key: string;
 
   if (keyBytes32 === null) {
-    const fixtures = fujiOrders;
+    const network = dataSource.network();
+    let orders = fixtures.get(network);
+    if (!orders) {
+      orders = new Map<string, string>();
+    }
     const orderKey = data.getBytes32Item("orderKey");
-    if (orderKey === null || !fixtures.has(orderKey.toHexString())) {
+    if (orderKey === null || !orders.has(orderKey.toHexString())) {
       const order = orderKey === null ? "null" : orderKey.toString();
-      const msg = `${eventName} error: undefined order key: ${order}`;
+      const msg = `${eventName} error: undefined order key: ${order}; network: ${network}`;
       log.error(msg, []);
       throw new Error(msg);
     }
-    key = fixtures.get(orderKey.toHexString());
+    key = orders.get(orderKey.toHexString());
   } else {
     key = keyBytes32.toHexString();
   }

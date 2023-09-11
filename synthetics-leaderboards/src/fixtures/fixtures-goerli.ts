@@ -1,16 +1,16 @@
-export const fujiOrders = new Map<string, string>();
+export const orders = new Map<string, string>();
 
-fujiOrders.set(
+orders.set(
   "0x988da51065bb90ce6c4953c067b0b9af2483fa23e0bcd7297c00b1f7be0f8ced",
   "0x98b88369adb870c84817e3e89c2998d9ef53377758e39c8cbccc02f4ec2c5254",
 );
 
-fujiOrders.set(
+orders.set(
   "0xed10b07f4fcc9c0ee484553105e7d6f6a04bc91297a7ac8b283acd72c03d5d8c",
   "0x98b88369adb870c84817e3e89c2998d9ef53377758e39c8cbccc02f4ec2c5254",
 );
 
-fujiOrders.set(
+orders.set(
   "0x5c39c32bee32c7512d45f15f8a8982f8858496211c8e7ff5f47587c04d579310",
   "0x1456c082dfc4bbb2f59cd38a4e9365533063dc4a0757f6fc6495b7f186abe939",
 );
