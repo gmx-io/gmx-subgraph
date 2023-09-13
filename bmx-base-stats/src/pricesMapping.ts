@@ -48,10 +48,6 @@ export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(ETH, event.params.current, event.block.timestamp, event.block.number)
 }
 
-export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(ETH, event.params.current, event.block.timestamp, event.block.number)
-}
-
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
 }

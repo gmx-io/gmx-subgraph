@@ -7,13 +7,11 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-// tokens without prefix are axelar tokens except ftm
-
-export let DAI = "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb"
+export let DAI = "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"
 export let ETH = "0x4200000000000000000000000000000000000006"
-export let BTC = "0x1a35EE4640b0A3B87705B0A4B45D227Ba60Ca2ad"
-export let USDC = "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"
-export let BMX = "0x548f93779fBC992010C07467cBaf329DD5F059B7"
+export let BTC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
+export let USDC = "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+export let BMX = "0x548f93779fbc992010c07467cbaf329dd5f059b7"
 
 
 export function timestampToDay(timestamp: BigInt): BigInt {
