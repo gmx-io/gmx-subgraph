@@ -10,7 +10,8 @@ export let PRECISION = BigInt.fromI32(10).pow(30)
 export let DAI = "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"
 export let ETH = "0x4200000000000000000000000000000000000006"
 export let BTC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
-export let USDC = "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+export let USDbC = "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+export let USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
 export let BMX = "0x548f93779fbc992010c07467cbaf329dd5f059b7"
 
 
@@ -35,6 +36,10 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
+  if (token == USDbC) {
+    token = USDC
+  }
+
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(ETH, 18)
   tokenDecimals.set(BTC, 8)
@@ -53,6 +58,10 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
+  if (token == USDbC) {
+    token = USDC
+  }
+
   if (token != BMX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
