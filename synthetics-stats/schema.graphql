@@ -67,6 +67,12 @@ type Order @entity {
   executedTxn: Transaction
 }
 
+type TokenPrice @entity {
+  id: ID!
+  min: BigInt!
+  max: BigInt!
+}
+
 type PositionIncrease @entity(immutable: true) {
   # orderKey
   id: ID!
@@ -218,6 +224,8 @@ type TradeAction @entity(immutable: true) {
   executionPrice: BigInt
   collateralTokenPriceMin: BigInt
   collateralTokenPriceMax: BigInt
+  indexTokenPriceMin: BigInt
+  indexTokenPriceMax: BigInt
   priceImpactDiffUsd: BigInt
   priceImpactAmount: BigInt
   positionFeeAmount: BigInt

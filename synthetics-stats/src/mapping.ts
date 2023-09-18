@@ -47,6 +47,7 @@ import {
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
+import { saveTokenPrice } from "./entities/prices";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -54,6 +55,15 @@ export function handleEventLog1(event: EventLog1): void {
     event.params.eventData as EventLogEventDataStruct
   );
   let eventId = getIdFromEvent(event);
+
+  if (eventName == "OraclePriceUpdate") {
+    saveTokenPrice(
+      eventData.getAddressItem("token")!,
+      eventData.getUintItem("minPrice")!,
+      eventData.getUintItem("maxPrice")!
+    );
+    return;
+  }
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
@@ -174,7 +184,9 @@ export function handleEventLog1(event: EventLog1): void {
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
     let amountAfterFees = eventData.getUintItem("amountAfterFees")!;
     let action = eventData.getStringItem("action")!;
-    let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
+    let totalAmountIn = amountAfterFees
+      .plus(feeAmountForPool)
+      .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
 
     let totalFees = saveCollectedMarketFeesTotal(
@@ -203,7 +215,12 @@ export function handleEventLog1(event: EventLog1): void {
       transaction.timestamp
     );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
-    saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount ,tokenPrice, transaction.timestamp);
+    saveSwapFeesInfoWithPeriod(
+      feeAmountForPool,
+      feeReceiverAmount,
+      tokenPrice,
+      transaction.timestamp
+    );
     return;
   }
 
@@ -218,8 +235,12 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "PositionFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
-    let positionFeeAmountForPool = eventData.getUintItem("positionFeeAmountForPool")!;
-    let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
+    let positionFeeAmountForPool = eventData.getUintItem(
+      "positionFeeAmountForPool"
+    )!;
+    let collateralTokenPriceMin = eventData.getUintItem(
+      "collateralTokenPrice.min"
+    )!;
     let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
 
     let positionFeesInfo = savePositionFeesInfo(
@@ -252,7 +273,13 @@ export function handleEventLog1(event: EventLog1): void {
       "1d",
       transaction.timestamp
     );
-    savePositionFeesInfoWithPeriod(positionFeeAmount, positionFeeAmountForPool, borrowingFeeUsd, collateralTokenPriceMin, transaction.timestamp);
+    savePositionFeesInfoWithPeriod(
+      positionFeeAmount,
+      positionFeeAmountForPool,
+      borrowingFeeUsd,
+      collateralTokenPriceMin,
+      transaction.timestamp
+    );
     return;
   }
 
