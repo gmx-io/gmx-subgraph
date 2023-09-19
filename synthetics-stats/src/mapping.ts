@@ -1,24 +1,34 @@
+import { Bytes } from "@graphprotocol/graph-ts";
 import {
-  EventLog,
   EventLog1,
   EventLog2,
-  EventLogEventDataAddressItemsItemsStruct,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
+import { Order } from "../generated/schema";
+import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
+import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
-  saveOrderCancelledState,
+  saveCollectedMarketFeesForPeriod,
+  saveCollectedMarketFeesTotal,
+  savePositionFeesInfo,
+  saveSwapFeesInfo,
+} from "./entities/fees";
+import { saveMarketInfo } from "./entities/markets";
+import {
+  orderTypes,
   saveOrder,
+  saveOrderCancelledState,
+  saveOrderCollateralAutoUpdate,
   saveOrderExecutedState,
-  saveOrderUpdate,
   saveOrderFrozenState,
   saveOrderSizeDeltaAutoUpdate,
-  saveOrderCollateralAutoUpdate,
-  orderTypes,
+  saveOrderUpdate,
 } from "./entities/orders";
 import {
   savePositionDecrease,
   savePositionIncrease,
 } from "./entities/positions";
+import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import {
   saveOrderCancelledTradeAction,
   saveOrderCreatedTradeAction,
@@ -28,30 +38,12 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction,
 } from "./entities/trades";
-import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
-import { EventData } from "./utils/eventData";
-import { Bytes, log } from "@graphprotocol/graph-ts";
-import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
-import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
-import {
-  getCollectedMarketFees,
-  getMarketAPRParams,
-  saveCollectedMarketFeesForPeriod,
-  saveCollectedMarketFeesTotal,
-  savePositionFeesInfo,
-  saveSwapFeesInfo,
-  updateCollectedMarketFeesAprParamsForAllPeriods,
-} from "./entities/fees";
-import { MarketInfo, Order } from "../generated/schema";
 import {
   savePositionVolumeInfo,
   saveSwapVolumeInfo,
   saveVolumeInfo,
 } from "./entities/volume";
-import {
-  saveMarketInfo,
-  saveMarketPoolValueInfo,
-} from "./entities/markets";
+import { EventData } from "./utils/eventData";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -170,68 +162,16 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
-  if (eventName == "MarketPoolValueInfo") {
-    let marketPoolValueInfo = saveMarketPoolValueInfo(eventData);
-    let marketInfo = MarketInfo.load(marketPoolValueInfo.marketAddress)!;
-
-    let timestamp = event.block.timestamp.toI32();
-    let totalFeesForLongToken = getCollectedMarketFees(
-      marketInfo.marketToken,
-      marketInfo.longToken,
-      timestamp,
-      "total"
-    );
-    if (totalFeesForLongToken != null && totalFeesForLongToken._lastFeeUsdForPool != null) {
-      let marketAprParams = getMarketAPRParams(
-        marketInfo.marketToken,
-        totalFeesForLongToken._lastFeeUsdForPool!
-      );
-      updateCollectedMarketFeesAprParamsForAllPeriods(
-        marketInfo.marketToken,
-        marketInfo.longToken,
-        marketAprParams,
-        timestamp,
-      );
-      totalFeesForLongToken._lastFeeUsdForPool = null;
-      totalFeesForLongToken.save();
-    }
-
-    let totalFeesForShortToken = getCollectedMarketFees(
-      marketInfo.marketToken,
-      marketInfo.shortToken,
-      timestamp,
-      "total"
-    );
-    if (totalFeesForShortToken != null && totalFeesForShortToken._lastFeeUsdForPool != null) {
-      let marketAprParams = getMarketAPRParams(
-        marketInfo.marketToken,
-        totalFeesForShortToken._lastFeeUsdForPool!
-      );
-      updateCollectedMarketFeesAprParamsForAllPeriods(
-        marketInfo.marketToken,
-        marketInfo.shortToken,
-        marketAprParams,
-        timestamp,
-      );
-      totalFeesForShortToken._lastFeeUsdForPool = null;
-      totalFeesForShortToken.save();
-    }
-    
-    return;
-  }
-
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
-    let action = eventData.getStringItem("action")!;
-    let shouldSetLastFeeUsdForPool = action == "deposit";
+
     let totalFees = saveCollectedMarketFeesTotal(
       swapFeesInfo.marketAddress,
       swapFeesInfo.tokenAddress,
       swapFeesInfo.feeAmountForPool,
       swapFeesInfo.feeUsdForPool,
-      transaction.timestamp,
-      shouldSetLastFeeUsdForPool
+      transaction.timestamp
     );
     saveCollectedMarketFeesForPeriod(
       swapFeesInfo.marketAddress,
@@ -251,21 +191,6 @@ export function handleEventLog1(event: EventLog1): void {
       "1d",
       transaction.timestamp
     );
-    
-    if (action != "deposit") {
-      // only update APR params for withdrawals and swaps
-      // for deposit it should be updated in MarketPoolValueInfo event
-      let marketAprParams = getMarketAPRParams(
-        swapFeesInfo.marketAddress,
-        swapFeesInfo.feeUsdForPool
-      );
-      updateCollectedMarketFeesAprParamsForAllPeriods(
-        swapFeesInfo.marketAddress,
-        swapFeesInfo.tokenAddress,
-        marketAprParams,
-        transaction.timestamp,
-      );
-    }
     return;
   }
 
@@ -289,8 +214,7 @@ export function handleEventLog1(event: EventLog1): void {
       positionFeesInfo.collateralTokenAddress,
       positionFeesInfo.feeAmountForPool,
       positionFeesInfo.feeUsdForPool,
-      transaction.timestamp,
-      false
+      transaction.timestamp
     );
     saveCollectedMarketFeesForPeriod(
       positionFeesInfo.marketAddress,
@@ -310,18 +234,6 @@ export function handleEventLog1(event: EventLog1): void {
       "1d",
       transaction.timestamp
     );
-
-    let marketAprParams = getMarketAPRParams(
-      positionFeesInfo.marketAddress,
-      positionFeesInfo.feeUsdForPool
-    );
-    updateCollectedMarketFeesAprParamsForAllPeriods(
-      positionFeesInfo.marketAddress,
-      positionFeesInfo.collateralTokenAddress,
-      marketAprParams,
-      transaction.timestamp,
-    );
-
     return;
   }
 

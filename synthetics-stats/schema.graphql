@@ -193,24 +193,9 @@ type CollectedMarketFeesInfo @entity {
   tokenAddress: String!
   feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
-  feeUsdPerMarketToken: BigInt!
-  feeUsdPerPoolUsd: BigInt!
-  marketTokensSupply: BigInt!
-  poolValue: BigInt!
   cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
-  
-  # workaround to pass this value to MarketPoolValueInfo event handler
-  _lastFeeUsdForPool: BigInt
-}
-
-type MarketPoolValueInfo @entity {
-  # marketAddress
-  id: ID!
-  marketAddress: String!
-  poolValue: BigInt!
-  marketTokensSupply: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {

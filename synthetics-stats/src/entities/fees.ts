@@ -1,130 +1,19 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   PositionFeesInfo,
   SwapFeesInfo,
   Transaction,
 } from "../../generated/schema";
-import { timestampToPeriodStart } from "../utils/time";
 import { EventData } from "../utils/eventData";
-import { getMarketPoolValueInfo } from "./markets";
-
-class MarketAPRParams {
-  constructor(
-    public marketAddress: string,
-    public marketTokensSupply: BigInt,
-    public feeUsdPerMarketToken: BigInt,
-    public poolValue: BigInt,
-    public feeUsdPerPoolUsd: BigInt
-  ) {}
-}
-
-export function getMarketAPRParams(
-  marketAddress: string,
-  feeUsdForPool: BigInt
-): MarketAPRParams {
-  // totalMarketPoolValueInfo is null for the first MarketPoolValueInfo event since it's emitter after the first SwapFeesCollected event
-  let totalMarketPoolValueInfo = getMarketPoolValueInfo(marketAddress);
-
-  let marketTokensSupply = totalMarketPoolValueInfo
-    ? totalMarketPoolValueInfo.marketTokensSupply
-    : BigInt.fromI32(0);
-  let feeUsdPerMarketToken = marketTokensSupply.isZero()
-    ? BigInt.fromI32(0)
-    : feeUsdForPool.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply);
-  let poolValue = totalMarketPoolValueInfo
-    ? totalMarketPoolValueInfo.poolValue
-    : BigInt.fromI32(0);
-  let feeUsdPerPoolUsd = poolValue.isZero()
-    ? BigInt.fromI32(0)
-    : feeUsdForPool.times(BigInt.fromI32(10).pow(30)).div(poolValue);
-
-  let marketAprParams = new MarketAPRParams(
-    marketAddress,
-    marketTokensSupply,
-    feeUsdPerMarketToken,
-    poolValue,
-    feeUsdPerPoolUsd
-  );
-
-  return marketAprParams;
-}
-
-export function updateCollectedMarketFeesAprParamsForAllPeriods(
-  marketAddress: string,
-  tokenAddress: string,
-  marketAprParams: MarketAPRParams,
-  timestamp: i32,
-): void {
-  updateCollectedMarketFeesAprParams(
-    marketAddress,
-    tokenAddress,
-    marketAprParams,
-    "total",
-    timestamp,
-  );
-  updateCollectedMarketFeesAprParams(
-    marketAddress,
-    tokenAddress,
-    marketAprParams,
-    "1d",
-    timestamp,
-  );
-  updateCollectedMarketFeesAprParams(
-    marketAddress,
-    tokenAddress,
-    marketAprParams,
-    "1h",
-    timestamp,
-  );
-}
-
-export function updateCollectedMarketFeesAprParams(
-  marketAddress: string,
-  tokenAddress: string,
-  marketAprParams: MarketAPRParams,
-  period: string,
-  timestamp: i32,
-): void {
-  let entity = getCollectedMarketFees(
-    marketAddress,
-    tokenAddress,
-    timestamp,
-    period
-  );
-  
-  if (entity == null) {
-    log.warning(
-      "updateCollectedMarketFeesAprParams: CollectedMarketFeesInfo entity is null for marketAddress: {}, tokenAddress: {}, period: {}, timestamp: {}",
-      [
-        marketAddress,
-        tokenAddress,
-        period,
-        timestamp.toString(),
-      ]
-    );
-    return;
-  }
-
-  entity.marketTokensSupply = marketAprParams.marketTokensSupply;
-  entity.poolValue = marketAprParams.poolValue;
-  entity.feeUsdPerMarketToken = entity.feeUsdPerMarketToken.plus(
-    marketAprParams.feeUsdPerMarketToken
-  );
-  entity.feeUsdPerPoolUsd = entity.feeUsdPerPoolUsd.plus(
-    marketAprParams.feeUsdPerPoolUsd
-  );
-  entity.save();
-}
-
+import { timestampToPeriodStart } from "../utils/time";
 
 export function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
-  timestamp: i32,
-  shouldSetLastFeeUsdForPool: boolean
+  timestamp: i32
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
     marketAddress,
@@ -143,9 +32,6 @@ export function saveCollectedMarketFeesTotal(
     feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
-  if (shouldSetLastFeeUsdForPool) {
-    totalFees._lastFeeUsdForPool = feeUsdForPool;
-  }
   totalFees.save();
 
   return totalFees;
@@ -256,21 +142,6 @@ export function savePositionFeesInfo(
   return feesInfo;
 }
 
-export function getCollectedMarketFees(
-  marketAddress: string,
-  tokenAddress: string,
-  timestamp: i32,
-  period: string
-): CollectedMarketFeesInfo | null {
-  let timestampGroup = timestampToPeriodStart(timestamp, period);
-  let id = marketAddress + ":" + tokenAddress + ":" + period;
-  if (period != "total") {
-    id = id + ":" + timestampGroup.toString();
-  }
-  let collectedFees = CollectedMarketFeesInfo.load(id);
-  return collectedFees;
-}
-
 function getOrCreateCollectedMarketFees(
   marketAddress: string,
   tokenAddress: string,
@@ -278,7 +149,9 @@ function getOrCreateCollectedMarketFees(
   period: string
 ): CollectedMarketFeesInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
+
   let id = marketAddress + ":" + tokenAddress + ":" + period;
+
   if (period != "total") {
     id = id + ":" + timestampGroup.toString();
   }
@@ -295,10 +168,6 @@ function getOrCreateCollectedMarketFees(
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
-    collectedFees.marketTokensSupply = BigInt.fromI32(0);
-    collectedFees.poolValue = BigInt.fromI32(0);
-    collectedFees.feeUsdPerMarketToken = BigInt.fromI32(0);
-    collectedFees.feeUsdPerPoolUsd = BigInt.fromI32(0);
   }
 
   return collectedFees as CollectedMarketFeesInfo;
