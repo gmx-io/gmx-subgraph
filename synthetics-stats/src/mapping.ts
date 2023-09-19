@@ -1,4 +1,4 @@
-import { Bytes } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 import {
   EventLog1,
   EventLog2,
@@ -11,7 +11,9 @@ import {
   saveCollectedMarketFeesForPeriod,
   saveCollectedMarketFeesTotal,
   savePositionFeesInfo,
+  savePositionFeesInfoWithPeriod,
   saveSwapFeesInfo,
+  saveSwapFeesInfoWithPeriod,
 } from "./entities/fees";
 import { saveMarketInfo } from "./entities/markets";
 import {
@@ -44,6 +46,7 @@ import {
   saveVolumeInfo,
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
+import { saveUserStat } from "./entities/user";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -155,16 +158,24 @@ export function handleEventLog1(event: EventLog1): void {
     let amountIn = eventData.getUintItem("amountIn")!;
     let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
     let volumeUsd = amountIn!.times(tokenInPrice!);
+    let receiver = eventData.getAddressItemString("receiver")!;
 
     saveSwapInfo(eventData, transaction);
-    saveVolumeInfo("swap", transaction.timestamp, volumeUsd);
     saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
+    saveUserStat("swap", receiver, transaction.timestamp);
     return;
   }
 
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
+    let tokenPrice = eventData.getUintItem("tokenPrice")!;
+    let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
+    let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
+    let amountAfterFees = eventData.getUintItem("amountAfterFees")!;
+    let action = eventData.getStringItem("action")!;
+    let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
+    let volumeUsd = totalAmountIn.times(tokenPrice);
 
     let totalFees = saveCollectedMarketFeesTotal(
       swapFeesInfo.marketAddress,
@@ -191,6 +202,8 @@ export function handleEventLog1(event: EventLog1): void {
       "1d",
       transaction.timestamp
     );
+    saveVolumeInfo(action, transaction.timestamp, volumeUsd);
+    saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount ,tokenPrice, transaction.timestamp);
     return;
   }
 
@@ -204,6 +217,11 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "PositionFeesCollected") {
     let transaction = getOrCreateTransaction(event);
+    let positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
+    let positionFeeAmountForPool = eventData.getUintItem("positionFeeAmountForPool")!;
+    let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
+    let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
+
     let positionFeesInfo = savePositionFeesInfo(
       eventData,
       "PositionFeesCollected",
@@ -234,6 +252,7 @@ export function handleEventLog1(event: EventLog1): void {
       "1d",
       transaction.timestamp
     );
+    savePositionFeesInfoWithPeriod(positionFeeAmount, positionFeeAmountForPool, borrowingFeeUsd, collateralTokenPriceMin, transaction.timestamp);
     return;
   }
 
@@ -241,16 +260,18 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let collateralToken = eventData.getAddressItemString("collateralToken")!;
     let marketToken = eventData.getAddressItemString("market")!;
-    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
+    let sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
+    let account = eventData.getAddressItemString("account")!;
 
     savePositionIncrease(eventData, transaction);
-    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
     savePositionVolumeInfo(
       transaction.timestamp,
       collateralToken,
       marketToken,
-      sizeInUsd
+      sizeDeltaUsd
     );
+    saveUserStat("margin", account, transaction.timestamp);
     return;
   }
 
@@ -258,16 +279,18 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let collateralToken = eventData.getAddressItemString("collateralToken")!;
     let marketToken = eventData.getAddressItemString("market")!;
-    let sizeInUsd = eventData.getUintItem("sizeInUsd")!;
+    let sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
+    let account = eventData.getAddressItemString("account")!;
 
     savePositionDecrease(eventData, transaction);
-    saveVolumeInfo("margin", transaction.timestamp, sizeInUsd);
+    saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
     savePositionVolumeInfo(
       transaction.timestamp,
       collateralToken,
       marketToken,
-      sizeInUsd
+      sizeDeltaUsd
     );
+    saveUserStat("margin", account, transaction.timestamp);
     return;
   }
 
@@ -277,9 +300,24 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
-  if (eventName === "CollateralClaimed") {
+  if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
     saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
+    return;
+  }
+
+  if (eventName == "DepositCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
+    saveUserStat("deposit", account, transaction.timestamp);
+    return;
+  }
+
+  if (eventName == "WithdrawalCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    saveUserStat("withdrawal", account, transaction.timestamp);
     return;
   }
 }
