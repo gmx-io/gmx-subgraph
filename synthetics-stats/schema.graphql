@@ -97,7 +97,7 @@ type PositionIncrease @entity(immutable: true) {
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
   priceImpactUsd: BigInt!
-  pnlUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
@@ -127,7 +127,7 @@ type PositionDecrease @entity(immutable: true) {
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
-  pnlUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
@@ -229,7 +229,7 @@ type TradeAction @entity(immutable: true) {
   indexTokenPriceMin: BigInt
   indexTokenPriceMax: BigInt
   priceImpactDiffUsd: BigInt
-  priceImpactUsd: BigInt!
+  priceImpactUsd: BigInt
   priceImpactAmount: BigInt
   positionFeeAmount: BigInt
   borrowingFeeAmount: BigInt
