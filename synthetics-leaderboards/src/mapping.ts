@@ -44,19 +44,13 @@ export function handleEventLog1(event: EventLog1): void {
     position.isLong = data.getBoolItem("isLong");
   }
 
-  const priceImpactUsd = data.getIntItem("priceImpactUsd")!;
-  let priceImpactDiffUsd: BigInt;
-  if (position.priceImpactUsd.isZero()) {
-    priceImpactDiffUsd = priceImpactUsd;
-  } else {
-    priceImpactDiffUsd = priceImpactUsd.minus(position.priceImpactUsd);
+  if (isDecEvent) {
+    const priceImpactUsd = data.getIntItem("priceImpactUsd")!;
+    position.priceImpactUsd = position.priceImpactUsd.plus(priceImpactUsd);
   }
-
-  position.priceImpactUsd = priceImpactUsd;
-
-  updateAccountPerformanceForPeriod(TOTAL, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
-  updateAccountPerformanceForPeriod(DAILY, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
-  updateAccountPerformanceForPeriod(HOURLY, position, data, event, isNewPositionEntity, priceImpactDiffUsd);
+  updateAccountPerformanceForPeriod(TOTAL, position, data, event, isNewPositionEntity);
+  updateAccountPerformanceForPeriod(DAILY, position, data, event, isNewPositionEntity);
+  updateAccountPerformanceForPeriod(HOURLY, position, data, event, isNewPositionEntity);
 
   if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt == position.sizeUpdatedAt) {
     store.remove("AccountOpenPosition", position.id);
@@ -226,10 +220,10 @@ function updateAccountPerformanceForPeriod(
   data: EventData,
   event: EventLog1,
   isNewPositionEntity: boolean,
-  priceImpactDiffUsd: BigInt,
 ): AccountPerf {
   const eventName = event.params.eventName;
   const isIncrease = eventName == "PositionIncrease";
+  const isDecrease = eventName == "PositionDecrease";
   const perf = getOrCreateAccountPerfForPeriod(position.account, period, event);
   let basePnlUsd = data.getIntItem("basePnlUsd");
   if (basePnlUsd === null) {
@@ -251,7 +245,10 @@ function updateAccountPerformanceForPeriod(
     collateralDelta = collateralDelta.neg();
   }
 
-  perf.priceImpactUsd = perf.priceImpactUsd.plus(priceImpactDiffUsd);
+  if (isDecrease) {
+    const priceImpactUsd = data.getIntItem("priceImpactUsd")!;
+    perf.priceImpactUsd = perf.priceImpactUsd.plus(priceImpactUsd);
+  }
 
   const collateralTokenPrice = data.getUintItem("collateralTokenPrice.min")!;
   const collateralAmountUsd = collateralAmount.times(collateralTokenPrice);

@@ -6,7 +6,7 @@ const fixturesByNetworkName = new Map<string, Map<string, string>>();
 
 fixturesByNetworkName.set("avalanche", new Map<string, string>());
 fixturesByNetworkName.set("arbitrum", arbitrumOrders);
-fixturesByNetworkName.set("goerli", goerliOrders);
+fixturesByNetworkName.set("arbitrum-goerli", goerliOrders);
 fixturesByNetworkName.set("fuji", fujiOrders);
 
 export default fixturesByNetworkName;
