@@ -49,6 +49,7 @@ export function savePositionIncrease(
     "shortTokenFundingAmountPerSize"
   )!;
   entity.priceImpactAmount = eventData.getIntItem("priceImpactAmount")!;
+  entity.priceImpactUsd = eventData.getIntItem("priceImpactUsd")!;
   entity.pnlUsd = eventData.getIntItem("pnlUsd")!;
 
   entity.orderType = eventData.getUintItem("orderType")!;
@@ -97,6 +98,7 @@ export function savePositionDecrease(
   )!;
   entity.borrowingFactor = eventData.getUintItem("borrowingFactor")!;
   entity.priceImpactDiffUsd = eventData.getUintItem("priceImpactDiffUsd")!;
+  entity.priceImpactUsd = eventData.getIntItem("priceImpactUsd")!;
 
   entity.executionPrice = eventData.getUintItem("executionPrice")!;
 

@@ -148,6 +148,7 @@ export function savePositionIncreaseExecutedTradeAction(
   tradeAction.sizeDeltaUsd = positionIncrease.sizeDeltaUsd;
 
   tradeAction.executionPrice = positionIncrease.executionPrice;
+  tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
 
   tradeAction.transaction = transaction.id;
 
@@ -205,6 +206,7 @@ export function savePositionDecreaseExecutedTradeAction(
 
   tradeAction.priceImpactDiffUsd = positionDecrease.priceImpactDiffUsd;
   tradeAction.priceImpactAmount = positionDecrease.priceImpactAmount;
+  tradeAction.priceImpactUsd = positionDecrease.priceImpactUsd;
 
   tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
   tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
