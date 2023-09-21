@@ -1,4 +1,4 @@
-import { BigInt, TypedMap } from "@graphprotocol/graph-ts"
+import {BigInt, log, TypedMap} from "@graphprotocol/graph-ts"
 import {
   ChainlinkPrice,
   UniswapPrice
@@ -9,15 +9,15 @@ export let PRECISION = BigInt.fromI32(10).pow(30)
 
 // tokens without prefix are axelar tokens except ftm
 
-export let LZWETH = "0x695921034f0387eAc4e11620EE91b1b15A6A09fE"
-export let WETH = "0xfe7eDa5F2c56160d406869A8aA4B2F365d544C7B"
-export let LZBTC = "0xf1648C50d2863f780c57849D812b4B7686031A3D"
-export let BTC = "0x448d59B4302aB5d2dadf9611bED9457491926c8e"
+export let LZWETH = "0x695921034f0387eac4e11620ee91b1b15a6a09fe"
+export let WETH = "0xfe7eda5f2c56160d406869a8aa4b2f365d544c7b"
+export let LZBTC = "0xf1648c50d2863f780c57849d812b4b7686031a3d"
+export let BTC = "0x448d59b4302ab5d2dadf9611bed9457491926c8e"
 export let WFTM = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
-export let LZUSDC = "0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf"
-export let USDC = "0x1B6382DBDEa11d97f24495C9A90b7c88469134a4"
-export let LZUSDT = "0xcc1b99dDAc1a33c201a742A1851662E87BC7f22C"
-export let USDT = "0xd226392C23fb3476274ED6759D4a478db3197d82"
+export let LZUSDC = "0x28a92dde19d9989f39a49905d7c9c2fac7799bdf"
+export let USDC = "0x1b6382dbdea11d97f24495c9a90b7c88469134a4"
+export let LZUSDT = "0xcc1b99ddac1a33c201a742a1851662e87bc7f22c"
+export let USDT = "0xd226392c23fb3476274ed6759d4a478db3197d82"
 export let MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
 
 
@@ -42,29 +42,27 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
-  if (token == LZBTC) {
-    token = BTC
-  }
-  if (token == LZWETH) {
-    token = WETH
-  }
-  if (token == LZUSDC) {
-    token = USDC
-  }
-  if (token == LZUSDT) {
-    token = USDT
-  }
-
   let tokenDecimals = new Map<String, i32>()
   tokenDecimals.set(WETH, 18)
+  tokenDecimals.set(LZWETH, 18)
   tokenDecimals.set(BTC, 8)
+  tokenDecimals.set(LZBTC, 8)
   tokenDecimals.set(WFTM, 18)
   tokenDecimals.set(USDC, 6)
+  tokenDecimals.set(LZUSDC, 6)
   tokenDecimals.set(USDT, 6)
-  // tokenDecimals.set(DAI, 18)
+  tokenDecimals.set(LZUSDT, 6)
   tokenDecimals.set(MPX, 18)
 
-  return tokenDecimals.get(token) as u8
+  // Check if the map has the token
+  if(tokenDecimals.has(token)) {
+    return tokenDecimals.get(token) as u8
+  } else {
+    // Return a default value or handle the missing key appropriately
+    log.warning("Token not found in map: {}", [token])
+    log.warning("Map contents: {}", [tokenDecimals.toString()])
+    return 0 as u8 // or any sensible default
+  }
 }
 
 export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
@@ -75,19 +73,6 @@ export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: String): BigInt {
-  if (token == LZBTC) {
-    token = BTC
-  }
-  if (token == LZWETH) {
-    token = WETH
-  }
-  if (token == LZUSDC) {
-    token = USDC
-  }
-  if (token == LZUSDT) {
-    token = USDT
-  }
-
   if (token != MPX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
@@ -107,11 +92,14 @@ export function getTokenPrice(token: String): BigInt {
 
   let prices = new TypedMap<String, BigInt>()
   prices.set(WETH, BigInt.fromI32(1500) * PRECISION)
+  prices.set(LZWETH, BigInt.fromI32(1500) * PRECISION)
   prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
+  prices.set(LZBTC, BigInt.fromI32(22000) * PRECISION)
   prices.set(WFTM, PRECISION)
-  // prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
+  prices.set(LZUSDC, PRECISION)
   prices.set(USDT, PRECISION)
+  prices.set(LZUSDT, PRECISION)
   prices.set(MPX, PRECISION)
 
   return prices.get(token) as BigInt

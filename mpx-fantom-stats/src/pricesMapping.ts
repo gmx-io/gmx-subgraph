@@ -7,12 +7,15 @@ import {
 
 import {
   BTC,
+  LZBTC,
   WETH,
+  LZWETH,
   WFTM,
   timestampToPeriod,
   USDC,
-  // DAI,
-  USDT
+  LZUSDC,
+  USDT,
+  LZUSDT
 } from "./helpers"
 
 import {
@@ -44,10 +47,12 @@ function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt, b
 
 export function handleAnswerUpdatedBTC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(BTC, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(LZBTC, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(WETH, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(LZWETH, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
@@ -56,14 +61,12 @@ export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(LZUSDC, event.params.current, event.block.timestamp, event.block.number)
 }
-
-// export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
-//   _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
-// }
 
 export function handleAnswerUpdatedUSDT(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(USDT, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(LZUSDT, event.params.current, event.block.timestamp, event.block.number)
 }
 
 function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
