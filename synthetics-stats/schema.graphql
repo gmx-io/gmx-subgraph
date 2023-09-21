@@ -177,9 +177,7 @@ type SwapFeesInfo @entity(immutable: true) {
   marketAddress: String!
   tokenAddress: String!
 
-  # Either action or swapFeeType
-  action: String
-  swapFeeType: String
+  swapFeeType: String!
 
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!

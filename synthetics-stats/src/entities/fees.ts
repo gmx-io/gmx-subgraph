@@ -92,11 +92,21 @@ export function saveSwapFeesInfo(
 
   swapFeesInfo.marketAddress = eventData.getAddressItemString("market")!;
   swapFeesInfo.tokenAddress = eventData.getAddressItemString("token")!;
-  swapFeesInfo.action = eventData.getStringItem("action");
 
   let swapFeeType = eventData.getBytes32Item("swapFeeType");
+
   if (swapFeeType != null) {
     swapFeesInfo.swapFeeType = swapFeeType.toHexString();
+  } else {
+    let action = eventData.getStringItem("action");
+
+    if (action === "deposit") {
+      swapFeesInfo.swapFeeType = swapFeeTypes.get("DEPOSIT_FEE_TYPE")!;
+    } else if (action === "withdrawal") {
+      swapFeesInfo.swapFeeType = swapFeeTypes.get("WITHDRAWAL_FEE_TYPE")!;
+    } else if (action === "swap") {
+      swapFeesInfo.swapFeeType = swapFeeTypes.get("SWAP_FEE_TYPE")!;
+    }
   }
 
   swapFeesInfo.tokenPrice = eventData.getUintItem("tokenPrice")!;
