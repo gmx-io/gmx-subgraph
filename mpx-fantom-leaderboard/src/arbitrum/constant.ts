@@ -1,9 +1,9 @@
 
 export const ReferralStorage = "0x2Cf6AbE297Ac93E6995E22Bf554ee4eD1a7E7d44"
-export const WETH = "0xfe7eDa5F2c56160d406869A8aA4B2F365d544C7B"
-export const LZWETH = "0x695921034f0387eAc4e11620EE91b1b15A6A09fE"
-export const WBTC = "0x448d59B4302aB5d2dadf9611bED9457491926c8e"
-export const LZWBTC = "0xf1648C50d2863f780c57849D812b4B7686031A3D"
+export const WETH = "0xfe7eda5f2c56160d406869a8aa4b2f365d544c7b"
+export const LZWETH = "0x695921034f0387eac4e11620ee91b1b15a6a09fe"
+export const WBTC = "0x448d59b4302ab5d2dadf9611bed9457491926c8e"
+export const LZWBTC = "0xf1648c50d2863f780c57849d812b4b7686031a3d"
 export const WFTM = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
 export const MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
 export const EsMPX = "0xe0f606e6730bE531EeAf42348dE43C2feeD43505"

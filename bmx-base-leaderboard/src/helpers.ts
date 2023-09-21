@@ -23,28 +23,19 @@ export const BI_22_PRECISION = BigInt.fromI32(10).pow(22)
 
 
 export enum TokenDecimals {
-  USDC = 6,
-  LZUSDC = 6,
-  USDT = 6,
-  LZUSDT = 6,
-  WBTC = 8,
-  LZWBTC = 8,
+  USDC = 18,
+  USDT = 18,
+  BTC = 18,
   WETH = 18,
-  LZWETH = 18,
-  LINK = 18,
-  UNI = 18,
-  MIM = 18,
-  SPELL = 18,
-  SUSHI = 18,
-  AVAX = 18,
-  FRAX = 18,
   DAI = 18,
   GMX = 18,
   GLP = 18,
   MPX = 18,
+  BMX = 18,
+  BLT = 18,
   MLP = 18,
   EsMPX = 18,
-  WFTM = 18
+  oBMX = 18,
 }
 
 
@@ -66,7 +57,6 @@ export enum intervalUnixTime {
 
 
 
-
 export function negate(n: BigInt): BigInt {
   return n.abs().times(BigInt.fromI32(-1))
 }
@@ -78,6 +68,7 @@ export function timestampToDay(timestamp: BigInt): BigInt {
 
 export function getTokenUsdAmount(amount: BigInt, tokenAddress: string, decimals: TokenDecimals): BigInt {
   const priceUsd = getTokenPrice(tokenAddress)
+  // @ts-ignore
   const denominator = BigInt.fromI32(10).pow(decimals as u8)
 
   return amount.times(priceUsd).div(denominator)
