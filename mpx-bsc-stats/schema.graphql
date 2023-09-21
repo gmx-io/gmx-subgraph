@@ -258,6 +258,7 @@ type HourlyVolumeBySource @entity {
   margin: BigInt!
   swap: BigInt!
   liquidation: BigInt!
+  marginAndLiquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
 }
@@ -272,6 +273,7 @@ type HourlyVolumeByToken @entity {
   margin: BigInt!
   swap: BigInt!
   liquidation: BigInt!
+  marginAndLiquidation: BigInt!
   mint: BigInt!
   burn: BigInt!
 }
