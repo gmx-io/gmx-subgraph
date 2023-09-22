@@ -70,6 +70,20 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
+  if (eventName == "DepositCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    saveUserStat("deposit", account, transaction.timestamp);
+    return;
+  }
+
+  if (eventName == "WithdrawalCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    saveUserStat("withdrawal", account, transaction.timestamp);
+    return;
+  }
+
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderExecutedState(eventData, transaction);
@@ -332,21 +346,6 @@ export function handleEventLog1(event: EventLog1): void {
     saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
     return;
   }
-
-  if (eventName == "DepositCreated") {
-    let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
-    saveUserStat("deposit", account, transaction.timestamp);
-    return;
-  }
-
-  if (eventName == "WithdrawalCreated") {
-    let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemString("account")!;
-    saveUserStat("withdrawal", account, transaction.timestamp);
-    return;
-  }
 }
 
 export function handleEventLog2(event: EventLog2): void {
@@ -360,6 +359,101 @@ export function handleEventLog2(event: EventLog2): void {
     let tranaction = getOrCreateTransaction(event);
     let order = saveOrder(eventData, tranaction);
     saveOrderCreatedTradeAction(eventId, order, tranaction);
+    return;
+  }
+
+  if (eventName == "DepositCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    saveUserStat("deposit", account, transaction.timestamp);
+    return;
+  }
+
+  if (eventName == "WithdrawalCreated") {
+    let transaction = getOrCreateTransaction(event);
+    let account = eventData.getAddressItemString("account")!;
+    saveUserStat("withdrawal", account, transaction.timestamp);
+    return;
+  }
+
+  if (eventName == "OrderExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrderExecutedState(eventData, transaction);
+
+    if (order == null) {
+      return;
+    }
+
+    if (
+      order.orderType == orderTypes.get("MarketSwap") ||
+      order.orderType == orderTypes.get("LimitSwap")
+    ) {
+      saveSwapExecutedTradeAction(eventId, order as Order, transaction);
+    } else if (
+      order.orderType == orderTypes.get("MarketIncrease") ||
+      order.orderType == orderTypes.get("LimitIncrease")
+    ) {
+      savePositionIncreaseExecutedTradeAction(
+        eventId,
+        order as Order,
+        transaction
+      );
+    } else if (
+      order.orderType == orderTypes.get("MarketDecrease") ||
+      order.orderType == orderTypes.get("LimitDecrease") ||
+      order.orderType == orderTypes.get("StopLossDecrease") ||
+      order.orderType == orderTypes.get("Liquidation")
+    ) {
+      savePositionDecreaseExecutedTradeAction(
+        eventId,
+        order as Order,
+        transaction
+      );
+    }
+    return;
+  }
+
+  if (eventName == "OrderCancelled") {
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrderCancelledState(eventData, transaction);
+    if (order !== null) {
+      saveOrderCancelledTradeAction(
+        eventId,
+        order as Order,
+        order.cancelledReason as string,
+        order.cancelledReasonBytes as Bytes,
+        transaction
+      );
+    }
+
+    return;
+  }
+
+  if (eventName == "OrderUpdated") {
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrderUpdate(eventData);
+    if (order !== null) {
+      saveOrderUpdatedTradeAction(eventId, order as Order, transaction);
+    }
+
+    return;
+  }
+
+  if (eventName == "OrderFrozen") {
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrderFrozenState(eventData);
+
+    if (order == null) {
+      return;
+    }
+
+    saveOrderFrozenTradeAction(
+      eventId,
+      order as Order,
+      order.frozenReason as string,
+      order.frozenReasonBytes as Bytes,
+      transaction
+    );
     return;
   }
 }

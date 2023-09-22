@@ -184,7 +184,9 @@ type SwapFeesInfo @entity(immutable: true) {
   id: ID!
   marketAddress: String!
   tokenAddress: String!
-  action: String!
+
+  swapFeeType: String!
+
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!
   feeAmountForPool: BigInt!
