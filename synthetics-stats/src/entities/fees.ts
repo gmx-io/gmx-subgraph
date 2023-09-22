@@ -100,11 +100,11 @@ export function saveSwapFeesInfo(
   } else {
     let action = eventData.getStringItem("action");
 
-    if (action === "deposit") {
+    if (action == "deposit") {
       swapFeesInfo.swapFeeType = swapFeeTypes.get("DEPOSIT_FEE_TYPE")!;
-    } else if (action === "withdrawal") {
+    } else if (action == "withdrawal") {
       swapFeesInfo.swapFeeType = swapFeeTypes.get("WITHDRAWAL_FEE_TYPE")!;
-    } else if (action === "swap") {
+    } else if (action == "swap") {
       swapFeesInfo.swapFeeType = swapFeeTypes.get("SWAP_FEE_TYPE")!;
     }
   }
