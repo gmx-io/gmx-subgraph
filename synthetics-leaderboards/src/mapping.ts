@@ -266,10 +266,7 @@ function updateAccountPerformanceForPeriod(
   }
 
   const delta = data.getUintItem("sizeDeltaUsd")!;
-
-  if (isIncrease) {
-    perf.volume = perf.volume.plus(delta);
-  }
+  perf.volume = perf.volume.plus(delta);
 
   if (perf.cumsumSize.isZero() && sizeInUsd.isZero()) {
     // TODO: this is a debug clause handling trade history issue, remove as it gets resolved
