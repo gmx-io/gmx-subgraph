@@ -193,6 +193,7 @@ function getOrCreateAccountPerfForPeriod(account: string, period: string, event:
     perf.timestamp = timestamp;
     perf.wins = BigInt.fromI32(0);
     perf.losses = BigInt.fromI32(0);
+    perf.volume = BigInt.fromI32(0);
     perf.totalPnl = BigInt.fromI32(0);
     perf.totalCollateral = BigInt.fromI32(0);
     perf.maxCollateral = BigInt.fromI32(0);
@@ -264,9 +265,14 @@ function updateAccountPerformanceForPeriod(
     perf.maxCollateral = inputCollateral;
   }
 
+  const delta = data.getUintItem("sizeDeltaUsd")!;
+
+  if (isIncrease) {
+    perf.volume = perf.volume.plus(delta);
+  }
+
   if (perf.cumsumSize.isZero() && sizeInUsd.isZero()) {
     // TODO: this is a debug clause handling trade history issue, remove as it gets resolved
-    let delta = data.getUintItem("sizeDeltaUsd")!;
     if (isIncrease) {
       perf.cumsumSize = delta.neg();
     } else {

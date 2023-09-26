@@ -10,6 +10,7 @@ type AccountPerf @entity {
   period: Period!
   account: String!
   wins: BigInt!
+  volume: BigInt!
   losses: BigInt!
   totalPnl: BigInt!
   totalCollateral: BigInt!
