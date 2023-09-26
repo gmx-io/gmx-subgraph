@@ -23,7 +23,8 @@ export function handleEventLog1(event: EventLog1): void {
   const isNewPositionEntity = position.sizeUpdatedAt == "";
 
   if (isFeeEvent) {
-    return handlePositionFeesEvent(position, event);
+    handlePositionFeesEvent(position, event);
+    return;
   }
 
   const sizeInUsd = data.getUintItem("sizeInUsd")!;
@@ -48,11 +49,12 @@ export function handleEventLog1(event: EventLog1): void {
     const priceImpactUsd = data.getIntItem("priceImpactUsd")!;
     position.priceImpactUsd = position.priceImpactUsd.plus(priceImpactUsd);
   }
+
   updateAccountPerformanceForPeriod(TOTAL, position, data, event, isNewPositionEntity);
   updateAccountPerformanceForPeriod(DAILY, position, data, event, isNewPositionEntity);
   updateAccountPerformanceForPeriod(HOURLY, position, data, event, isNewPositionEntity);
 
-  if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt == position.sizeUpdatedAt) {
+  if (position.sizeInUsd.isZero() && position.feesUpdatedAt == position.sizeUpdatedAt) {
     store.remove("AccountOpenPosition", position.id);
   } else {
     position.save();
@@ -83,15 +85,8 @@ function getOrCreatePosition(data: EventData, eventName: string): AccountOpenPos
     key = keyBytes32.toHexString();
   }
 
-  // const key = `${account}:${market}:${collateralToken}:${isLong ? "long" : "short"}`;
-  // const key = data.getBytes32Item("positionKey")!.toHexString();
   let position = AccountOpenPosition.load(key);
   if (position === null) {
-    // if (eventName != "PositionIncrease" && eventName != "PositionDecrease") {
-    //   log.error(`Position ${key} ${eventName} occurs before trade`, []);
-    //   throw new Error(`Unable to create a new position entity from "${eventName}" event`);
-    // }
-
     position = new AccountOpenPosition(key);
 
     let entryPrice = data.getUintItem("executionPrice");
@@ -158,7 +153,7 @@ function handlePositionFeesEvent(position: AccountOpenPosition, event: EventLog1
     perf.save();
   }
 
-  if (position.sizeInUsd.equals(BigInt.fromI32(0)) && position.feesUpdatedAt == position.sizeUpdatedAt) {
+  if (position.sizeInUsd.isZero() && position.feesUpdatedAt == position.sizeUpdatedAt) {
     store.remove("AccountOpenPosition", position.id);
   } else {
     position.save();
@@ -279,40 +274,6 @@ function updateAccountPerformanceForPeriod(
     }
   }
 
-  const sizeDeltaInUsd = data.getUintItem("sizeDeltaUsd")!;
-
-  if (isNewPositionEntity && period == TOTAL) {
-    const sizeInTokens = data.getUintItem("sizeInTokens");
-    const sizeDeltaInTokens = data.getUintItem("sizeDeltaInTokens");
-    let sizeBeforeInTokens: BigInt | null = null;
-    if (sizeInTokens !== null && sizeDeltaInTokens !== null) {
-      if (isIncrease) {
-        sizeBeforeInTokens = sizeInTokens.minus(sizeDeltaInTokens);
-      } else {
-        sizeBeforeInTokens = sizeInTokens.plus(sizeDeltaInTokens);
-      }
-    }
-
-    let sizeBeforeInUsd: BigInt | null = null;
-    if (sizeInUsd !== null && sizeDeltaInUsd !== null) {
-      if (isIncrease) {
-        sizeBeforeInUsd = sizeInUsd.minus(sizeDeltaInUsd);
-      } else {
-        sizeBeforeInUsd = sizeInUsd.plus(sizeDeltaInUsd);
-      }
-    }
-
-    let collateralBefore: BigInt | null = null;
-    if (collateralAmount !== null && collateralDelta !== null) {
-      collateralBefore = collateralAmount.minus(collateralDelta);
-    }
-
-    let collateralBeforeInUsd: BigInt | null = null;
-    if (collateralAmountUsd !== null && collateralDeltaUsd !== null) {
-      collateralBeforeInUsd = collateralAmountUsd.minus(collateralDeltaUsd);
-    }
-  }
-
   perf.cumsumSize = perf.cumsumSize.plus(sizeInUsd);
 
   if (perf.cumsumCollateral.isZero() && collateralAmountUsd.isZero()) {
@@ -322,7 +283,7 @@ function updateAccountPerformanceForPeriod(
 
   perf.cumsumCollateral = perf.cumsumCollateral.plus(collateralAmountUsd);
 
-  if (sizeInUsd.equals(BigInt.fromI32(0))) {
+  if (sizeInUsd.isZero()) {
     perf.sumMaxSize = perf.sumMaxSize.plus(position.maxSize);
     perf.closedCount = perf.closedCount.plus(BigInt.fromI32(1));
 
