@@ -85,6 +85,13 @@ export function saveOrderFrozenTradeAction(
   transaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
+  let marketInfo = MarketInfo.load(order.marketAddress);
+
+  if (marketInfo) {
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.min;
+    tradeAction.indexTokenPriceMax = tokenPrice.max;
+  }
 
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
