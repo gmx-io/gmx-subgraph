@@ -16,10 +16,10 @@ export function getTokenByPriceFeed(priceFeed: string): Address {
     "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
   );
 
-  // Avalanche mainnet GMX
+  // Avalanche mainnet esGMX
   priceFeedToToken.set(
     "0x3ec39652e73337350a712fb418dbb4c2a8247673",
-    "0x62edc0692bd897d2295872a9ffcac5425011c661"
+    "0xff1489227bbaac61a9209a08929e4c2a526ddd17"
   );
 
   // Arbitrum Goerli ETH
@@ -34,10 +34,10 @@ export function getTokenByPriceFeed(priceFeed: string): Address {
     "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
   );
 
-  // Arbitrum mainnet GMX
+  // Arbitrum mainnet esGMX
   priceFeedToToken.set(
     "0xf6328f007a2fdc547875e24a3bc7e0603fd01727",
-    "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a"
+    "0xf42ae1d54fd613c9bb14810b0588faaa09a426ca"
   );
 
   let address = priceFeedToToken.get(priceFeed);
