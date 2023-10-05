@@ -13,9 +13,12 @@ enum TradeActionType {
   OrderUpdated
 }
 
-enum ClaimCollateralActionType {
+enum ClaimActionType {
   ClaimPriceImpact
   ClaimFunding
+  SettleFundingFeeCreated
+  SettleFundingFeeExecuted
+  SettleFundingFeeCancelled
 }
 
 type AffiliateRewardUpdate @entity(immutable: true) {
@@ -242,13 +245,32 @@ type TradeAction @entity(immutable: true) {
 type ClaimCollateralAction @entity(immutable: true) {
   # transactionHash:account:eventName
   id: ID!
-  eventName: ClaimCollateralActionType!
+  eventName: ClaimActionType!
   account: String!
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
   amounts: [BigInt!]!
 
   transaction: Transaction!
+}
+
+type ClaimAction @entity {
+  # transactionHash:account:eventName
+  id: ID!
+  eventName: ClaimActionType!
+  account: String!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
+  orders: [String!]
+
+  transaction: Transaction!
+}
+
+type ClaimRef @entity(immutable: true) {
+  # order.id
+  id: ID!
+  claimIdPrefix: String!
 }
 
 type PoolAmountUpdate @entity(immutable: true) {
@@ -258,6 +280,14 @@ type PoolAmountUpdate @entity(immutable: true) {
   delta: BigInt!
   nextValue: BigInt!
   transaction: Transaction!
+}
+
+type ClaimableFundingFeeInfo @entity(immutable: true) {
+  # transactionHash:account
+  id: ID!
+  marketAddress: String!
+  nextValue: BigInt!
+  delta: BigInt!
 }
 
 type Transaction @entity {

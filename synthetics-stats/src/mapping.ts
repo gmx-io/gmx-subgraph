@@ -4,8 +4,14 @@ import {
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { Order } from "../generated/schema";
-import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
+import { ClaimRef, Order } from "../generated/schema";
+import {
+  handleFundingFeeCreatedClaimAction,
+  handleFundingFeeExecutedClaimAction,
+  isFundingFeeSettleOrder,
+  saveClaimableFundingFeeInfo,
+  handleCollateralClaimAction,
+} from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   saveCollectedMarketFeesForPeriod,
@@ -327,13 +333,19 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "FundingFeesClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimFunding");
+    handleCollateralClaimAction(eventData, transaction, "ClaimFunding");
     return;
   }
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
+    handleCollateralClaimAction(eventData, transaction, "ClaimPriceImpactFee");
+    return;
+  }
+
+  if (eventName == "ClaimableFundingUpdated") {
+    let transaction = getOrCreateTransaction(event);
+    saveClaimableFundingFeeInfo(eventData, transaction);
     return;
   }
 }
@@ -346,9 +358,13 @@ export function handleEventLog2(event: EventLog2): void {
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
-    let tranaction = getOrCreateTransaction(event);
-    let order = saveOrder(eventData, tranaction);
-    saveOrderCreatedTradeAction(eventId, order, tranaction);
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrder(eventData, transaction);
+    if (isFundingFeeSettleOrder(order)) {
+      handleFundingFeeCreatedClaimAction(transaction, eventData);
+    } else {
+      saveOrderCreatedTradeAction(eventId, order, transaction);
+    }
     return;
   }
 
@@ -394,11 +410,16 @@ export function handleEventLog2(event: EventLog2): void {
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(
-        eventId,
-        order as Order,
-        transaction
-      );
+      let claimRef = ClaimRef.load(order.id);
+      if (claimRef) {
+        handleFundingFeeExecutedClaimAction(transaction, eventData);
+      } else {
+        savePositionDecreaseExecutedTradeAction(
+          eventId,
+          order as Order,
+          transaction
+        );
+      }
     }
     return;
   }
