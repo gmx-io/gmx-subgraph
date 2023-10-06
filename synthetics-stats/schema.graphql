@@ -262,7 +262,6 @@ type ClaimAction @entity {
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
   amounts: [BigInt!]!
-  orders: [String!]
 
   transaction: Transaction!
 }
@@ -271,6 +270,7 @@ type ClaimRef @entity(immutable: true) {
   # order.id
   id: ID!
   claimIdPrefix: String!
+  orders: [String!]
 }
 
 type PoolAmountUpdate @entity(immutable: true) {

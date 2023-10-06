@@ -33,6 +33,9 @@ export function handleFundingFeeCreatedClaimAction(
 
   let claimRef = getOrCreateClaimRef(order.id);
   claimRef.claimIdPrefix = transaction.id + ":" + account;
+  let orders = claimRef.orders || [];
+  orders.push(eventData.getBytes32Item("key")!.toHexString());
+  claimRef.orders = orders;
   claimRef.save();
 }
 
@@ -52,8 +55,8 @@ export function handleFundingFeeExecutedClaimAction(
 
   if (!claimActionCreated) throw new Error("ClaimAction not found");
 
-  if (!claimActionCreated.orders || !claimActionCreated.orders.length)
-    throw new Error("Empty orders in claimActionCreated");
+  if (!claimRef.orders || !claimRef.orders.length)
+    throw new Error("Empty orders in claimRef");
 
   let orderId = eventData.getBytes32Item("key")!.toHexString();
   let order = Order.load(orderId);
@@ -63,7 +66,7 @@ export function handleFundingFeeExecutedClaimAction(
   copyClaimActionMarketByIndex(
     claimActionCreated!,
     claimAction!,
-    claimActionCreated.orders.indexOf(order.id)
+    claimRef.orders.indexOf(order.id)
   );
 
   let account = eventData.getAddressItemString("account")!;
@@ -120,8 +123,8 @@ export function handleFundingFeeCancelledClaimAction(
 
   if (!claimActionCreated) throw new Error("ClaimAction not found");
 
-  if (!claimActionCreated.orders || !claimActionCreated.orders.length)
-    throw new Error("Empty orders in claimActionCreated");
+  if (!claimRef.orders || !claimRef.orders.length)
+    throw new Error("Empty orders in claimRef");
 
   let orderId = eventData.getBytes32Item("key")!.toHexString();
   let order = Order.load(orderId);
@@ -131,7 +134,7 @@ export function handleFundingFeeCancelledClaimAction(
   copyClaimActionMarketByIndex(
     claimActionCreated!,
     claimAction!,
-    claimActionCreated.orders.indexOf(order.id)
+    claimRef.orders.indexOf(order.id)
   );
 }
 
@@ -226,10 +229,6 @@ function enrichCreatedClaimAction(
 
   tokenAddresses.push(token);
   claimAction.tokenAddresses = tokenAddresses;
-
-  let orders = claimAction.orders || [];
-  orders.push(eventData.getBytes32Item("key")!.toHexString());
-  claimAction.orders = orders;
 
   claimAction.save();
 }

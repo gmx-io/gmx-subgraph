@@ -11,7 +11,6 @@ import {
   isFundingFeeSettleOrder,
   saveClaimableFundingFeeInfo,
   handleCollateralClaimAction,
-  isFundingFeeSettleOrderByOrderId,
   handleFundingFeeCancelledClaimAction,
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
