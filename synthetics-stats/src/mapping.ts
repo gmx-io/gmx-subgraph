@@ -11,6 +11,8 @@ import {
   isFundingFeeSettleOrder,
   saveClaimableFundingFeeInfo,
   handleCollateralClaimAction,
+  isFundingFeeSettleOrderByOrderId,
+  handleFundingFeeCancelledClaimAction,
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
@@ -428,13 +430,18 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
-      saveOrderCancelledTradeAction(
-        eventId,
-        order as Order,
-        order.cancelledReason as string,
-        order.cancelledReasonBytes as Bytes,
-        transaction
-      );
+      if (isFundingFeeSettleOrder(order!)) {
+        log.warning("order funding fee settle order", [order.id]);
+        handleFundingFeeCancelledClaimAction(transaction, eventData);
+      } else {
+        saveOrderCancelledTradeAction(
+          eventId,
+          order!,
+          order.cancelledReason as string,
+          order.cancelledReasonBytes as Bytes,
+          transaction
+        );
+      }
     }
 
     return;

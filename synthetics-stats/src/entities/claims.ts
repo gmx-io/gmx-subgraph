@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   ClaimAction,
   ClaimCollateralAction,
@@ -40,7 +40,11 @@ export function handleFundingFeeExecutedClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
-  let claimAction = getOrCreateExecutedClaimAction(transaction, eventData);
+  let claimAction = getOrCreateFundingFeeClaimAction(
+    transaction,
+    "SettleFundingFeeExecuted",
+    eventData
+  );
   let claimRef = getClaimRef(eventData);
   let claimActionCreated = ClaimAction.load(
     claimRef.claimIdPrefix + ":SettleFundingFeeCreated"
@@ -71,7 +75,6 @@ export function handleFundingFeeExecutedClaimAction(
     throw new Error("ClaimableFundingFeeInfo not found");
 
   insertFundingFeeInfo(claimAction, claimableFundingFeeInfo!);
-  insertFundingFeeInfo(claimActionCreated!, claimableFundingFeeInfo!);
 }
 
 export function handleCollateralClaimAction(
@@ -99,6 +102,37 @@ export function handleCollateralClaimAction(
 
   claimCollateralAction.save();
   claimAction.save();
+}
+
+export function handleFundingFeeCancelledClaimAction(
+  transaction: Transaction,
+  eventData: EventData
+): void {
+  let claimAction = getOrCreateFundingFeeClaimAction(
+    transaction,
+    "SettleFundingFeeCancelled",
+    eventData
+  );
+  let claimRef = getClaimRef(eventData);
+  let claimActionCreated = ClaimAction.load(
+    claimRef.claimIdPrefix + ":SettleFundingFeeCreated"
+  );
+
+  if (!claimActionCreated) throw new Error("ClaimAction not found");
+
+  if (!claimActionCreated.orders || !claimActionCreated.orders.length)
+    throw new Error("Empty orders in claimActionCreated");
+
+  let orderId = eventData.getBytes32Item("key")!.toHexString();
+  let order = Order.load(orderId);
+
+  if (!order) throw new Error("Order not found");
+
+  copyClaimActionMarketByIndex(
+    claimActionCreated!,
+    claimAction!,
+    claimActionCreated.orders.indexOf(order.id)
+  );
 }
 
 export function saveClaimableFundingFeeInfo(
@@ -146,18 +180,20 @@ function addFieldsToCollateralLikeClaimAction(
   claimAction.amounts = amounts;
 }
 
-function getOrCreateExecutedClaimAction(
+function getOrCreateFundingFeeClaimAction(
   transaction: Transaction,
+  eventName: string,
   eventData: EventData
 ): ClaimAction {
   let claimRef = getClaimRef(eventData);
-  let id = claimRef.claimIdPrefix + ":SettleFundingFeeExecuted";
+  let id = claimRef.claimIdPrefix + ":" + eventName;
   let claimAction = getOrCreateClaimAction(id);
+
   addRequiredFieldsToClaimAction(
     claimAction,
     eventData,
     transaction,
-    "SettleFundingFeeCreated"
+    eventName
   );
   return claimAction;
 }
@@ -224,12 +260,6 @@ function copyClaimActionMarketByIndex(
 
   let fromMarketAddresses = from.marketAddresses;
   let fromTokenAddresses = from.tokenAddresses;
-  log.warning("fromMarketAddresses=[{}] ; index={} ; orders=[{}]", [
-    fromMarketAddresses.join(", "),
-    index.toString(),
-    from.orders!.join(", "),
-  ]);
-
   let marketAddress = fromMarketAddresses[index as i32];
   let tokenAddress = fromTokenAddresses[index as i32];
 
