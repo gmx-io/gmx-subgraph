@@ -1,6 +1,6 @@
 import * as erc20 from "../../generated/transferGmx/ERC20"
 import { getTokenUsdAmount, _storeERC20Transfer, TokenDecimals, getIdFromEvent } from "../helpers"
-import { oBMX, BLT, BMX, WETH } from "./constant"
+import { oBMX, BLT, BMX } from "./constant"
 import { Claim } from "../../generated/schema"
 
 export function handleGmxTransfer(event: erc20.Transfer): void {

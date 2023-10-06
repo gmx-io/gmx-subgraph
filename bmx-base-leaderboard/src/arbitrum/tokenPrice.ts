@@ -3,7 +3,7 @@ import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Sync } from '../../generated/GmxPrice/UniswapPoolV3'
 import { getTokenUsdAmount, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
-import { BLT, BMX, WBTC, WETH } from './constant'
+import { BLT, BMX, WBTC, WETH, cbETH, YFI } from './constant'
 
 export function handleFastPriceEvent(event: PriceUpdate): void {
   const price = event.params.price
@@ -14,6 +14,16 @@ export function handleFastPriceEvent(event: PriceUpdate): void {
 export function handleAnswerUpdatedETH(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
   _storeDefaultPricefeed(WETH, event, price)
+}
+
+export function handleAnswerUpdatedcbETH(event: AnswerUpdated): void {
+  const price = event.params.current.times(BI_22_PRECISION)
+  _storeDefaultPricefeed(cbETH, event, price)
+}
+
+export function handleAnswerUpdatedYFI(event: AnswerUpdated): void {
+  const price = event.params.current.times(BI_22_PRECISION)
+  _storeDefaultPricefeed(YFI, event, price)
 }
 
 export function handleAnswerUpdatedBTC(event: AnswerUpdated): void {
