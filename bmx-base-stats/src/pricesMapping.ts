@@ -9,6 +9,7 @@ import {
   BTC,
   ETH,
   cbETH,
+  YFI,
   timestampToPeriod,
   USDC,
   DAI
@@ -51,6 +52,10 @@ export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedcbETH(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(cbETH, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedYFI(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(YFI, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
