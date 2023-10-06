@@ -87,26 +87,26 @@ dataSources:
   #       - event: Claim(address,uint256)
   #         handler: handleClaimFees
   #     file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
-    name: FeeGlpTrackerClaim
-    network: base
-    source:
-      address: "0xa2242d0A8b0b5c1A487AbFC03Cd9FEf6262BAdCA"
-      abi: RewardTracker
-      startBlock: 3098894
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Claim
-      abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
-      eventHandlers:
-        - event: Claim(address,uint256)
-          handler: handleClaimFees
-      file: ./src/arbitrum/reward.ts
+#  - kind: ethereum/contract
+#    name: FeeGlpTrackerClaim
+#    network: base
+#    source:
+#      address: "0xa2242d0A8b0b5c1A487AbFC03Cd9FEf6262BAdCA"
+#      abi: RewardTracker
+#      startBlock: 3098894
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Claim
+#      abis:
+#        - name: RewardTracker
+#          file: ./abis/RewardTracker.json
+#      eventHandlers:
+#        - event: Claim(address,uint256)
+#          handler: handleClaimFees
+#      file: ./src/arbitrum/reward.ts
 
 # Chainlink aggregators
   - kind: ethereum/contract
