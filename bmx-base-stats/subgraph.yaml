@@ -111,6 +111,27 @@ dataSources:
       file: ./src/pricesMapping.ts
 
   - kind: ethereum/contract
+    name: ChainlinkAggregatorYFI
+    network: base
+    source:
+      address: "0xdB793acA8bE40a123c34300Bb21b02F21F8ef501"
+      abi: ChainlinkAggregator
+      startBlock: 4605366
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedYFI
+      file: ./src/pricesMapping.ts
+
+  - kind: ethereum/contract
     name: GlpManager
     network: base
     source:
