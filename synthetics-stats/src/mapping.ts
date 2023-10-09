@@ -1,4 +1,4 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 import {
   EventLog1,
   EventLog2,
@@ -430,7 +430,6 @@ export function handleEventLog2(event: EventLog2): void {
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
       if (isFundingFeeSettleOrder(order!)) {
-        log.warning("order funding fee settle order", [order.id]);
         handleFundingFeeCancelledClaimAction(transaction, eventData);
       } else {
         saveOrderCancelledTradeAction(

@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   ClaimAction,
   ClaimCollateralAction,
@@ -24,7 +24,21 @@ export function handleFundingFeeCreatedClaimAction(
     transaction,
     "SettleFundingFeeCreated"
   );
-  enrichCreatedClaimAction(claimAction, eventData);
+
+  let marketAddress = eventData.getAddressItemString("market")!;
+  let marketAddresses = claimAction.marketAddresses;
+  marketAddresses.push(marketAddress);
+  claimAction.marketAddresses = marketAddresses;
+
+  let isLongOrders = claimAction.isLongOrders;
+  isLongOrders.push(eventData.getBoolItem("isLong"));
+  claimAction.isLongOrders = isLongOrders;
+
+  let transactionIds = claimAction.transactionIds;
+  transactionIds.push(transaction.id);
+  claimAction.transactionIds = transactionIds;
+
+  claimAction.save();
 
   let key = eventData.getBytes32Item("key")!.toHexString();
   let order = Order.load(key);
@@ -32,9 +46,12 @@ export function handleFundingFeeCreatedClaimAction(
   if (!order) throw new Error("Order not found");
 
   let claimRef = getOrCreateClaimRef(order.id);
+
   claimRef.claimIdPrefix = transaction.id + ":" + account;
-  let orders = claimRef.orders || [];
+
+  let orders = claimRef.orders;
   orders.push(eventData.getBytes32Item("key")!.toHexString());
+
   claimRef.orders = orders;
   claimRef.save();
 }
@@ -43,7 +60,7 @@ export function handleFundingFeeExecutedClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
-  let claimAction = getOrCreateFundingFeeClaimAction(
+  let claimAction = getOrCreateFundingFeeClaimActionByRef(
     transaction,
     "SettleFundingFeeExecuted",
     eventData
@@ -63,12 +80,6 @@ export function handleFundingFeeExecutedClaimAction(
 
   if (!order) throw new Error("Order not found");
 
-  copyClaimActionMarketByIndex(
-    claimActionCreated!,
-    claimAction!,
-    claimRef.orders.indexOf(order.id)
-  );
-
   let account = eventData.getAddressItemString("account")!;
   let claimableFundingFeeInfo = ClaimableFundingFeeInfo.load(
     transaction.id + ":" + account
@@ -78,6 +89,24 @@ export function handleFundingFeeExecutedClaimAction(
     throw new Error("ClaimableFundingFeeInfo not found");
 
   insertFundingFeeInfo(claimAction, claimableFundingFeeInfo!);
+
+  let tokensCount = claimableFundingFeeInfo.tokenAddresses.length;
+
+  for (let i = 0; i < tokensCount; i++) {
+    let marketAddresses = claimAction.marketAddresses;
+    let isLongOrders = claimAction.isLongOrders;
+    let transactionIds = claimAction.transactionIds;
+
+    marketAddresses.push(order.marketAddress);
+    isLongOrders.push(order.isLong);
+    transactionIds.push(transaction.id);
+
+    claimAction.marketAddresses = marketAddresses;
+    claimAction.isLongOrders = isLongOrders;
+    claimAction.transactionIds = transactionIds;
+  }
+
+  claimAction.save();
 }
 
 export function handleCollateralClaimAction(
@@ -111,7 +140,7 @@ export function handleFundingFeeCancelledClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
-  let claimAction = getOrCreateFundingFeeClaimAction(
+  let claimAction = getOrCreateFundingFeeClaimActionByRef(
     transaction,
     "SettleFundingFeeCancelled",
     eventData
@@ -131,11 +160,19 @@ export function handleFundingFeeCancelledClaimAction(
 
   if (!order) throw new Error("Order not found");
 
-  copyClaimActionMarketByIndex(
-    claimActionCreated!,
-    claimAction!,
-    claimRef.orders.indexOf(order.id)
-  );
+  let marketAddresses = claimAction.marketAddresses;
+  marketAddresses.push(order.marketAddress);
+  claimAction.marketAddresses = marketAddresses;
+
+  let isLongOrders = claimAction.isLongOrders;
+  isLongOrders.push(order.isLong);
+  claimAction.isLongOrders = isLongOrders;
+
+  let transactionIds = claimAction.transactionIds;
+  transactionIds.push(transaction.id);
+  claimAction.transactionIds = transactionIds;
+
+  claimAction.save();
 }
 
 export function saveClaimableFundingFeeInfo(
@@ -148,10 +185,22 @@ export function saveClaimableFundingFeeInfo(
 
   if (!entity) {
     entity = new ClaimableFundingFeeInfo(id);
-    entity.marketAddress = eventData.getAddressItemString("market")!;
-    entity.delta = eventData.getUintItem("delta")!;
-    entity.nextValue = eventData.getUintItem("nextValue")!;
+    entity.amounts = new Array<BigInt>(0);
+    entity.marketAddresses = new Array<string>(0);
+    entity.tokenAddresses = new Array<string>(0);
   }
+
+  let marketAddresses = entity.marketAddresses;
+  marketAddresses.push(eventData.getAddressItemString("market")!);
+  entity.marketAddresses = marketAddresses;
+
+  let tokenAddresses = entity.tokenAddresses;
+  tokenAddresses.push(eventData.getAddressItemString("token")!);
+  entity.tokenAddresses = tokenAddresses;
+
+  let amounts = entity.amounts;
+  amounts.push(eventData.getUintItem("delta")!);
+  entity.amounts = amounts;
 
   entity.save();
 
@@ -183,7 +232,7 @@ function addFieldsToCollateralLikeClaimAction(
   claimAction.amounts = amounts;
 }
 
-function getOrCreateFundingFeeClaimAction(
+function getOrCreateFundingFeeClaimActionByRef(
   transaction: Transaction,
   eventName: string,
   eventData: EventData
@@ -214,68 +263,31 @@ function addRequiredFieldsToClaimAction(
   claimAction.save();
 }
 
-function enrichCreatedClaimAction(
-  claimAction: ClaimAction,
-  eventData: EventData
-): void {
-  let marketAddresses = claimAction.marketAddresses;
-  let marketAddress = eventData.getAddressItemString("market")!;
-  marketAddresses.push(marketAddress);
-  claimAction.marketAddresses = marketAddresses;
-  claimAction.save();
-
-  let tokenAddresses = claimAction.tokenAddresses;
-  let token = eventData.getAddressItemString("initialCollateralToken")!;
-
-  tokenAddresses.push(token);
-  claimAction.tokenAddresses = tokenAddresses;
-
-  claimAction.save();
-}
-
 function insertFundingFeeInfo(
   claimAction: ClaimAction,
   claimableFundingFeeInfo: ClaimableFundingFeeInfo
 ): void {
-  let marketAddresses = claimAction.marketAddresses;
-  let marketAddress = claimableFundingFeeInfo.marketAddress;
-  let index = marketAddresses.indexOf(marketAddress);
+  let sourceTokenAddresses = claimableFundingFeeInfo.tokenAddresses;
 
-  if (index !== -1) {
-    let amounts = claimAction.amounts;
-    amounts[index as i32] = claimableFundingFeeInfo.delta;
-
-    claimAction.amounts = amounts;
+  for (let i = 0; i < sourceTokenAddresses.length; i++) {
+    let sourceTokenAddress = sourceTokenAddresses[i];
+    let targetTokenAddresses = claimAction.tokenAddresses;
+    targetTokenAddresses.push(sourceTokenAddress);
+    claimAction.tokenAddresses = targetTokenAddresses;
+    claimAction.save();
   }
+
+  let sourceAmounts = claimableFundingFeeInfo.amounts;
+
+  for (let i = 0; i < sourceAmounts.length; i++) {
+    let sourceAmount = sourceAmounts[i];
+    let targetAmounts = claimAction.amounts;
+    targetAmounts.push(sourceAmount);
+    claimAction.amounts = targetAmounts;
+    claimAction.save();
+  }
+
   claimAction.save();
-}
-
-function copyClaimActionMarketByIndex(
-  from: ClaimAction,
-  to: ClaimAction,
-  index: i32
-): void {
-  if (index === -1) throw new Error("Order not found in orders");
-
-  let fromMarketAddresses = from.marketAddresses;
-  let fromTokenAddresses = from.tokenAddresses;
-  let marketAddress = fromMarketAddresses[index as i32];
-  let tokenAddress = fromTokenAddresses[index as i32];
-
-  if (!marketAddress || !tokenAddress) {
-    throw new Error("marketAddress or tokenAddress is null");
-  }
-
-  let toMarketAddresses = to.marketAddresses;
-  let toTokenAddresses = to.tokenAddresses;
-
-  toMarketAddresses.push(marketAddress);
-  toTokenAddresses.push(tokenAddress);
-
-  to.marketAddresses = toMarketAddresses;
-  to.tokenAddresses = toTokenAddresses;
-
-  to.save();
 }
 
 function getOrCreateClaimCollateralAction(id: string): ClaimCollateralAction {
@@ -299,6 +311,8 @@ function getOrCreateClaimAction(id: string): ClaimAction {
     entity.marketAddresses = new Array<string>(0);
     entity.tokenAddresses = new Array<string>(0);
     entity.amounts = new Array<BigInt>(0);
+    entity.isLongOrders = new Array<boolean>(0);
+    entity.transactionIds = new Array<string>(0);
   }
 
   return entity as ClaimAction;
@@ -317,6 +331,7 @@ function getOrCreateClaimRef(orderId: string): ClaimRef {
 
   if (!entity) {
     entity = new ClaimRef(orderId);
+    entity.orders = new Array<string>(0);
   }
 
   return entity as ClaimRef;

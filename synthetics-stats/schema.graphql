@@ -262,7 +262,9 @@ type ClaimAction @entity {
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
   amounts: [BigInt!]!
+  isLongOrders: [Boolean!]!
 
+  transactionIds: [String!]!
   transaction: Transaction!
 }
 
@@ -270,7 +272,7 @@ type ClaimRef @entity(immutable: true) {
   # order.id
   id: ID!
   claimIdPrefix: String!
-  orders: [String!]
+  orders: [Order!]!
 }
 
 type PoolAmountUpdate @entity(immutable: true) {
@@ -285,9 +287,9 @@ type PoolAmountUpdate @entity(immutable: true) {
 type ClaimableFundingFeeInfo @entity(immutable: true) {
   # transactionHash:account
   id: ID!
-  marketAddress: String!
-  nextValue: BigInt!
-  delta: BigInt!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
 }
 
 type Transaction @entity {
