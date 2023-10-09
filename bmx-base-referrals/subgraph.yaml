@@ -144,9 +144,9 @@ dataSources:
     name: ReferralStorage
     network: base
     source:
-      address: "0x7Fb62EfF63DEE8b6D6654858c75E925C08811B46"
+      address: "0xD9d396b94D19cFAfEA52513C2092102d145e06ae"
       abi: ReferralStorage
-      startBlock: 3008636
+      startBlock: 5048040
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
