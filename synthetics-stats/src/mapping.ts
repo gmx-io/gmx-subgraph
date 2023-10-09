@@ -48,6 +48,7 @@ import {
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
+import { saveTokenPrice } from "./entities/prices";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -55,6 +56,15 @@ export function handleEventLog1(event: EventLog1): void {
     event.params.eventData as EventLogEventDataStruct
   );
   let eventId = getIdFromEvent(event);
+
+  if (eventName == "OraclePriceUpdate") {
+    saveTokenPrice(
+      eventData.getAddressItem("token")!,
+      eventData.getUintItem("minPrice")!,
+      eventData.getUintItem("maxPrice")!
+    );
+    return;
+  }
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
