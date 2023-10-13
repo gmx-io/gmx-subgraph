@@ -4,7 +4,7 @@ import {
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { ClaimRef, Order } from "../generated/schema";
+import { ClaimAction, ClaimRef, Order } from "../generated/schema";
 import {
   handleFundingFeeCreatedClaimAction,
   handleFundingFeeExecutedClaimAction,
@@ -411,8 +411,7 @@ export function handleEventLog2(event: EventLog2): void {
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      let claimRef = ClaimRef.load(order.id);
-      if (claimRef) {
+      if (ClaimRef.load(order.id)) {
         handleFundingFeeExecutedClaimAction(transaction, eventData);
       } else {
         savePositionDecreaseExecutedTradeAction(
@@ -429,7 +428,7 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
-      if (isFundingFeeSettleOrder(order!)) {
+      if (ClaimRef.load(order.id)) {
         handleFundingFeeCancelledClaimAction(transaction, eventData);
       } else {
         saveOrderCancelledTradeAction(

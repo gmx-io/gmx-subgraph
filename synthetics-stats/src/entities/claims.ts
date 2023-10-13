@@ -14,6 +14,8 @@ export function handleFundingFeeCreatedClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
+  let orderId = eventData.getBytes32Item("key")!.toHexString();
+
   let account = eventData.getAddressItemString("account")!;
   let id = transaction.id + ":" + account + ":SettleFundingFeeCreated";
   let claimAction = getOrCreateClaimAction(id);
@@ -40,40 +42,18 @@ export function handleFundingFeeCreatedClaimAction(
 
   claimAction.save();
 
-  let key = eventData.getBytes32Item("key")!.toHexString();
-  let order = Order.load(key);
-
-  if (!order) throw new Error("Order not found");
-
-  let claimRef = getOrCreateClaimRef(order.id);
-
-  claimRef.claimIdPrefix = transaction.id + ":" + account;
-
-  let orders = claimRef.orders;
-  orders.push(eventData.getBytes32Item("key")!.toHexString());
-
-  claimRef.orders = orders;
-  claimRef.save();
+  getOrCreateClaimRef(orderId);
 }
 
 export function handleFundingFeeExecutedClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
-  let claimAction = getOrCreateFundingFeeClaimActionByRef(
+  let claimAction = getOrCreateFundingFeeClaimAction(
     transaction,
     "SettleFundingFeeExecuted",
     eventData
   );
-  let claimRef = getClaimRef(eventData);
-  let claimActionCreated = ClaimAction.load(
-    claimRef.claimIdPrefix + ":SettleFundingFeeCreated"
-  );
-
-  if (!claimActionCreated) throw new Error("ClaimAction not found");
-
-  if (!claimRef.orders || !claimRef.orders.length)
-    throw new Error("Empty orders in claimRef");
 
   let orderId = eventData.getBytes32Item("key")!.toHexString();
   let order = Order.load(orderId);
@@ -140,20 +120,11 @@ export function handleFundingFeeCancelledClaimAction(
   transaction: Transaction,
   eventData: EventData
 ): void {
-  let claimAction = getOrCreateFundingFeeClaimActionByRef(
+  let claimAction = getOrCreateFundingFeeClaimAction(
     transaction,
     "SettleFundingFeeCancelled",
     eventData
   );
-  let claimRef = getClaimRef(eventData);
-  let claimActionCreated = ClaimAction.load(
-    claimRef.claimIdPrefix + ":SettleFundingFeeCreated"
-  );
-
-  if (!claimActionCreated) throw new Error("ClaimAction not found");
-
-  if (!claimRef.orders || !claimRef.orders.length)
-    throw new Error("Empty orders in claimRef");
 
   let orderId = eventData.getBytes32Item("key")!.toHexString();
   let order = Order.load(orderId);
@@ -232,13 +203,17 @@ function addFieldsToCollateralLikeClaimAction(
   claimAction.amounts = amounts;
 }
 
-function getOrCreateFundingFeeClaimActionByRef(
+function getOrCreateFundingFeeClaimAction(
   transaction: Transaction,
   eventName: string,
   eventData: EventData
 ): ClaimAction {
-  let claimRef = getClaimRef(eventData);
-  let id = claimRef.claimIdPrefix + ":" + eventName;
+  let id =
+    transaction.id +
+    ":" +
+    eventData.getAddressItemString("account")! +
+    ":" +
+    eventName;
   let claimAction = getOrCreateClaimAction(id);
 
   addRequiredFieldsToClaimAction(
@@ -331,21 +306,8 @@ function getOrCreateClaimRef(orderId: string): ClaimRef {
 
   if (!entity) {
     entity = new ClaimRef(orderId);
-    entity.orders = new Array<string>(0);
+    entity.save();
   }
 
-  return entity as ClaimRef;
-}
-
-function getClaimRef(eventData: EventData): ClaimRef {
-  let key = eventData.getBytes32Item("key")!.toHexString();
-  let order = Order.load(key);
-
-  if (!order) throw new Error("Order not found");
-
-  let claimRef = ClaimRef.load(order.id);
-
-  if (!claimRef) throw new Error("ClaimRef not found");
-
-  return claimRef!;
+  return entity!;
 }

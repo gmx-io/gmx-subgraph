@@ -268,11 +268,9 @@ type ClaimAction @entity {
   transaction: Transaction!
 }
 
-type ClaimRef @entity(immutable: true) {
+type ClaimRef @entity {
   # order.id
   id: ID!
-  claimIdPrefix: String!
-  orders: [Order!]!
 }
 
 type PoolAmountUpdate @entity(immutable: true) {
