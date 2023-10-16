@@ -187,6 +187,14 @@ type SwapFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
+type PoolValueRef @entity {
+  # marketAddress
+  id: ID!
+  value: BigInt!
+  pendingFeeUsds: [BigInt!]!
+  pendingCollectedMarketFeesInfoIds: [String!]!
+}
+
 type CollectedMarketFeesInfo @entity {
   # marketAddress:tokenAddress:period:timestampGroup
   id: ID!
@@ -195,6 +203,8 @@ type CollectedMarketFeesInfo @entity {
   tokenAddress: String!
   feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
+  feeUsdPerPoolValue: BigInt!
+  feeUsdPerGmToken: BigInt!
   cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
