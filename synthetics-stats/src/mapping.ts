@@ -81,7 +81,6 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
     return;
   }
@@ -384,7 +383,6 @@ export function handleEventLog2(event: EventLog2): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
     return;
   }
