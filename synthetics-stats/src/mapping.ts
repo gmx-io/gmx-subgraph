@@ -1,5 +1,6 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import {
+  EventEmitter,
   EventLog1,
   EventLog2,
   EventLogEventDataStruct,
@@ -47,6 +48,10 @@ import {
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
+import { Reader } from "../generated/Reader/Reader";
+
+export function handleReader(): void {}
+export function handleBlock(block: ethereum.Block): void {}
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -182,6 +187,16 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
+    log.warning("before bind", []);
+    let contract = Reader.bind(
+      Address.fromString("0x9ae55e34e9010fe1261c1cd481f848a905785864")
+    );
+    log.warning("after bind", []);
+    let res = contract.test();
+    log.warning("after call", []);
+    log.warning("after call without res", []);
+    log.warning("after call", [res]);
+
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
