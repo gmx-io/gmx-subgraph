@@ -249,6 +249,14 @@ type TradeAction @entity(immutable: true) {
   transaction: Transaction!
 }
 
+type TokenPrice @entity {
+  # tokenAddress
+  id: ID!
+
+  minPrice: BigInt!
+  maxPrice: BigInt!
+}
+
 type ClaimCollateralAction @entity(immutable: true) {
   # transactionHash:account:eventName
   id: ID!

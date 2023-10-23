@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
+  MarketInfo,
   PoolValueRef,
   PositionFeesInfo,
   PositionFeesInfoWithPeriod,
@@ -10,6 +11,8 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { timestampToPeriodStart } from "../utils/time";
+import { PositionImpactPoolDistributedEventData } from "../utils/eventData/PositionImpactPoolDistributedEventData";
+import { getTokenPrice } from "./prices";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -459,6 +462,78 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
   poolValueRef.pendingFeeUsds = new Array<BigInt>(0);
 
   poolValueRef.save();
+}
+
+export function handlePositionImpactPoolDistributed(
+  eventData: EventData,
+  transaction: Transaction
+): void {
+  let event = new PositionImpactPoolDistributedEventData(eventData);
+  let market = MarketInfo.load(event.market);
+
+  if (!market) {
+    log.warning("Market not found: {}", [event.market]);
+    throw new Error("Market not found");
+  }
+
+  let indexToken = market.indexToken;
+  let tokenPrice = getTokenPrice(indexToken);
+  let amountUsd = event.distributionAmount.times(tokenPrice);
+  let poolValueRef = getOrCreatePoolValueRef(event.market);
+
+  // 1h
+  let feesFor1h = getOrCreateCollectedMarketFees(
+    event.market,
+    indexToken,
+    transaction.timestamp,
+    "1h"
+  );
+
+  feesFor1h.feeUsdPerPoolValue = feesFor1h.feeUsdPerPoolValue.plus(
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
+  );
+  feesFor1h.feeAmountForPool = feesFor1h.feeAmountForPool.plus(
+    event.distributionAmount
+  );
+  feesFor1h.feeUsdForPool = feesFor1h.feeUsdForPool.plus(amountUsd);
+
+  feesFor1h.save();
+
+  // 1d
+  let feesFor1d = getOrCreateCollectedMarketFees(
+    event.market,
+    indexToken,
+    transaction.timestamp,
+    "1d"
+  );
+
+  feesFor1d.feeUsdPerPoolValue = feesFor1d.feeUsdPerPoolValue.plus(
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
+  );
+  feesFor1d.feeAmountForPool = feesFor1d.feeAmountForPool.plus(
+    event.distributionAmount
+  );
+  feesFor1d.feeUsdForPool = feesFor1d.feeUsdForPool.plus(amountUsd);
+
+  feesFor1d.save();
+
+  // total
+  let feesForTotal = getOrCreateCollectedMarketFees(
+    event.market,
+    indexToken,
+    transaction.timestamp,
+    "total"
+  );
+
+  feesForTotal.feeUsdPerPoolValue = feesForTotal.feeUsdPerPoolValue.plus(
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
+  );
+  feesForTotal.feeAmountForPool = feesForTotal.feeAmountForPool.plus(
+    event.distributionAmount
+  );
+  feesForTotal.feeUsdForPool = feesForTotal.feeUsdForPool.plus(amountUsd);
+
+  feesForTotal.save();
 }
 
 function calcFeeUsdPerPoolValue(feeUsd: BigInt, poolValueUsd: BigInt): BigInt {

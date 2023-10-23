@@ -9,6 +9,7 @@ import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./en
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   handleMarketPoolValueUpdated,
+  handlePositionImpactPoolDistributed,
   saveCollectedMarketFees,
   savePositionFeesInfo,
   savePositionFeesInfoWithPeriod,
@@ -47,6 +48,7 @@ import {
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
+import { handleOraclePriceUpdate } from "./entities/prices";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -291,6 +293,18 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "MarketPoolValueUpdated") {
     handleMarketPoolValueUpdated(eventData);
+    return;
+  }
+
+  if (eventName == "PositionImpactPoolDistributed") {
+    let transaction = getOrCreateTransaction(event);
+    handlePositionImpactPoolDistributed(eventData, transaction);
+    return;
+  }
+
+  if (eventName == "OraclePriceUpdate") {
+    handleOraclePriceUpdate(eventData);
+    return;
   }
 }
 
