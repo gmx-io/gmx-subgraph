@@ -96,6 +96,13 @@ type PositionIncrease @entity(immutable: true) {
   transaction: Transaction
 }
 
+type TokenPrice @entity {
+  # tokenAddress
+  id: ID!
+  minPrice: BigInt!
+  maxPrice: BigInt!
+}
+
 type PositionDecrease @entity(immutable: true) {
   # orderKey
   id: ID!

@@ -1,4 +1,5 @@
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+
 import {
   EventEmitter,
   EventLog1,
@@ -28,6 +29,7 @@ import {
   saveOrderUpdate,
 } from "./entities/orders";
 import {
+  handlePositionImpactPoolDistributed,
   savePositionDecrease,
   savePositionIncrease,
 } from "./entities/positions";
@@ -48,7 +50,8 @@ import {
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
-import { Reader } from "../generated/Reader/Reader";
+
+import { updateTokenPrice } from "./entities/prices";
 
 export function handleReader(): void {}
 export function handleBlock(block: ethereum.Block): void {}
@@ -59,6 +62,17 @@ export function handleEventLog1(event: EventLog1): void {
     event.params.eventData as EventLogEventDataStruct
   );
   let eventId = getIdFromEvent(event);
+
+  if (eventName == "PositionImpactPoolDistributed") {
+    let transaction = getOrCreateTransaction(event);
+    handlePositionImpactPoolDistributed(eventData, transaction);
+    return;
+  }
+
+  if (eventName == "OraclePriceUpdate") {
+    updateTokenPrice(eventData);
+    return;
+  }
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
@@ -184,14 +198,6 @@ export function handleEventLog1(event: EventLog1): void {
     saveUserStat("swap", receiver, transaction.timestamp);
     return;
   }
-  log.warning("before bind", []);
-  let contract = Reader.bind(
-    Address.fromString("0x9ae55e34e9010fe1261c1cd481f848a905785864")
-  );
-  log.warning("after bind", []);
-  let res = contract.test();
-  log.warning("after call without res", []);
-  log.warning("after call", [res]);
 
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
