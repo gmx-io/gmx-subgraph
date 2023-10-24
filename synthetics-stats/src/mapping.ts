@@ -184,18 +184,17 @@ export function handleEventLog1(event: EventLog1): void {
     saveUserStat("swap", receiver, transaction.timestamp);
     return;
   }
+  log.warning("before bind", []);
+  let contract = Reader.bind(
+    Address.fromString("0x9ae55e34e9010fe1261c1cd481f848a905785864")
+  );
+  log.warning("after bind", []);
+  let res = contract.test();
+  log.warning("after call without res", []);
+  log.warning("after call", [res]);
 
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
-    log.warning("before bind", []);
-    let contract = Reader.bind(
-      Address.fromString("0x9ae55e34e9010fe1261c1cd481f848a905785864")
-    );
-    log.warning("after bind", []);
-    let res = contract.test();
-    log.warning("after call", []);
-    log.warning("after call without res", []);
-    log.warning("after call", [res]);
 
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
