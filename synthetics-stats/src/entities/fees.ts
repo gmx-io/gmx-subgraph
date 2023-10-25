@@ -77,7 +77,7 @@ function saveCollectedMarketFeesForPeriod(
   );
 
   let poolValueRef = getOrCreatePoolValueRef(marketAddress);
-  let shouldCalulateAprNow = getShouldCalculateAprForFeeEvent(actionName);
+  let shouldCalulateAprNow = getShouldCalculateAprForFeeEventNow(actionName);
 
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
@@ -371,9 +371,8 @@ function getOrCreatePositionFeesInfoWithPeriod(
   return feeInfo as PositionFeesInfoWithPeriod;
 }
 
-function getShouldCalculateAprForFeeEvent(actionName: string): boolean {
-  let isSwapOrDeposit = actionName == "swap" || actionName == "deposit";
-  return !isSwapOrDeposit;
+function getShouldCalculateAprForFeeEventNow(actionName: string): boolean {
+  return actionName !== "withdrawal" && actionName !== "deposit";
 }
 
 export function saveCollectedMarketFees(
