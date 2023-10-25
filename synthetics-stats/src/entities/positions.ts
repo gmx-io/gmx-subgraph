@@ -4,6 +4,7 @@ import {
   PositionDecrease,
   PositionFeesInfo,
   PositionIncrease,
+  TokenPrice,
   Transaction,
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
@@ -186,15 +187,23 @@ function getMarketPoolValueFromContract(marketAddress: string): BigInt | null {
 
   log.warning("marketParams assigned", []);
 
-  let indexPrice = createPriceForContractCall<
+  // indexToken
+  let indexTokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+  let indexTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputIndexTokenPriceStruct
-  >(BigInt.fromI32(1), BigInt.fromI32(2));
-  let longPrice = createPriceForContractCall<
+  >(indexTokenPrice.minPrice, indexTokenPrice.maxPrice);
+
+  // longToken
+  let longTokenPrice = TokenPrice.load(marketInfo.longToken)!;
+  let longTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputLongTokenPriceStruct
-  >(BigInt.fromI32(1), BigInt.fromI32(2));
-  let shortPrice = createPriceForContractCall<
+  >(longTokenPrice.minPrice, longTokenPrice.maxPrice);
+
+  // shortToken
+  let shortTokenPrice = TokenPrice.load(marketInfo.shortToken)!;
+  let shortTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputShortTokenPriceStruct
-  >(BigInt.fromI32(1), BigInt.fromI32(2));
+  >(shortTokenPrice.minPrice, shortTokenPrice.maxPrice);
 
   log.warning("prices created", []);
 
@@ -207,9 +216,9 @@ function getMarketPoolValueFromContract(marketAddress: string): BigInt | null {
   let res = contract.getMarketTokenPrice(
     dataStoreAddress,
     market,
-    indexPrice,
-    longPrice,
-    shortPrice,
+    indexTokenPriceArg,
+    longTokenPriceArg,
+    shortTokenPriceArg,
     bytes,
     true
   );
