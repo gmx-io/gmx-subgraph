@@ -61,12 +61,19 @@ export function handleFundingFeeExecutedClaimAction(
   if (!order) throw new Error("Order not found");
 
   let account = eventData.getAddressItemString("account")!;
+  let claimableFundingFeeInfoId = transaction.id + ":" + account;
   let claimableFundingFeeInfo = ClaimableFundingFeeInfo.load(
-    transaction.id + ":" + account
+    claimableFundingFeeInfoId
   );
 
-  if (!claimableFundingFeeInfo)
+  if (!claimableFundingFeeInfo) {
+    log.warning("ClaimableFundingFeeInfo not found {}", [
+      claimableFundingFeeInfoId,
+    ]);
+    log.warning("Transaction {}", [transaction.id]);
+    log.warning("Order {}", [order.id]);
     throw new Error("ClaimableFundingFeeInfo not found");
+  }
 
   insertFundingFeeInfo(claimAction, claimableFundingFeeInfo!);
 
