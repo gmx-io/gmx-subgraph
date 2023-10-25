@@ -49,6 +49,12 @@ import {
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 import { handleOraclePriceUpdate } from "./entities/prices";
+import {
+  handleDepositCreated,
+  handleDepositExecuted,
+  handleWithdrawalCreated,
+  handleWithdrawalExecuted,
+} from "./entities/gmTokens";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -66,6 +72,13 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("deposit", account, transaction.timestamp);
+    handleDepositCreated(eventData);
+    return;
+  }
+
+  if (eventName == "DepositExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleDepositExecuted(eventData, transaction);
     return;
   }
 
@@ -73,6 +86,13 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
+    handleWithdrawalCreated(eventData);
+    return;
+  }
+
+  if (eventName == "WithdrawalExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleWithdrawalExecuted(eventData, transaction);
     return;
   }
 
@@ -326,6 +346,13 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("deposit", account, transaction.timestamp);
+    handleDepositCreated(eventData);
+    return;
+  }
+
+  if (eventName == "DepositExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleDepositExecuted(eventData, transaction);
     return;
   }
 
@@ -333,6 +360,13 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
+    handleWithdrawalCreated(eventData);
+    return;
+  }
+
+  if (eventName == "WithdrawalExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleWithdrawalExecuted(eventData, transaction);
     return;
   }
 

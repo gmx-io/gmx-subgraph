@@ -195,12 +195,53 @@ type PoolValueRef @entity {
   pendingCollectedMarketFeesInfoIds: [String!]!
 }
 
+type DebugEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  account: String!
+  message: String!
+}
+
+type WithdrawalCreatedEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  marketAddress: String!
+  account: String!
+  tokensAmount: BigInt!
+}
+
+type DepositCreatedEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  marketAddress: String!
+  account: String!
+}
+
+type UserGmTokensRef @entity {
+  #account:marketAddress
+  id: ID!
+  latestAction: UserGmTokensAction
+}
+
+type UserGmTokensAction @entity(immutable: true) {
+  # account:marketAddress:transactionHash
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokensAmount: BigInt!
+  isDeposit: Boolean
+  tokensDiff: BigInt!
+  feeUsdPerGmToken: BigInt!
+  cummulativeIncome: BigInt!
+  timestamp: Int!
+  prevAction: UserGmTokensAction
+}
+
 type CollectedMarketFeesInfo @entity {
-  # marketAddress:tokenAddress:period:timestampGroup
+  # marketAddress:period:timestampGroup or marketAddress:total
   id: ID!
   period: String!
   marketAddress: String!
-  tokenAddress: String!
   feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!

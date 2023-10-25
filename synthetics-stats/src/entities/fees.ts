@@ -31,14 +31,12 @@ swapFeeTypes.set(
 
 function saveCollectedMarketFeesTotal(
   marketAddress: string,
-  tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
   timestamp: i32
 ): CollectedMarketFeesInfo {
   let totalFees = getOrCreateCollectedMarketFees(
     marketAddress,
-    tokenAddress,
     timestamp,
     "total"
   );
@@ -53,6 +51,9 @@ function saveCollectedMarketFeesTotal(
     feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
+
+  // FIXME total
+
   totalFees.save();
 
   return totalFees;
@@ -62,7 +63,6 @@ function saveCollectedMarketFeesForPeriod(
   actionName: string,
   poolValue: BigInt,
   marketAddress: string,
-  tokenAddress: string,
   feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
   totalFees: CollectedMarketFeesInfo,
@@ -71,7 +71,6 @@ function saveCollectedMarketFeesForPeriod(
 ): CollectedMarketFeesInfo {
   let feesForPeriod = getOrCreateCollectedMarketFees(
     marketAddress,
-    tokenAddress,
     timestamp,
     period
   );
@@ -204,13 +203,12 @@ export function savePositionFeesInfo(
 
 function getOrCreateCollectedMarketFees(
   marketAddress: string,
-  tokenAddress: string,
   timestamp: i32,
   period: string
 ): CollectedMarketFeesInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
 
-  let id = marketAddress + ":" + tokenAddress + ":" + period;
+  let id = marketAddress + ":" + period;
 
   if (period != "total") {
     id = id + ":" + timestampGroup.toString();
@@ -221,7 +219,6 @@ function getOrCreateCollectedMarketFees(
   if (collectedFees == null) {
     collectedFees = new CollectedMarketFeesInfo(id);
     collectedFees.marketAddress = marketAddress;
-    collectedFees.tokenAddress = tokenAddress;
     collectedFees.period = period;
     collectedFees.timestampGroup = timestampGroup;
     collectedFees.feeAmountForPool = BigInt.fromI32(0);
@@ -384,9 +381,6 @@ export function saveCollectedMarketFees(
   let marketAddress = swapFeesInfo
     ? swapFeesInfo.marketAddress
     : positionFeesInfo!.marketAddress;
-  let tokenAddress = swapFeesInfo
-    ? swapFeesInfo.tokenAddress
-    : positionFeesInfo!.collateralTokenAddress;
   let feeAmountForPool = swapFeesInfo
     ? swapFeesInfo.feeAmountForPool
     : positionFeesInfo!.feeAmountForPool;
@@ -400,7 +394,6 @@ export function saveCollectedMarketFees(
 
   let totalFees = saveCollectedMarketFeesTotal(
     marketAddress,
-    tokenAddress,
     feeAmountForPool,
     feeUsdForPool,
     transaction.timestamp
@@ -409,7 +402,6 @@ export function saveCollectedMarketFees(
     action,
     poolValueRef.value,
     marketAddress,
-    tokenAddress,
     feeAmountForPool,
     feeUsdForPool,
     totalFees,
@@ -420,7 +412,6 @@ export function saveCollectedMarketFees(
     action,
     poolValueRef.value,
     marketAddress,
-    tokenAddress,
     feeAmountForPool,
     feeUsdForPool,
     totalFees,
@@ -483,7 +474,6 @@ export function handlePositionImpactPoolDistributed(
   // 1h
   let feesFor1h = getOrCreateCollectedMarketFees(
     event.market,
-    indexToken,
     transaction.timestamp,
     "1h"
   );
@@ -501,7 +491,6 @@ export function handlePositionImpactPoolDistributed(
   // 1d
   let feesFor1d = getOrCreateCollectedMarketFees(
     event.market,
-    indexToken,
     transaction.timestamp,
     "1d"
   );
@@ -519,7 +508,6 @@ export function handlePositionImpactPoolDistributed(
   // total
   let feesForTotal = getOrCreateCollectedMarketFees(
     event.market,
-    indexToken,
     transaction.timestamp,
     "total"
   );
