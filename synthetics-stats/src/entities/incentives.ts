@@ -3,7 +3,7 @@ import { LiquidityProviderIncentivesStat, MarketIncentivesStat, UserMarketInfo }
 import { EventData } from "../utils/eventData";
 import { Period, periodToSeconds, timestampToPeriodStart } from "../utils/time";
 import { EventLog1 } from "../../generated/EventEmitter/EventEmitter";
-import { getOrCreatePoolValueRef } from "./common";
+import { getOrCreatePoolValue } from "./common";
 
 let ZERO = BigInt.fromI32(0);
 let GM_PRECISION = BigInt.fromI32(10).pow(18);
@@ -54,7 +54,7 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     // new entity was created
     // interpolate cumulative time x marketTokensBalance starting from the beginning of the period
     let marketAddress = eventData.getAddressItem("market")!;
-    let poolValueRef = getOrCreatePoolValueRef(marketAddress.toHexString())!;
+    let poolValueRef = getOrCreatePoolValue(marketAddress.toHexString())!;
     entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
       poolValueRef.marketTokensSupply.times(event.block.timestamp.minus(BigInt.fromI32(entity.timestamp)))
     ) 

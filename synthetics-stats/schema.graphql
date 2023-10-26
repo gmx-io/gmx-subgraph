@@ -90,7 +90,8 @@ type PositionIncrease @entity(immutable: true) {
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
-  pnlUsd: BigInt!
+  priceImpactUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
@@ -114,12 +115,13 @@ type PositionDecrease @entity(immutable: true) {
   collateralDeltaAmount: BigInt!
   executionPrice: BigInt!
   priceImpactDiffUsd: BigInt!
+  priceImpactUsd: BigInt!
   orderType: BigInt!
   borrowingFactor: BigInt!
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
-  pnlUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
@@ -142,7 +144,6 @@ type PositionFeesInfo @entity(immutable: true) {
   positionFeeAmount: BigInt!
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   totalRebateFactor: BigInt!
@@ -181,33 +182,70 @@ type SwapFeesInfo @entity(immutable: true) {
 
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   transaction: Transaction!
 }
 
-# TODO rename poolValueRef to MarketPoolInfoRef?
-type PoolValueRef @entity {
+type PoolValue @entity {
   # marketAddress
   id: ID!
-  value: BigInt!
+  poolValue: BigInt!
   marketTokensSupply: BigInt!
   pendingFeeUsds: [BigInt!]!
   pendingCollectedMarketFeesInfoIds: [String!]!
 }
 
+type DebugEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  account: String!
+  message: String!
+}
+
+type WithdrawalCreatedEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  marketAddress: String!
+  account: String!
+  tokensAmount: BigInt!
+}
+
+type DepositCreatedEvent @entity(immutable: true) {
+  # key
+  id: ID!
+  marketAddress: String!
+  account: String!
+}
+
+type UserGmTokensRef @entity {
+  #account:marketAddress
+  id: ID!
+  latestAction: UserGmTokensAction
+}
+
+type UserGmTokensAction @entity(immutable: true) {
+  # account:marketAddress:transactionHash
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokensAmount: BigInt!
+  isDeposit: Boolean
+  tokensDiff: BigInt!
+  feeUsdPerGmToken: BigInt!
+  cummulativeIncome: BigInt!
+  timestamp: Int!
+  prevAction: UserGmTokensAction
+}
+
 type CollectedMarketFeesInfo @entity {
-  # marketAddress:tokenAddress:period:timestampGroup
+  # marketAddress:period:timestampGroup or marketAddress:total
   id: ID!
   period: String!
   marketAddress: String!
-  tokenAddress: String!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!
   feeUsdPerGmToken: BigInt!
-  cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
 }
@@ -232,7 +270,10 @@ type TradeAction @entity(immutable: true) {
   executionPrice: BigInt
   collateralTokenPriceMin: BigInt
   collateralTokenPriceMax: BigInt
+  indexTokenPriceMin: BigInt
+  indexTokenPriceMax: BigInt
   priceImpactDiffUsd: BigInt
+  priceImpactUsd: BigInt
   priceImpactAmount: BigInt
   positionFeeAmount: BigInt
   borrowingFeeAmount: BigInt
@@ -355,8 +396,6 @@ type SwapFeesInfoWithPeriod @entity {
   # timestamp | total
   id: ID!
   period: String!
-  totalFeeReceiverAmount: BigInt!
-  totalFeeAmountForPool: BigInt!
 
   totalFeeReceiverUsd: BigInt!
   totalFeeUsdForPool: BigInt!

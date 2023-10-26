@@ -8,6 +8,7 @@ import { Order } from "../generated/schema";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
+  getSwapActionByFeeType,
   handleMarketPoolValueUpdated,
   handlePositionImpactPoolDistributed,
   saveCollectedMarketFees,
@@ -50,6 +51,12 @@ import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 import { handleOraclePriceUpdate } from "./entities/prices";
 import { saveMarketIncentivesStat } from "./entities/incentives";
+import {
+  handleDepositCreated,
+  handleDepositExecuted,
+  handleWithdrawalCreated,
+  handleWithdrawalExecuted,
+} from "./entities/gmTokens";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -66,7 +73,15 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
+    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
+    handleDepositCreated(eventData);
+    return;
+  }
+
+  if (eventName == "DepositExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleDepositExecuted(eventData, transaction);
     return;
   }
 
@@ -74,6 +89,13 @@ export function handleEventLog1(event: EventLog1): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
+    handleWithdrawalCreated(eventData);
+    return;
+  }
+
+  if (eventName == "WithdrawalExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleWithdrawalExecuted(eventData, transaction);
     return;
   }
 
@@ -140,16 +162,6 @@ export function handleEventLog1(event: EventLog1): void {
     return;
   }
 
-  if (eventName == "OrderSizeDeltaAutoUpdated") {
-    saveOrderSizeDeltaAutoUpdate(eventData);
-    return;
-  }
-
-  if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    saveOrderCollateralAutoUpdate(eventData);
-    return;
-  }
-
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderFrozenState(eventData);
@@ -165,6 +177,16 @@ export function handleEventLog1(event: EventLog1): void {
       order.frozenReasonBytes as Bytes,
       transaction
     );
+    return;
+  }
+
+  if (eventName == "OrderSizeDeltaAutoUpdated") {
+    saveOrderSizeDeltaAutoUpdate(eventData);
+    return;
+  }
+
+  if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
+    saveOrderCollateralAutoUpdate(eventData);
     return;
   }
 
@@ -190,12 +212,17 @@ export function handleEventLog1(event: EventLog1): void {
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
     let amountAfterFees = eventData.getUintItem("amountAfterFees")!;
-    let action = eventData.getStringItem("action")!;
+    let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
     let totalAmountIn = amountAfterFees
       .plus(feeAmountForPool)
       .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
-    saveCollectedMarketFees(swapFeesInfo, null, transaction, action);
+    saveCollectedMarketFees(
+      action,
+      transaction,
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.feeUsdForPool
+    );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(
       feeAmountForPool,
@@ -231,7 +258,12 @@ export function handleEventLog1(event: EventLog1): void {
       transaction
     );
     let action = eventData.getStringItem("action")!;
-    saveCollectedMarketFees(null, positionFeesInfo, transaction, action);
+    saveCollectedMarketFees(
+      action,
+      transaction,
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.feeUsdForPool
+    );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
@@ -330,7 +362,15 @@ export function handleEventLog2(event: EventLog2): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
+    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
+    handleDepositCreated(eventData);
+    return;
+  }
+
+  if (eventName == "DepositExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleDepositExecuted(eventData, transaction);
     return;
   }
 
@@ -338,6 +378,13 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
+    handleWithdrawalCreated(eventData);
+    return;
+  }
+
+  if (eventName == "WithdrawalExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    handleWithdrawalExecuted(eventData, transaction);
     return;
   }
 
