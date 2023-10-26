@@ -142,7 +142,6 @@ type PositionFeesInfo @entity(immutable: true) {
   positionFeeAmount: BigInt!
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   totalRebateFactor: BigInt!
@@ -181,16 +180,15 @@ type SwapFeesInfo @entity(immutable: true) {
 
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   transaction: Transaction!
 }
 
-type PoolValueRef @entity {
+type PoolValue @entity {
   # marketAddress
   id: ID!
-  value: BigInt!
+  poolValue: BigInt!
   pendingFeeUsds: [BigInt!]!
   pendingCollectedMarketFeesInfoIds: [String!]!
 }
@@ -201,11 +199,9 @@ type CollectedMarketFeesInfo @entity {
   period: String!
   marketAddress: String!
   tokenAddress: String!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!
   feeUsdPerGmToken: BigInt!
-  cummulativeFeeAmountForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
 }
@@ -353,8 +349,6 @@ type SwapFeesInfoWithPeriod @entity {
   # timestamp | total
   id: ID!
   period: String!
-  totalFeeReceiverAmount: BigInt!
-  totalFeeAmountForPool: BigInt!
 
   totalFeeReceiverUsd: BigInt!
   totalFeeUsdForPool: BigInt!

@@ -194,7 +194,14 @@ export function handleEventLog1(event: EventLog1): void {
       .plus(feeAmountForPool)
       .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
-    saveCollectedMarketFees(swapFeesInfo, null, transaction, action);
+    saveCollectedMarketFees(
+      action,
+      transaction,
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      feeAmountForPool,
+      swapFeesInfo.feeUsdForPool
+    );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(
       feeAmountForPool,
@@ -230,7 +237,14 @@ export function handleEventLog1(event: EventLog1): void {
       transaction
     );
     let action = eventData.getStringItem("action")!;
-    saveCollectedMarketFees(null, positionFeesInfo, transaction, action);
+    saveCollectedMarketFees(
+      action,
+      transaction,
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      eventData.getUintItem("feeAmountForPool")!,
+      positionFeesInfo.feeUsdForPool
+    );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,

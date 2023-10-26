@@ -2,7 +2,7 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   MarketInfo,
-  PoolValueRef,
+  PoolValue,
   PositionFeesInfo,
   PositionFeesInfoWithPeriod,
   SwapFeesInfo,
@@ -15,6 +15,8 @@ import { PositionImpactPoolDistributedEventData } from "../utils/eventData/Posit
 import { getTokenPrice } from "./prices";
 
 export let swapFeeTypes = new Map<string, string>();
+
+let ZERO = BigInt.fromI32(0);
 
 swapFeeTypes.set(
   "SWAP_FEE_TYPE",
@@ -42,15 +44,8 @@ function saveCollectedMarketFeesTotal(
     timestamp,
     "total"
   );
-
-  totalFees.cummulativeFeeAmountForPool = totalFees.cummulativeFeeAmountForPool.plus(
-    feeAmountForPool
-  );
   totalFees.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool.plus(
     feeUsdForPool
-  );
-  totalFees.feeAmountForPool = totalFees.feeAmountForPool.plus(
-    feeAmountForPool
   );
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
   totalFees.save();
@@ -60,10 +55,8 @@ function saveCollectedMarketFeesTotal(
 
 function saveCollectedMarketFeesForPeriod(
   actionName: string,
-  poolValue: BigInt,
   marketAddress: string,
   tokenAddress: string,
-  feeAmountForPool: BigInt,
   feeUsdForPool: BigInt,
   totalFees: CollectedMarketFeesInfo,
   period: string,
@@ -76,21 +69,16 @@ function saveCollectedMarketFeesForPeriod(
     period
   );
 
-  let poolValueRef = getOrCreatePoolValueRef(marketAddress);
+  let poolValueRef = getOrCreatePoolValue(marketAddress);
   let shouldCalulateAprNow = getShouldCalculateAprForFeeEventNow(actionName);
 
-  feesForPeriod.cummulativeFeeAmountForPool =
-    totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
 
-  feesForPeriod.feeAmountForPool = feesForPeriod.feeAmountForPool.plus(
-    feeAmountForPool
-  );
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
 
   if (shouldCalulateAprNow) {
     feesForPeriod.feeUsdPerPoolValue = feesForPeriod.feeUsdPerPoolValue.plus(
-      calcFeeUsdPerPoolValue(feeUsdForPool, poolValue)
+      calcFeeUsdPerPoolValue(feeUsdForPool, poolValueRef.poolValue)
     );
     // if not updating apr immediately, adding it to the queue of corresponding market
   } else {
@@ -137,11 +125,10 @@ export function saveSwapFeesInfo(
   }
 
   swapFeesInfo.tokenPrice = eventData.getUintItem("tokenPrice")!;
-  swapFeesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
   swapFeesInfo.feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
-  swapFeesInfo.feeUsdForPool = swapFeesInfo.feeAmountForPool.times(
-    swapFeesInfo.tokenPrice
-  );
+  swapFeesInfo.feeUsdForPool = eventData
+    .getUintItem("feeAmountForPool")!
+    .times(swapFeesInfo.tokenPrice);
 
   swapFeesInfo.transaction = transaction.id;
 
@@ -181,10 +168,9 @@ export function savePositionFeesInfo(
   feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
   feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
   feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
-  feesInfo.feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
-  feesInfo.feeUsdForPool = feesInfo.feeAmountForPool.times(
-    feesInfo.collateralTokenPriceMin
-  );
+  feesInfo.feeUsdForPool = eventData
+    .getUintItem("feeAmountForPool")!
+    .times(feesInfo.collateralTokenPriceMin);
 
   feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
   feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
@@ -224,9 +210,7 @@ function getOrCreateCollectedMarketFees(
     collectedFees.tokenAddress = tokenAddress;
     collectedFees.period = period;
     collectedFees.timestampGroup = timestampGroup;
-    collectedFees.feeAmountForPool = BigInt.fromI32(0);
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
-    collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
     collectedFees.feeUsdPerPoolValue = BigInt.fromI32(0);
     collectedFees.feeUsdPerGmToken = BigInt.fromI32(0);
@@ -251,27 +235,14 @@ export function saveSwapFeesInfoWithPeriod(
   let feeUsdForPool = feeAmountForPool.times(tokenPrice);
   let feeReceiverUsd = feeReceiverAmount.times(tokenPrice);
 
-  dailyFees.totalFeeAmountForPool = dailyFees.totalFeeAmountForPool.plus(
-    feeAmountForPool
-  );
   dailyFees.totalFeeUsdForPool = dailyFees.totalFeeUsdForPool.plus(
     feeUsdForPool
-  );
-  dailyFees.totalFeeReceiverAmount = dailyFees.totalFeeReceiverAmount.plus(
-    feeReceiverAmount
   );
   dailyFees.totalFeeReceiverUsd = dailyFees.totalFeeReceiverUsd.plus(
     feeReceiverUsd
   );
-
-  totalFees.totalFeeAmountForPool = totalFees.totalFeeAmountForPool.plus(
-    feeAmountForPool
-  );
   totalFees.totalFeeUsdForPool = totalFees.totalFeeUsdForPool.plus(
     feeUsdForPool
-  );
-  totalFees.totalFeeReceiverAmount = totalFees.totalFeeReceiverAmount.plus(
-    feeReceiverAmount
   );
   totalFees.totalFeeReceiverUsd = totalFees.totalFeeReceiverUsd.plus(
     feeReceiverUsd
@@ -343,9 +314,7 @@ function getOrCreateSwapFeesInfoWithPeriod(
   if (feeInfo == null) {
     feeInfo = new SwapFeesInfoWithPeriod(id);
     feeInfo.period = period;
-    feeInfo.totalFeeAmountForPool = BigInt.fromI32(0);
     feeInfo.totalFeeUsdForPool = BigInt.fromI32(0);
-    feeInfo.totalFeeReceiverAmount = BigInt.fromI32(0);
     feeInfo.totalFeeReceiverUsd = BigInt.fromI32(0);
   }
 
@@ -376,28 +345,13 @@ function getShouldCalculateAprForFeeEventNow(actionName: string): boolean {
 }
 
 export function saveCollectedMarketFees(
-  swapFeesInfo: SwapFeesInfo | null,
-  positionFeesInfo: PositionFeesInfo | null,
+  actionName: string,
   transaction: Transaction,
-  action: string
+  marketAddress: string,
+  tokenAddress: string,
+  feeAmountForPool: BigInt,
+  feeUsdForPool: BigInt
 ): void {
-  let marketAddress = swapFeesInfo
-    ? swapFeesInfo.marketAddress
-    : positionFeesInfo!.marketAddress;
-  let tokenAddress = swapFeesInfo
-    ? swapFeesInfo.tokenAddress
-    : positionFeesInfo!.collateralTokenAddress;
-  let feeAmountForPool = swapFeesInfo
-    ? swapFeesInfo.feeAmountForPool
-    : positionFeesInfo!.feeAmountForPool;
-  let feeUsdForPool = swapFeesInfo
-    ? swapFeesInfo.feeUsdForPool
-    : positionFeesInfo!.feeUsdForPool;
-
-  let poolValueRef = getOrCreatePoolValueRef(
-    swapFeesInfo ? swapFeesInfo.marketAddress : positionFeesInfo!.marketAddress
-  );
-
   let totalFees = saveCollectedMarketFeesTotal(
     marketAddress,
     tokenAddress,
@@ -406,22 +360,18 @@ export function saveCollectedMarketFees(
     transaction.timestamp
   );
   saveCollectedMarketFeesForPeriod(
-    action,
-    poolValueRef.value,
+    actionName,
     marketAddress,
     tokenAddress,
-    feeAmountForPool,
     feeUsdForPool,
     totalFees,
     "1h",
     transaction.timestamp
   );
   saveCollectedMarketFeesForPeriod(
-    action,
-    poolValueRef.value,
+    actionName,
     marketAddress,
     tokenAddress,
-    feeAmountForPool,
     feeUsdForPool,
     totalFees,
     "1d",
@@ -432,10 +382,10 @@ export function saveCollectedMarketFees(
 export function handleMarketPoolValueUpdated(eventData: EventData): void {
   let marketAddress = eventData.getAddressItemString("market")!;
   let poolValue = eventData.getIntItem("poolValue")!;
-  let poolValueRef = getOrCreatePoolValueRef(marketAddress);
-  poolValueRef.value = poolValue;
+  let poolValueRef = getOrCreatePoolValue(marketAddress);
+  poolValueRef.poolValue = poolValue;
 
-  if (poolValue.toString() == "0") {
+  if (poolValue.equals(ZERO)) {
     return;
   }
 
@@ -478,7 +428,7 @@ export function handlePositionImpactPoolDistributed(
   let indexToken = market.indexToken;
   let tokenPrice = getTokenPrice(indexToken);
   let amountUsd = event.distributionAmount.times(tokenPrice);
-  let poolValueRef = getOrCreatePoolValueRef(event.market);
+  let poolValueRef = getOrCreatePoolValue(event.market);
 
   // 1h
   let feesFor1h = getOrCreateCollectedMarketFees(
@@ -489,10 +439,7 @@ export function handlePositionImpactPoolDistributed(
   );
 
   feesFor1h.feeUsdPerPoolValue = feesFor1h.feeUsdPerPoolValue.plus(
-    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
-  );
-  feesFor1h.feeAmountForPool = feesFor1h.feeAmountForPool.plus(
-    event.distributionAmount
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.poolValue)
   );
   feesFor1h.feeUsdForPool = feesFor1h.feeUsdForPool.plus(amountUsd);
 
@@ -507,10 +454,7 @@ export function handlePositionImpactPoolDistributed(
   );
 
   feesFor1d.feeUsdPerPoolValue = feesFor1d.feeUsdPerPoolValue.plus(
-    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
-  );
-  feesFor1d.feeAmountForPool = feesFor1d.feeAmountForPool.plus(
-    event.distributionAmount
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.poolValue)
   );
   feesFor1d.feeUsdForPool = feesFor1d.feeUsdForPool.plus(amountUsd);
 
@@ -525,10 +469,7 @@ export function handlePositionImpactPoolDistributed(
   );
 
   feesForTotal.feeUsdPerPoolValue = feesForTotal.feeUsdPerPoolValue.plus(
-    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.value)
-  );
-  feesForTotal.feeAmountForPool = feesForTotal.feeAmountForPool.plus(
-    event.distributionAmount
+    calcFeeUsdPerPoolValue(amountUsd, poolValueRef.poolValue)
   );
   feesForTotal.feeUsdForPool = feesForTotal.feeUsdForPool.plus(amountUsd);
 
@@ -547,13 +488,13 @@ function calcFeeUsdPerPoolValue(feeUsd: BigInt, poolValueUsd: BigInt): BigInt {
   return res;
 }
 
-function getOrCreatePoolValueRef(marketAddress: string): PoolValueRef {
+function getOrCreatePoolValue(marketAddress: string): PoolValue {
   let id = marketAddress;
-  let ref = PoolValueRef.load(id);
+  let ref = PoolValue.load(id);
 
   if (!ref) {
-    ref = new PoolValueRef(id);
-    ref.value = BigInt.fromI32(0);
+    ref = new PoolValue(id);
+    ref.poolValue = BigInt.fromI32(0);
     ref.pendingFeeUsds = new Array<BigInt>(0);
     ref.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
   }
