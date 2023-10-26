@@ -1,5 +1,5 @@
-import { ethereum } from "@graphprotocol/graph-ts";
-import { Transaction } from "../../generated/schema";
+import { ethereum, BigInt } from "@graphprotocol/graph-ts";
+import { PoolValueRef, Transaction } from "../../generated/schema";
 
 export function getIdFromEvent(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + ":" + event.logIndex.toString();
@@ -25,4 +25,18 @@ export function getOrCreateTransaction(event: ethereum.Event): Transaction {
   }
 
   return entity as Transaction;
+}
+
+export function getOrCreatePoolValueRef(marketAddress: string): PoolValueRef {
+  let id = marketAddress;
+  let ref = PoolValueRef.load(id);
+
+  if (!ref) {
+    ref = new PoolValueRef(id);
+    ref.value = BigInt.fromI32(0);
+    ref.pendingFeeUsds = new Array<BigInt>(0);
+    ref.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
+  }
+
+  return ref!;
 }

@@ -49,6 +49,7 @@ import {
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 import { handleOraclePriceUpdate } from "./entities/prices";
+import { saveMarketIncentivesStat } from "./entities/incentives";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -292,6 +293,10 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "MarketPoolValueUpdated") {
+    // `saveMarketIncentivesStat   should be called before `PoolValueRef` entity is updated
+    // inside `handleMarketPoolValueUpdated`
+    saveMarketIncentivesStat(eventData, event);
+
     handleMarketPoolValueUpdated(eventData);
     return;
   }

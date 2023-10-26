@@ -2,7 +2,6 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   MarketInfo,
-  PoolValueRef,
   PositionFeesInfo,
   PositionFeesInfoWithPeriod,
   SwapFeesInfo,
@@ -13,6 +12,7 @@ import { EventData } from "../utils/eventData";
 import { timestampToPeriodStart } from "../utils/time";
 import { PositionImpactPoolDistributedEventData } from "../utils/eventData/PositionImpactPoolDistributedEventData";
 import { getTokenPrice } from "./prices";
+import { getOrCreatePoolValueRef } from "./common";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -434,6 +434,7 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
   let poolValue = eventData.getIntItem("poolValue")!;
   let poolValueRef = getOrCreatePoolValueRef(marketAddress);
   poolValueRef.value = poolValue;
+  poolValueRef.marketTokensSupply = eventData.getUintItem("marketTokensSupply")!
 
   if (poolValue.toString() == "0") {
     return;
@@ -545,18 +546,4 @@ function calcFeeUsdPerPoolValue(feeUsd: BigInt, poolValueUsd: BigInt): BigInt {
   let res = feeUsd.times(multiplier).div(poolValueUsd);
 
   return res;
-}
-
-function getOrCreatePoolValueRef(marketAddress: string): PoolValueRef {
-  let id = marketAddress;
-  let ref = PoolValueRef.load(id);
-
-  if (!ref) {
-    ref = new PoolValueRef(id);
-    ref.value = BigInt.fromI32(0);
-    ref.pendingFeeUsds = new Array<BigInt>(0);
-    ref.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
-  }
-
-  return ref!;
 }
