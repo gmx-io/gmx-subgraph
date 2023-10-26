@@ -31,6 +31,23 @@ swapFeeTypes.set(
   "0xda1ac8fcb4f900f8ab7c364d553e5b6b8bdc58f74160df840be80995056f3838"
 );
 
+export function getSwapActionByFeeType(swapFeeType: string): string {
+  if (swapFeeType == swapFeeTypes.get("SWAP_FEE_TYPE")) {
+    return "swap";
+  }
+
+  if (swapFeeType == swapFeeTypes.get("DEPOSIT_FEE_TYPE")) {
+    return "deposit";
+  }
+
+  if (swapFeeType == swapFeeTypes.get("WITHDRAWAL_FEE_TYPE")) {
+    return "withdrawal";
+  }
+
+  log.error("Unknown swap fee type: {}", [swapFeeType]);
+  throw new Error("Unknown swap fee type: " + swapFeeType);
+}
+
 function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
