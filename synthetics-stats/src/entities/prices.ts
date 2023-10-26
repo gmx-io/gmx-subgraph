@@ -5,17 +5,17 @@ import { TokenPrice } from "../../generated/schema";
 
 export function handleOraclePriceUpdate(eventData: EventData): void {
   let event = new OraclePriceUpdateEventData(eventData);
-  let pricesRef = getOrCreatePricesRef(event.token);
+  let tokenPrice = getOrCreateTokenPrice(event.token);
 
-  pricesRef.minPrice = event.minPrice;
-  pricesRef.maxPrice = event.maxPrice;
+  tokenPrice.minPrice = event.minPrice;
+  tokenPrice.maxPrice = event.maxPrice;
 
-  pricesRef.save();
+  tokenPrice.save();
 }
 
-function getOrCreatePricesRef(tokenAddress: string): TokenPrice {
-  let pricesRef = TokenPrice.load(tokenAddress);
-  return pricesRef ? pricesRef! : new TokenPrice(tokenAddress);
+function getOrCreateTokenPrice(tokenAddress: string): TokenPrice {
+  let tokenPrice = TokenPrice.load(tokenAddress);
+  return tokenPrice ? tokenPrice! : new TokenPrice(tokenAddress);
 }
 
 export function getTokenPrice(tokenAddress: string): BigInt {
