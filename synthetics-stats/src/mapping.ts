@@ -1,12 +1,12 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   EventLog1,
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { Order } from "../generated/schema";
+import { DepositCreatedEvent, Order, WithdrawalCreatedEvent } from "../generated/schema";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
-import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
+import { createDebugEvent, getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
   handleMarketPoolValueUpdated,
@@ -50,13 +50,14 @@ import {
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 import { handleOraclePriceUpdate } from "./entities/prices";
-import { saveMarketIncentivesStat } from "./entities/incentives";
+import { saveMarketIncentivesStat, saveUserMarketInfo } from "./entities/incentives";
 import {
   handleDepositCreated,
-  handleDepositExecuted,
+  handleUserGmTokensChange,
   handleWithdrawalCreated,
-  handleWithdrawalExecuted,
 } from "./entities/gmTokens";
+import { DepositExecutedEventEventData } from "./utils/eventData/DepositExecutedEventData";
+import { WithdrawalExecutedEventData } from "./utils/eventData/WithdrawalExecutedEventData";
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -80,8 +81,7 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "DepositExecuted") {
-    let transaction = getOrCreateTransaction(event);
-    handleDepositExecuted(eventData, transaction);
+    handleDepositExecuted(event as EventLog2, eventData);
     return;
   }
 
@@ -94,8 +94,7 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "WithdrawalExecuted") {
-    let transaction = getOrCreateTransaction(event);
-    handleWithdrawalExecuted(eventData, transaction);
+    handleWithdrawalExecuted(event as EventLog2, eventData);
     return;
   }
 
@@ -369,8 +368,7 @@ export function handleEventLog2(event: EventLog2): void {
   }
 
   if (eventName == "DepositExecuted") {
-    let transaction = getOrCreateTransaction(event);
-    handleDepositExecuted(eventData, transaction);
+    handleDepositExecuted(event, eventData);
     return;
   }
 
@@ -383,8 +381,7 @@ export function handleEventLog2(event: EventLog2): void {
   }
 
   if (eventName == "WithdrawalExecuted") {
-    let transaction = getOrCreateTransaction(event);
-    handleWithdrawalExecuted(eventData, transaction);
+    handleWithdrawalExecuted(event, eventData);
     return;
   }
 
@@ -468,4 +465,49 @@ export function handleEventLog2(event: EventLog2): void {
     );
     return;
   }
+}
+
+function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
+  let data = new DepositExecutedEventEventData(eventData);
+  let depositCreatedEvent = DepositCreatedEvent.load(data.key);
+
+  if (!depositCreatedEvent) {
+    createDebugEvent(data.account, data.key, "handleDepositExecuted");
+    return;
+  }
+
+  let marketAddress = depositCreatedEvent.marketAddress;
+  let transaction = getOrCreateTransaction(event);
+
+  handleUserGmTokensChange(
+    data.account,
+    data.receivedMarketTokens,
+    transaction,
+    marketAddress,
+    true
+  );
+
+  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens);
+}
+
+function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void {
+  let data = new WithdrawalExecutedEventData(eventData);
+  let withdrawalCreatedEvent = WithdrawalCreatedEvent.load(data.key);
+  if (!withdrawalCreatedEvent) {
+    createDebugEvent(data.account, data.key, "handleWithdrawalExecuted");
+    return;
+  }
+  let marketAddress = withdrawalCreatedEvent.marketAddress;
+  let tokensAmount = withdrawalCreatedEvent.tokensAmount;
+  let transaction = getOrCreateTransaction(event);
+
+  handleUserGmTokensChange(
+    data.account,
+    tokensAmount,
+    transaction,
+    marketAddress,
+    false
+  );
+
+  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg());
 }

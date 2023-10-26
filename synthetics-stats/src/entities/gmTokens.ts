@@ -2,7 +2,6 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { EventData } from "../utils/eventData";
 import {
   CollectedMarketFeesInfo,
-  DebugEvent,
   DepositCreatedEvent,
   Transaction,
   UserGmTokensAction,
@@ -10,67 +9,17 @@ import {
   WithdrawalCreatedEvent,
 } from "../../generated/schema";
 import { WithdrawalCreatedEventData } from "../utils/eventData/withdrawalCreatedEventData";
-import { WithdrawalExecutedEventData } from "../utils/eventData/WithdrawalExecutedEventData";
 import { DepositCreatedEventEventData } from "../utils/eventData/DepositCreatedEventData";
-import { DepositExecutedEventEventData } from "../utils/eventData/DepositExecutedEventData";
 
 export function handleWithdrawalCreated(eventData: EventData): void {
   createWithdrawalCreatedEvent(new WithdrawalCreatedEventData(eventData));
-}
-
-export function handleWithdrawalExecuted(
-  eventData: EventData,
-  transaction: Transaction
-): void {
-  let event = new WithdrawalExecutedEventData(eventData);
-  let withdrawalCreatedEvent = WithdrawalCreatedEvent.load(event.key);
-  if (!withdrawalCreatedEvent) {
-    // log.warning("handleWithdrawalExecuted SKIP {}", [event.key]);
-    createDebugEvent(event.account, event.key, "handleWithdrawalExecuted");
-    return;
-  }
-  let marketAddress = withdrawalCreatedEvent.marketAddress;
-  let tokensAmount = withdrawalCreatedEvent.tokensAmount;
-
-  handleUserGmTokensChange(
-    event.account,
-    tokensAmount,
-    transaction,
-    marketAddress,
-    false
-  );
 }
 
 export function handleDepositCreated(eventData: EventData): void {
   createUserDepositCreatedEvent(new DepositCreatedEventEventData(eventData));
 }
 
-export function handleDepositExecuted(
-  eventData: EventData,
-  transaction: Transaction
-): void {
-  let event = new DepositExecutedEventEventData(eventData);
-
-  let depositCreatedEvent = DepositCreatedEvent.load(event.key);
-
-  if (!depositCreatedEvent) {
-    // log.warning("handleDepositExecuted SKIP {}", [event.key]);
-    createDebugEvent(event.account, event.key, "handleDepositExecuted");
-    return;
-  }
-
-  let marketAddress = depositCreatedEvent.marketAddress;
-
-  handleUserGmTokensChange(
-    event.account,
-    event.receivedMarketTokens,
-    transaction,
-    marketAddress,
-    true
-  );
-}
-
-function handleUserGmTokensChange(
+export function handleUserGmTokensChange(
   account: string,
   tokensDiff: BigInt,
   transaction: Transaction,
@@ -230,13 +179,4 @@ function updateLatestUserGmTokensChange(
 
   userGmTokensRef.latestAction = latestChange.id;
   userGmTokensRef.save();
-}
-
-function createDebugEvent(account: string, key: string, message: string): void {
-  let entity = new DebugEvent(key);
-
-  entity.message = message;
-  entity.account = account;
-
-  entity.save();
 }

@@ -1,5 +1,5 @@
 import { ethereum, BigInt } from "@graphprotocol/graph-ts";
-import { PoolValue, Transaction } from "../../generated/schema";
+import { DebugEvent, PoolValue, Transaction } from "../../generated/schema";
 
 export function getIdFromEvent(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + ":" + event.logIndex.toString();
@@ -40,4 +40,13 @@ export function getOrCreatePoolValue(marketAddress: string): PoolValue {
   }
 
   return ref!;
+}
+
+export function createDebugEvent(account: string, key: string, message: string): void {
+  let entity = new DebugEvent(key);
+
+  entity.message = message;
+  entity.account = account;
+
+  entity.save();
 }
