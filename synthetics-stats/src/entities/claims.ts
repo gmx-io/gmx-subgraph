@@ -67,12 +67,7 @@ export function handleFundingFeeExecutedClaimAction(
   );
 
   if (!claimableFundingFeeInfo) {
-    log.warning("ClaimableFundingFeeInfo not found {}", [
-      claimableFundingFeeInfoId,
-    ]);
-    log.warning("Transaction {}", [transaction.id]);
-    log.warning("Order {}", [order.id]);
-    throw new Error("ClaimableFundingFeeInfo not found");
+    return;
   }
 
   insertFundingFeeInfo(claimAction, claimableFundingFeeInfo!);
