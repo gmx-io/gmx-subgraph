@@ -1,9 +1,15 @@
-import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 import {
   EventLog1,
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
+import {
+  Transfer
+} from "../generated/templates/MarketTokenTemplate/MarketToken"
+import {
+  MarketTokenTemplate
+} from "../generated/templates"
 import { DepositCreatedEvent, Order, WithdrawalCreatedEvent } from "../generated/schema";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 import { createDebugEvent, getIdFromEvent, getOrCreateTransaction } from "./entities/common";
@@ -59,6 +65,11 @@ import {
 import { DepositExecutedEventEventData } from "./utils/eventData/DepositExecutedEventData";
 import { WithdrawalExecutedEventData } from "./utils/eventData/WithdrawalExecutedEventData";
 
+export function handleMarketTokenTransfer(event: Transfer): void {
+  saveUserMarketInfo(event.params.from.toHexString(), event.address.toHexString(), event.params.value.neg(), event.transaction.hash.toHexString());
+  saveUserMarketInfo(event.params.to.toHexString(), event.address.toHexString(), event.params.value, event.transaction.hash.toHexString());
+}
+
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
@@ -68,6 +79,9 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
+
+    MarketTokenTemplate.create(eventData.getAddressItem("marketToken")!);
+
     return;
   }
 
@@ -486,8 +500,6 @@ function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
     marketAddress,
     true
   );
-
-  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens, event.transaction.hash.toHexString());
 }
 
 function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void {
@@ -509,5 +521,4 @@ function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void 
     false
   );
 
-  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg(), event.transaction.hash.toHexString());
 }

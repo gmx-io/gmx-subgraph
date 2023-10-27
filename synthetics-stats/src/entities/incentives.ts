@@ -10,7 +10,7 @@ let GM_PRECISION = BigInt.fromI32(10).pow(18);
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 
 export function saveUserMarketInfo(account: string, marketAddress: string, marketTokensDelta: BigInt, txHash: string): void {
-  if (account == "0x03f8420b1754b086ed30543f071fbd8282c5fa84") {
+  if (account == "0x07ae4ff52377d2002ac7ef4557f0e245483eb604") {
     log.warning("saveUserMarketInfo account {} market {} marketTokensDelta {} tx {}", [
       account,
       marketAddress,

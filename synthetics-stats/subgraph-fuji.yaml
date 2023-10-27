@@ -61,3 +61,24 @@ dataSources:
         - event: EventLog2(address,string,indexed string,indexed bytes32,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
           handler: handleEventLog2
       file: ./src/mapping.ts
+
+templates:
+  - kind: ethereum/contract
+    name: MarketTokenTemplate
+    network: fuji
+    source:
+      abi: MarketToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Transaction
+      abis:
+        - name: MarketToken
+          file: ./abis/MarketToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleMarketTokenTransfer
+      file: ./src/mapping.ts
+

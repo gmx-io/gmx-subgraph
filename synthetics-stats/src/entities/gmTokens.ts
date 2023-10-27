@@ -61,17 +61,17 @@ export function handleUserGmTokensChange(
     ? prevTokensAmount.plus(tokensDiff)
     : prevTokensAmount.minus(tokensDiff);
 
-  if (newAmount.lt(BigInt.fromI32(0))) {
-    log.warning(
-      "handleUserGmTokensChange NEGATIVE account={} prevTokensAmount={} tokensAmount={} tokensDiff={}",
-      [
-        account,
-        prevTokensAmount ? prevTokensAmount.toString() : "null",
-        newAmount.toString(),
-        tokensDiff.toString(),
-      ]
-    );
-  }
+  // if (newAmount.lt(BigInt.fromI32(0))) {
+  //   log.warning(
+  //     "handleUserGmTokensChange NEGATIVE account={} prevTokensAmount={} tokensAmount={} tokensDiff={}",
+  //     [
+  //       account,
+  //       prevTokensAmount ? prevTokensAmount.toString() : "null",
+  //       newAmount.toString(),
+  //       tokensDiff.toString(),
+  //     ]
+  //   );
+  // }
 
   tokensAction.tokensAmount = newAmount;
   tokensAction.tokensDiff = isDeposit
