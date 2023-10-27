@@ -6,6 +6,8 @@ import {
 } from "../generated/EventEmitter/EventEmitter";
 import { Order } from "../generated/schema";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
+import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken"
+import { MarketTokenTemplate } from "../generated/templates"
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
@@ -16,7 +18,7 @@ import {
   saveSwapFeesInfo,
   saveSwapFeesInfoWithPeriod,
 } from "./entities/fees";
-import { saveMarketInfo } from "./entities/markets";
+import { saveMarketInfo, saveMarketPoolValueInfo } from "./entities/markets";
 import {
   orderTypes,
   saveOrder,
@@ -49,6 +51,30 @@ import {
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 import { saveTokenPrice } from "./entities/prices";
+import { saveLiquidityProviderIncentivesStat, saveMarketIncentivesStat, saveUserMarketInfo } from "./entities/incentives";
+
+let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
+
+export function handleMarketTokenTransfer(event: Transfer): void {
+  let marketAddress = event.address.toHexString()
+  let from = event.params.from.toHexString()
+  let to = event.params.to.toHexString()
+  let value = event.params.value
+
+  // `from` user redeems or transfers out GM tokens
+  if (from != ADDRESS_ZERO) {
+    // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
+    saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32()) 
+    saveUserMarketInfo(from, marketAddress, value.neg());
+  }
+
+  // `to` user receives GM tokens
+  if (to != ADDRESS_ZERO) {
+    // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
+    saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32())
+    saveUserMarketInfo(to, marketAddress, value);
+  }
+}
 
 export function handleEventLog1(event: EventLog1): void {
   let eventName = event.params.eventName;
@@ -68,6 +94,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
+    MarketTokenTemplate.create(eventData.getAddressItem("marketToken")!);
     return;
   }
 
@@ -346,6 +373,14 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
     saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
+    return;
+  }
+
+  if (eventName == "MarketPoolValueUpdated") {
+    // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
+    saveMarketIncentivesStat(eventData, event);
+
+    saveMarketPoolValueInfo(eventData);
     return;
   }
 }

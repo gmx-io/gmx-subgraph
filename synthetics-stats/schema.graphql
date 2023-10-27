@@ -287,6 +287,8 @@ type MarketInfo @entity {
   indexToken: String!
   longToken: String!
   shortToken: String!
+
+  marketTokensSupply: BigInt!
 }
 
 type VolumeInfo @entity {
@@ -363,4 +365,37 @@ type PositionFeesInfoWithPeriod @entity {
   totalPositionFeeAmount: BigInt!
   totalPositionFeeUsd: BigInt!
   totalBorrowingFeeUsd: BigInt!
+}
+
+type LiquidityProviderIncentivesStat @entity {
+  # account + market + period
+  id: ID!
+  period: String!
+  timestamp: Int!
+
+  updatedTimestamp: Int!
+  lastMarketTokensBalance: BigInt!
+  cumulativeTimeByMarketTokensBalance: BigInt!
+  weightedAverageMarketTokensBalance: BigInt!
+}
+
+type MarketIncentivesStat @entity {
+  # marketAddress + period
+  id: ID!
+  period: String!
+  timestamp: Int!
+
+  updatedTimestamp: Int!
+  lastMarketTokensSupply: BigInt!
+  cumulativeTimeByMarketTokensSupply: BigInt!
+  weightedAverageMarketTokensSupply: BigInt!
+}
+
+type UserMarketInfo @entity {
+  # account + marketAddress 
+  id: ID!
+
+  marketTokensBalance: BigInt!
+  account: String!
+  marketAddress: String!
 }
