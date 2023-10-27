@@ -1,13 +1,22 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
+
 import {
   EventLog1,
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { Order } from "../generated/schema";
-import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken"
 import { MarketTokenTemplate } from "../generated/templates"
+import { ClaimRef, Order } from "../generated/schema";
+
+import {
+  saveClaimActionOnOrderCreated,
+  saveClaimActionOnOrderExecuted,
+  isFundingFeeSettleOrder,
+  saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
+  handleCollateralClaimAction,
+  saveClaimActionOnOrderCancelled,
+} from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
@@ -101,7 +110,6 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
     return;
   }
@@ -366,13 +374,19 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "FundingFeesClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimFunding");
+    handleCollateralClaimAction("ClaimFunding", eventData, transaction);
     return;
   }
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
+    handleCollateralClaimAction("ClaimPriceImpactFee", eventData, transaction);
+    return;
+  }
+
+  if (eventName == "ClaimableFundingUpdated") {
+    let transaction = getOrCreateTransaction(event);
+    handleClaimableFundingUpdated(eventData, transaction);
     return;
   }
 
@@ -393,16 +407,19 @@ export function handleEventLog2(event: EventLog2): void {
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
-    let tranaction = getOrCreateTransaction(event);
-    let order = saveOrder(eventData, tranaction);
-    saveOrderCreatedTradeAction(eventId, order, tranaction);
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrder(eventData, transaction);
+    if (isFundingFeeSettleOrder(order)) {
+      saveClaimActionOnOrderCreated(transaction, eventData);
+    } else {
+      saveOrderCreatedTradeAction(eventId, order, transaction);
+    }
     return;
   }
 
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
     saveUserStat("deposit", account, transaction.timestamp);
     return;
   }
@@ -442,11 +459,15 @@ export function handleEventLog2(event: EventLog2): void {
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(
-        eventId,
-        order as Order,
-        transaction
-      );
+      if (ClaimRef.load(order.id)) {
+        saveClaimActionOnOrderExecuted(transaction, eventData);
+      } else {
+        savePositionDecreaseExecutedTradeAction(
+          eventId,
+          order as Order,
+          transaction
+        );
+      }
     }
     return;
   }
@@ -455,13 +476,17 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
-      saveOrderCancelledTradeAction(
-        eventId,
-        order as Order,
-        order.cancelledReason as string,
-        order.cancelledReasonBytes as Bytes,
-        transaction
-      );
+      if (ClaimRef.load(order.id)) {
+        saveClaimActionOnOrderCancelled(transaction, eventData);
+      } else {
+        saveOrderCancelledTradeAction(
+          eventId,
+          order!,
+          order.cancelledReason as string,
+          order.cancelledReasonBytes as Bytes,
+          transaction
+        );
+      }
     }
 
     return;
