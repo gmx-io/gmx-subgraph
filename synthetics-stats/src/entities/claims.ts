@@ -66,6 +66,7 @@ export function handleFundingFeeExecutedClaimAction(
     claimableFundingFeeInfoId
   );
 
+  // inconsistent settlement: requested but ClaimableFundingUpdated not emitted
   if (!claimableFundingFeeInfo) {
     return;
   }
