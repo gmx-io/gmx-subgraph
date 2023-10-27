@@ -487,7 +487,7 @@ function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
     true
   );
 
-  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens);
+  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens, event.transaction.hash.toString());
 }
 
 function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void {
@@ -509,5 +509,5 @@ function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void 
     false
   );
 
-  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg());
+  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg(), event.transaction.hash.toString());
 }

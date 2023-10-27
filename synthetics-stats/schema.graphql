@@ -442,4 +442,6 @@ type UserMarketInfo @entity {
   id: ID!
 
   marketTokensBalance: BigInt!
+  account: String!
+  marketAddress: String!
 }

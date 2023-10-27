@@ -1,4 +1,4 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { LiquidityProviderIncentivesStat, MarketIncentivesStat, UserMarketInfo } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { Period, periodToSeconds, timestampToPeriodStart } from "../utils/time";
@@ -9,7 +9,15 @@ let ZERO = BigInt.fromI32(0);
 let GM_PRECISION = BigInt.fromI32(10).pow(18);
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 
-export function saveUserMarketInfo(account: string, marketAddress: string, marketTokensDelta: BigInt): void {
+export function saveUserMarketInfo(account: string, marketAddress: string, marketTokensDelta: BigInt, txHash: string): void {
+  if (account == "0x03f8420b1754b086ed30543f071fbd8282c5fa84") {
+    log.warning("saveUserMarketInfo account {} market {} marketTokensDelta {} tx {}", [
+      account,
+      marketAddress,
+      marketTokensDelta.toString(),
+      txHash
+    ]);
+  }
   let entity = _getUserMarketInfo(account, marketAddress);
   entity.marketTokensBalance = entity.marketTokensBalance.plus(marketTokensDelta);
 
@@ -28,12 +36,14 @@ export function saveLiquidityProviderIncentivesStat(
     // new entity was created
     // interpolate cumulative time x marketTokensBalance starting from the beginning of the period
     let userMarketInfo = _getUserMarketInfo(account, marketAddress);
+    let timeInSeconds = BigInt.fromI32(timestamp - entity.timestamp)
     entity.cumulativeTimeByMarketTokensBalance = entity.cumulativeTimeByMarketTokensBalance.plus(
-      userMarketInfo.marketTokensBalance.times(BigInt.fromI32(timestamp - entity.timestamp))
+      userMarketInfo.marketTokensBalance.times(timeInSeconds)
     ) 
   } else {
+    let timeInSeconds = BigInt.fromI32(timestamp - entity.updatedTimestamp);
     entity.cumulativeTimeByMarketTokensBalance = entity.cumulativeTimeByMarketTokensBalance.plus(
-      entity.lastMarketTokensBalance.times(BigInt.fromI32(timestamp - entity.updatedTimestamp))
+      entity.lastMarketTokensBalance.times(timeInSeconds)
     ) 
   }
   
@@ -56,10 +66,11 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     // new entity was created
     // interpolate cumulative time * marketTokensBalance starting from the beginning of the period
     
-    let poolValueRef = getOrCreatePoolValue(marketAddress)!;
+    // PoolValue is updated inside `handleMarketPoolValueUpdated`
+    let poolValue = getOrCreatePoolValue(marketAddress)!;
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.timestamp))
     entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
-      poolValueRef.marketTokensSupply.times(timeInSeconds)
+      poolValue.marketTokensSupply.times(timeInSeconds)
     ) 
   } else {
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.updatedTimestamp))
@@ -123,6 +134,8 @@ function _getUserMarketInfo(account: string, marketAddress: string): UserMarketI
   if (entity == null) {
     entity = new UserMarketInfo(id);
     entity.marketTokensBalance = ZERO;
+    entity.account = account;
+    entity.marketAddress = marketAddress;
   }
   
   return entity!;
