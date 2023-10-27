@@ -7,11 +7,11 @@ import {
 import { ClaimAction, ClaimRef, Order } from "../generated/schema";
 import {
   saveClaimActionOnOrderCreated,
-  handleFundingFeeExecutedClaimAction,
+  saveClaimActionOnOrderExecuted,
   isFundingFeeSettleOrder,
-  saveClaimableFundingFeeInfo,
+  saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
   handleCollateralClaimAction,
-  handleFundingFeeCancelledClaimAction,
+  saveClaimActionOnOrderCancelled,
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
@@ -357,7 +357,7 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "ClaimableFundingUpdated") {
     let transaction = getOrCreateTransaction(event);
-    saveClaimableFundingFeeInfo(eventData, transaction);
+    handleClaimableFundingUpdated(eventData, transaction);
     return;
   }
 }
@@ -423,7 +423,7 @@ export function handleEventLog2(event: EventLog2): void {
       order.orderType == orderTypes.get("Liquidation")
     ) {
       if (ClaimRef.load(order.id)) {
-        handleFundingFeeExecutedClaimAction(transaction, eventData);
+        saveClaimActionOnOrderExecuted(transaction, eventData);
       } else {
         savePositionDecreaseExecutedTradeAction(
           eventId,
@@ -440,7 +440,7 @@ export function handleEventLog2(event: EventLog2): void {
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
       if (ClaimRef.load(order.id)) {
-        handleFundingFeeCancelledClaimAction(transaction, eventData);
+        saveClaimActionOnOrderCancelled(transaction, eventData);
       } else {
         saveOrderCancelledTradeAction(
           eventId,

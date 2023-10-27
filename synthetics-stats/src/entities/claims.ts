@@ -10,6 +10,9 @@ import {
 import { EventData } from "../utils/eventData";
 import { orderTypes } from "./orders";
 
+let ZERO = BigInt.fromI32(0);
+let ONE = BigInt.fromI32(1);
+
 export function saveClaimActionOnOrderCreated(
   transaction: Transaction,
   eventData: EventData
@@ -36,7 +39,33 @@ export function saveClaimActionOnOrderCreated(
   getOrCreateClaimRef(orderId);
 }
 
-export function handleFundingFeeExecutedClaimAction(
+export function saveClaimActionOnOrderCancelled(
+  transaction: Transaction,
+  eventData: EventData
+): void {
+  let claimAction = getOrCreateClaimAction(
+    "SettleFundingFeeCancelled",
+    eventData,
+    transaction
+  );
+
+  let orderId = eventData.getBytes32Item("key")!.toHexString();
+  let order = Order.load(orderId);
+
+  if (!order) throw new Error("Order not found");
+
+  let marketAddresses = claimAction.marketAddresses;
+  marketAddresses.push(order.marketAddress);
+  claimAction.marketAddresses = marketAddresses;
+
+  let isLongOrders = claimAction.isLongOrders;
+  isLongOrders.push(order.isLong);
+  claimAction.isLongOrders = isLongOrders;
+
+  claimAction.save();
+}
+
+export function saveClaimActionOnOrderExecuted(
   transaction: Transaction,
   eventData: EventData
 ): void {
@@ -61,20 +90,36 @@ export function handleFundingFeeExecutedClaimAction(
     return;
   }
 
-  insertFundingFeeInfo(claimAction, claimableFundingFeeInfo!);
+  let sourceTokenAddresses = claimableFundingFeeInfo.tokenAddresses;
+
+  for (let i = 0; i < sourceTokenAddresses.length; i++) {
+    let sourceTokenAddress = sourceTokenAddresses[i];
+    let targetTokenAddresses = claimAction.tokenAddresses;
+    targetTokenAddresses.push(sourceTokenAddress);
+    claimAction.tokenAddresses = targetTokenAddresses;
+  }
+
+  let sourceAmounts = claimableFundingFeeInfo.amounts;
+  let targetAmounts = claimAction.amounts;
+
+  for (let i = 0; i < sourceAmounts.length; i++) {
+    let sourceAmount = sourceAmounts[i];
+    targetAmounts.push(sourceAmount);
+  }
+
+  claimAction.amounts = targetAmounts;
 
   let tokensCount = claimableFundingFeeInfo.tokenAddresses.length;
+  let marketAddresses = claimAction.marketAddresses;
+  let isLongOrders = claimAction.isLongOrders;
 
   for (let i = 0; i < tokensCount; i++) {
-    let marketAddresses = claimAction.marketAddresses;
-    let isLongOrders = claimAction.isLongOrders;
-
     marketAddresses.push(order.marketAddress);
     isLongOrders.push(order.isLong);
-
-    claimAction.marketAddresses = marketAddresses;
-    claimAction.isLongOrders = isLongOrders;
   }
+
+  claimAction.marketAddresses = marketAddresses;
+  claimAction.isLongOrders = isLongOrders;
 
   claimAction.save();
 }
@@ -96,32 +141,6 @@ export function handleCollateralClaimAction(
   );
 
   claimCollateralAction.save();
-  claimAction.save();
-}
-
-export function handleFundingFeeCancelledClaimAction(
-  transaction: Transaction,
-  eventData: EventData
-): void {
-  let claimAction = getOrCreateClaimAction(
-    "SettleFundingFeeCancelled",
-    eventData,
-    transaction
-  );
-
-  let orderId = eventData.getBytes32Item("key")!.toHexString();
-  let order = Order.load(orderId);
-
-  if (!order) throw new Error("Order not found");
-
-  let marketAddresses = claimAction.marketAddresses;
-  marketAddresses.push(order.marketAddress);
-  claimAction.marketAddresses = marketAddresses;
-
-  let isLongOrders = claimAction.isLongOrders;
-  isLongOrders.push(order.isLong);
-  claimAction.isLongOrders = isLongOrders;
-
   claimAction.save();
 }
 
@@ -174,33 +193,6 @@ function addFieldsToCollateralLikeClaimAction(
   claimAction.amounts = amounts;
 }
 
-function insertFundingFeeInfo(
-  claimAction: ClaimAction,
-  claimableFundingFeeInfo: ClaimableFundingFeeInfo
-): void {
-  let sourceTokenAddresses = claimableFundingFeeInfo.tokenAddresses;
-
-  for (let i = 0; i < sourceTokenAddresses.length; i++) {
-    let sourceTokenAddress = sourceTokenAddresses[i];
-    let targetTokenAddresses = claimAction.tokenAddresses;
-    targetTokenAddresses.push(sourceTokenAddress);
-    claimAction.tokenAddresses = targetTokenAddresses;
-    claimAction.save();
-  }
-
-  let sourceAmounts = claimableFundingFeeInfo.amounts;
-
-  for (let i = 0; i < sourceAmounts.length; i++) {
-    let sourceAmount = sourceAmounts[i];
-    let targetAmounts = claimAction.amounts;
-    targetAmounts.push(sourceAmount);
-    claimAction.amounts = targetAmounts;
-    claimAction.save();
-  }
-
-  claimAction.save();
-}
-
 function getOrCreateClaimCollateralAction(id: string): ClaimCollateralAction {
   let entity = ClaimCollateralAction.load(id);
 
@@ -241,8 +233,8 @@ function getOrCreateClaimAction(
 
 export function isFundingFeeSettleOrder(order: Order): boolean {
   return (
-    order.initialCollateralDeltaAmount.equals(BigInt.fromI32(1)) &&
-    order.sizeDeltaUsd.equals(BigInt.fromI32(0)) &&
+    order.initialCollateralDeltaAmount.equals(ONE) &&
+    order.sizeDeltaUsd.equals(ZERO) &&
     order.orderType == orderTypes.get("MarketDecrease")
   );
 }
