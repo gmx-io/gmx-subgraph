@@ -59,7 +59,7 @@ export function saveLiquidityProviderIncentivesStat(
 
 export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1): void {
   let marketTokensSupply = eventData.getUintItem("marketTokensSupply")!
-  let marketAddress = eventData.getAddressItem("market")!.toString();
+  let marketAddress = eventData.getAddressItemString("market")!;
   let entity = _getOrCreateMarketIncentivesStat(marketAddress, event.block.timestamp.toI32());
   
   if (entity.updatedTimestamp == 0) {

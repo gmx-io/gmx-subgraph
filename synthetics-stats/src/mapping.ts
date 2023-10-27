@@ -74,7 +74,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
+    log.info("DepositCreated xoxo, {}, {}", [eventName, account]);
     saveUserStat("deposit", account, transaction.timestamp);
     handleDepositCreated(eventData);
     return;
@@ -361,7 +361,7 @@ export function handleEventLog2(event: EventLog2): void {
   if (eventName == "DepositCreated") {
     let transaction = getOrCreateTransaction(event);
     let account = eventData.getAddressItemString("account")!;
-    log.info("DepositCreated xoxo, {}, {}", [eventName, account.toString()]);
+    log.info("DepositCreated xoxo, {}, {}", [eventName, account]);
     saveUserStat("deposit", account, transaction.timestamp);
     handleDepositCreated(eventData);
     return;
@@ -487,7 +487,7 @@ function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
     true
   );
 
-  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens, event.transaction.hash.toString());
+  saveUserMarketInfo(data.account, marketAddress, data.receivedMarketTokens, event.transaction.hash.toHexString());
 }
 
 function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void {
@@ -509,5 +509,5 @@ function handleWithdrawalExecuted(event: EventLog2, eventData: EventData): void 
     false
   );
 
-  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg(), event.transaction.hash.toString());
+  saveUserMarketInfo(data.account, marketAddress, tokensAmount.neg(), event.transaction.hash.toHexString());
 }
