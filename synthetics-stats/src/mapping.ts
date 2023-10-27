@@ -345,13 +345,13 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "FundingFeesClaimed") {
     let transaction = getOrCreateTransaction(event);
-    handleCollateralClaimAction(eventData, transaction, "ClaimFunding");
+    handleCollateralClaimAction("ClaimFunding", eventData, transaction);
     return;
   }
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    handleCollateralClaimAction(eventData, transaction, "ClaimPriceImpactFee");
+    handleCollateralClaimAction("ClaimPriceImpactFee", eventData, transaction);
     return;
   }
 

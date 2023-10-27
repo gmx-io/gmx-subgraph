@@ -125,13 +125,15 @@ export function saveClaimActionOnOrderExecuted(
 }
 
 export function handleCollateralClaimAction(
+  eventName: string,
   eventData: EventData,
-  transaction: Transaction,
-  eventName: string
+  transaction: Transaction
 ): void {
-  let account = eventData.getAddressItemString("account")!;
-  let id = transaction.id + ":" + account + ":" + eventName;
-  let claimCollateralAction = getOrCreateClaimCollateralAction(id);
+  let claimCollateralAction = getOrCreateClaimCollateralAction(
+    eventName,
+    eventData,
+    transaction
+  );
   let claimAction = getOrCreateClaimAction(eventName, eventData, transaction);
 
   addFieldsToCollateralLikeClaimAction(claimAction, eventData);
@@ -193,7 +195,13 @@ function addFieldsToCollateralLikeClaimAction(
   claimAction.amounts = amounts;
 }
 
-function getOrCreateClaimCollateralAction(id: string): ClaimCollateralAction {
+function getOrCreateClaimCollateralAction(
+  eventName: string,
+  eventData: EventData,
+  transaction: Transaction
+): ClaimCollateralAction {
+  let account = eventData.getAddressItemString("account")!;
+  let id = transaction.id + ":" + account + ":" + eventName;
   let entity = ClaimCollateralAction.load(id);
 
   if (!entity) {
@@ -201,6 +209,11 @@ function getOrCreateClaimCollateralAction(id: string): ClaimCollateralAction {
     entity.marketAddresses = new Array<string>(0);
     entity.tokenAddresses = new Array<string>(0);
     entity.amounts = new Array<BigInt>(0);
+
+    entity.eventName = eventName;
+    entity.account = account;
+    entity.transaction = transaction.id;
+    entity.save();
   }
 
   return entity as ClaimCollateralAction;
@@ -212,7 +225,7 @@ function getOrCreateClaimAction(
   transaction: Transaction
 ): ClaimAction {
   let account = eventData.getAddressItemString("account")!;
-  let id = transaction.id + ":" + account + ":SettleFundingFeeCreated";
+  let id = transaction.id + ":" + account + ":" + eventName;
   let entity = ClaimAction.load(id);
 
   if (!entity) {
