@@ -1,6 +1,4 @@
 specVersion: 0.0.2
-features:
-  - nonFatalErrors
 description: GMX
 repository: https://github.com/gmx-io/gmx-subgraph
 schema:
