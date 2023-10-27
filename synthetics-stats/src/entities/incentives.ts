@@ -40,7 +40,6 @@ export function saveLiquidityProviderIncentivesStat(
     entity.lastMarketTokensBalance = entity.lastMarketTokensBalance.plus(marketTokenBalanceDelta);
   }
   
-  
   let endTimestamp = entity.timestamp + SECONDS_IN_WEEK;
   let extrapolatedTimeByMarketTokensBalance = entity.lastMarketTokensBalance.times(BigInt.fromI32(endTimestamp - timestamp))
   entity.weightedAverageMarketTokensBalance = entity.cumulativeTimeByMarketTokensBalance
@@ -52,6 +51,18 @@ export function saveLiquidityProviderIncentivesStat(
 }
 
 export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1): void {
+  // tracks cumulative product of time and market tokens supply
+  // to calculate weighted average supply for the period
+  //
+  // for example:
+  // - on day 1: supply = 1000
+  // - on days 2-3: supply = 2000
+  // - on days 4-7: supply = 3000
+  // weighted average supply = (1000 * 1 + 2000 * 2 + 3000 * 4) / 7 = ~2427
+  //
+  // cumulative product is increased on each deposit or withdrawal:
+  // cumulative product = cumulative product + (previous tokens supply * time since last deposit/withdrawal)
+
   let marketTokensSupply = eventData.getUintItem("marketTokensSupply")!
   let marketAddress = eventData.getAddressItemString("market")!;
   let entity = _getOrCreateMarketIncentivesStat(marketAddress, event.block.timestamp.toI32());
@@ -65,12 +76,12 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.timestamp))
     entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
       marketInfo.marketTokensSupply.times(timeInSeconds)
-    ) 
+    );
   } else {
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.updatedTimestamp))
     entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
       entity.lastMarketTokensSupply.times(timeInSeconds)
-    )
+    );
   }
   
   entity.lastMarketTokensSupply = marketTokensSupply;
@@ -80,7 +91,7 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
   let extrapolatedTimeByMarketTokensSupply = entity.lastMarketTokensSupply.times(BigInt.fromI32(endTimestamp).minus(event.block.timestamp))
   entity.weightedAverageMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply
     .plus(extrapolatedTimeByMarketTokensSupply)
-    .div(BigInt.fromI32(SECONDS_IN_WEEK))
+    .div(BigInt.fromI32(SECONDS_IN_WEEK));
   
   entity.save();
 }
@@ -93,6 +104,7 @@ function _getOrCreateLiquidityProviderIncentivesStat(account: string, marketAddr
     entity = new LiquidityProviderIncentivesStat(id);
     entity.timestamp = startTimestamp;
     entity.period = period;
+    entity.account = account;
 
     entity.updatedTimestamp = 0;
     entity.lastMarketTokensBalance = ZERO;
@@ -112,7 +124,8 @@ function _getOrCreateMarketIncentivesStat(marketAddress: string, timestamp: i32)
   if (entity == null) {
     entity = new MarketIncentivesStat(id);
     entity.timestamp = startTimestamp;
-    entity.period = period
+    entity.period = period;
+    entity.marketAddress = marketAddress;
 
     entity.updatedTimestamp = 0;
     entity.lastMarketTokensSupply = ZERO;

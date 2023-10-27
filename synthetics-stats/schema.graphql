@@ -396,10 +396,14 @@ type PositionFeesInfoWithPeriod @entity {
 }
 
 type LiquidityProviderIncentivesStat @entity {
+  # used for liquidity providers incentives program
+  # tracks average weighted liquidity provided by user per week
+
   # account + market + period
   id: ID!
   period: String!
   timestamp: Int!
+  account: String!
 
   updatedTimestamp: Int!
   lastMarketTokensBalance: BigInt!
@@ -408,10 +412,14 @@ type LiquidityProviderIncentivesStat @entity {
 }
 
 type MarketIncentivesStat @entity {
+  # used for incentives program
+  # tracks average weighted liquidity in each pool
+
   # marketAddress + period
   id: ID!
   period: String!
   timestamp: Int!
+  marketAddress: String!
 
   updatedTimestamp: Int!
   lastMarketTokensSupply: BigInt!
