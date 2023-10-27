@@ -36,7 +36,7 @@ export function saveClaimActionOnOrderCreated(
 
   claimAction.save();
 
-  getOrCreateClaimRef(orderId);
+  createClaimRefIfNotExists(orderId);
 }
 
 export function saveClaimActionOnOrderCancelled(
@@ -239,13 +239,9 @@ export function isFundingFeeSettleOrder(order: Order): boolean {
   );
 }
 
-function getOrCreateClaimRef(orderId: string): ClaimRef {
-  let entity = ClaimRef.load(orderId);
-
-  if (!entity) {
-    entity = new ClaimRef(orderId);
+function createClaimRefIfNotExists(orderId: string): void {
+  if (!ClaimRef.load(orderId)) {
+    let entity = new ClaimRef(orderId);
     entity.save();
   }
-
-  return entity!;
 }
