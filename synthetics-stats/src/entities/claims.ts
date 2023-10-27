@@ -36,10 +36,6 @@ export function handleFundingFeeCreatedClaimAction(
   isLongOrders.push(eventData.getBoolItem("isLong"));
   claimAction.isLongOrders = isLongOrders;
 
-  let transactionIds = claimAction.transactionIds;
-  transactionIds.push(transaction.id);
-  claimAction.transactionIds = transactionIds;
-
   claimAction.save();
 
   getOrCreateClaimRef(orderId);
@@ -78,15 +74,12 @@ export function handleFundingFeeExecutedClaimAction(
   for (let i = 0; i < tokensCount; i++) {
     let marketAddresses = claimAction.marketAddresses;
     let isLongOrders = claimAction.isLongOrders;
-    let transactionIds = claimAction.transactionIds;
 
     marketAddresses.push(order.marketAddress);
     isLongOrders.push(order.isLong);
-    transactionIds.push(transaction.id);
 
     claimAction.marketAddresses = marketAddresses;
     claimAction.isLongOrders = isLongOrders;
-    claimAction.transactionIds = transactionIds;
   }
 
   claimAction.save();
@@ -141,10 +134,6 @@ export function handleFundingFeeCancelledClaimAction(
   let isLongOrders = claimAction.isLongOrders;
   isLongOrders.push(order.isLong);
   claimAction.isLongOrders = isLongOrders;
-
-  let transactionIds = claimAction.transactionIds;
-  transactionIds.push(transaction.id);
-  claimAction.transactionIds = transactionIds;
 
   claimAction.save();
 }
@@ -290,7 +279,6 @@ function getOrCreateClaimAction(id: string): ClaimAction {
     entity.tokenAddresses = new Array<string>(0);
     entity.amounts = new Array<BigInt>(0);
     entity.isLongOrders = new Array<boolean>(0);
-    entity.transactionIds = new Array<string>(0);
   }
 
   return entity as ClaimAction;

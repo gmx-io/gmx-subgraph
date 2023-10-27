@@ -274,8 +274,6 @@ type ClaimAction @entity {
   tokenAddresses: [String!]!
   amounts: [BigInt!]!
   isLongOrders: [Boolean!]!
-
-  transactionIds: [String!]!
   transaction: Transaction!
 }
 
