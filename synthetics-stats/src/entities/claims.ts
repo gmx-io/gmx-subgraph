@@ -66,7 +66,7 @@ export function handleFundingFeeExecutedClaimAction(
     claimableFundingFeeInfoId
   );
 
-  // inconsistent settlement: requested but ClaimableFundingUpdated not emitted
+  // if position has no pending funding fees ClaimableFundingUpdated is not emitted
   if (!claimableFundingFeeInfo) {
     return;
   }
