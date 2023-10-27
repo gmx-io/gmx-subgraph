@@ -6,7 +6,7 @@ import {
 } from "../generated/EventEmitter/EventEmitter";
 import { ClaimAction, ClaimRef, Order } from "../generated/schema";
 import {
-  handleFundingFeeCreatedClaimAction,
+  saveClaimActionOnOrderCreated,
   handleFundingFeeExecutedClaimAction,
   isFundingFeeSettleOrder,
   saveClaimableFundingFeeInfo,
@@ -373,7 +373,7 @@ export function handleEventLog2(event: EventLog2): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrder(eventData, transaction);
     if (isFundingFeeSettleOrder(order)) {
-      handleFundingFeeCreatedClaimAction(transaction, eventData);
+      saveClaimActionOnOrderCreated(transaction, eventData);
     } else {
       saveOrderCreatedTradeAction(eventId, order, transaction);
     }
