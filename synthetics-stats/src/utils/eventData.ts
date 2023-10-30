@@ -42,14 +42,14 @@ export class EventData {
 
     if (items != null) {
       let _items = items as Array<Address>;
-      let strigsArray = new Array<string>(items.length);
+      let stringsArray = new Array<string>(items.length);
 
       for (let i = 0; i < _items.length; i++) {
         let item = _items[i] as Address;
-        strigsArray[i] = item.toHexString();
+        stringsArray[i] = item.toHexString();
       }
 
-      return strigsArray;
+      return stringsArray;
     }
 
     return null;

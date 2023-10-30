@@ -74,14 +74,14 @@ export function handleMarketTokenTransfer(event: Transfer): void {
   if (from != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32()) 
-    saveUserMarketInfo(from, marketAddress, value.neg());
+    saveUserMarketInfo(from, marketAddress, value.neg(), event.block.timestamp.toI32());
   }
 
   // `to` user receives GM tokens
   if (to != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32())
-    saveUserMarketInfo(to, marketAddress, value);
+    saveUserMarketInfo(to, marketAddress, value, event.block.timestamp.toI32());
   }
 }
 

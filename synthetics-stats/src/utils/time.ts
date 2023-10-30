@@ -1,12 +1,17 @@
-import { BigInt } from "@graphprotocol/graph-ts";
-
 export function timestampToPeriodStart(timestamp: i32, period: string): i32 {
   let seconds = periodToSeconds(period);
+
+  // in case of "1w" period it will be rounded to start on Thursday
+  // in GMX weekly distributions start on Wendesdays
+  // so timestamp needs to be shifted before rounding and then shifted back after:
+  // period start = (timestamp + 86400) / seconds * seconds - 86400
+
+  if (period == "1w") {
+    timestamp += 86400;
+  }
   let start = (timestamp / seconds) * seconds;
 
   if (period == "1w") {
-    // in case of 1w start is Thursday
-    // shift it by 1 day to Wednesday
     start -= 86400; 
   }
 
