@@ -187,6 +187,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
+
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
@@ -200,8 +201,6 @@ export function handleEventLog1(event: EventLog1): void {
       action,
       transaction,
       swapFeesInfo.marketAddress,
-      swapFeesInfo.tokenAddress,
-      feeAmountForPool,
       swapFeesInfo.feeUsdForPool
     );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
@@ -238,13 +237,12 @@ export function handleEventLog1(event: EventLog1): void {
       "PositionFeesCollected",
       transaction
     );
+
     let action = eventData.getStringItem("action")!;
     saveCollectedMarketFees(
       action,
       transaction,
       positionFeesInfo.marketAddress,
-      positionFeesInfo.collateralTokenAddress,
-      eventData.getUintItem("feeAmountForPool")!,
       positionFeesInfo.feeUsdForPool
     );
     savePositionFeesInfoWithPeriod(
@@ -308,7 +306,8 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "MarketPoolValueUpdated") {
-    handleMarketPoolValueUpdated(eventData);
+    let transaction = getOrCreateTransaction(event);
+    handleMarketPoolValueUpdated(eventData, transaction);
     return;
   }
 

@@ -196,16 +196,16 @@ type PoolValue @entity {
 }
 
 type CollectedMarketFeesInfo @entity {
-  # marketAddress:tokenAddress:period:timestampGroup
+  # marketAddress:period:timestampGroup
   id: ID!
   period: String!
   marketAddress: String!
-  tokenAddress: String!
   feeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!
   feeUsdPerGmToken: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
+  poolValue: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {
