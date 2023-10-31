@@ -15,7 +15,7 @@ export function saveMarketInfo(eventData: EventData): MarketInfo {
   return marketInfo!;
 }
 
-export function saveMarketPoolValueInfo(eventData: EventData): void {
+export function saveMarketInfoTokensSupply(eventData: EventData): void {
   let id = eventData.getAddressItemString("market")!;
   let marketInfo = getMarketInfo(id);
 
