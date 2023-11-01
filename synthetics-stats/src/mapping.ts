@@ -318,8 +318,7 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "MarketPoolValueUpdated") {
-    let transaction = getOrCreateTransaction(event);
-    handleMarketPoolValueUpdated(eventData, transaction);
+    handleMarketPoolValueUpdated(eventData);
     return;
   }
 
