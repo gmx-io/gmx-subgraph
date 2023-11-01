@@ -11,7 +11,7 @@ dataSources:
     source:
       address: "0x2fbE45fCb58B7106CF0a3Be9225D5Ed5A1004cc4"
       abi: EventEmitter
-      startBlock: 40000000
+      startBlock: 42259000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -41,7 +41,7 @@ dataSources:
     source:
       address: "0x4761b01acfa3722640c3ba021ac2d0d40f2f439e"
       abi: EventEmitter
-      startBlock: 40000000
+      startBlock: 42259000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

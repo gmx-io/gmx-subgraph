@@ -29,6 +29,7 @@ import {
   saveOrderUpdate,
 } from "./entities/orders";
 import {
+  getMarketPoolValueFromContract,
   handlePositionImpactPoolDistributed,
   savePositionDecrease,
   savePositionIncrease,
@@ -57,6 +58,10 @@ export function handleReader(): void {}
 export function handleBlock(block: ethereum.Block): void {}
 
 export function handleEventLog1(event: EventLog1): void {
+  log.warning("oh hello handleEventLog1", []);
+  getMarketPoolValueFromContract("0x1529876A9348D61C6c4a3EEe1fe6CbF1117Ca315");
+  log.warning("after!!!!!!!!!!!!!!!!!!!!!", []);
+  return;
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -315,6 +320,7 @@ export function handleEventLog1(event: EventLog1): void {
 }
 
 export function handleEventLog2(event: EventLog2): void {
+  return;
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
