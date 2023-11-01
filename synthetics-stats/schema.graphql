@@ -319,6 +319,11 @@ type MarketInfo @entity {
   marketTokensSupply: BigInt!
 }
 
+type DepositRef @entity {
+  id: ID!
+  marketAddress: String!
+}
+
 type VolumeInfo @entity {
   id: ID!
   period: String!
@@ -404,6 +409,7 @@ type LiquidityProviderIncentivesStat @entity {
   period: String!
   timestamp: Int!
   account: String!
+  marketAddress: String!
 
   updatedTimestamp: Int!
   lastMarketTokensBalance: BigInt!
@@ -428,7 +434,7 @@ type MarketIncentivesStat @entity {
 }
 
 type UserMarketInfo @entity {
-  # account + marketAddress 
+  # account + marketAddress
   id: ID!
 
   marketTokensBalance: BigInt!
@@ -437,12 +443,47 @@ type UserMarketInfo @entity {
 }
 
 type UserMarketInfoDebug @entity(immutable: true) {
-  # account + marketAddress 
+  # account + marketAddress
   id: ID!
 
   marketTokensBalance: BigInt!
   marketTokensBalanceDelta: BigInt!
   account: String!
   marketAddress: String!
+  timestamp: Int!
+}
+
+type UserGlpGmMigrationStat @entity {
+  # account + period + timestamp
+  id: ID!
+  timestamp: Int!
+  period: String!
+
+  glpRedemptionUsd: BigInt!
+  glpRedemptionFeeBpsByUsd: BigInt! # used to calculate average
+  glpRedemptionWeightedAverageFeeBps: Int!
+  gmDepositUsd: BigInt!
+}
+
+type Distribution @entity {
+  id: ID!
+
+  receiver: String!
+  amounts: [BigInt!]!
+  amountsInUsd: [BigInt!]!
+  tokens: [String!]!
+
+  # 0 default
+  # 1 airdrop, affiliate. used in referrals subgraph
+  # 2 airdrop, traders. used in referrals subgraph
+  # 1000 v2, claim, affiliate. used in referrals subgraph
+
+  # 1001 v2, STIP GM incentives airdrop
+  # 1002 v2, STIP GLP -> GM migration rebates airdrop
+  # 1003 v2, STIP trading incentives airdrop
+  typeId: Int!
+
+  transactionHash: String!
+  blockNumber: Int!
   timestamp: Int!
 }
