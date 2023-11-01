@@ -152,6 +152,7 @@ function _getOrCreateUserGlpGmMigrationStatGlpData(account: string, timestamp: i
   if (entity == null) {
     entity = new UserGlpGmMigrationStat(id);
     entity.period = period;
+    entity.account = account;
     entity.timestamp = startTimestamp;
     entity.glpRedemptionUsd = ZERO;
     entity.glpRedemptionFeeBpsByUsd = ZERO;
