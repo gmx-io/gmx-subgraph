@@ -138,12 +138,12 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "DepositCreated") {
-    handleDepositCreated(event, eventData);
+    handleDepositCreated(event as EventLog2, eventData);
     return;
   }
 
   if (eventName == "DepositExecuted") {
-    handleDepositExecuted(event, eventData);
+    handleDepositExecuted(event as EventLog2, eventData);
     return;
   }
 
@@ -413,12 +413,12 @@ export function handleEventLog2(event: EventLog2): void {
   }
 
   if (eventName == "DepositCreated") {
-    handleDepositCreated(event as EventLog1, eventData);
+    handleDepositCreated(event, eventData);
     return;
   }
 
   if (eventName == "DepositExecuted") {
-    handleDepositExecuted(event as EventLog1, eventData);
+    handleDepositExecuted(event, eventData);
     return;
   }
 
@@ -508,7 +508,7 @@ export function handleEventLog2(event: EventLog2): void {
   }
 }
 
-function handleDepositCreated(event: EventLog1, eventData: EventData): void {
+function handleDepositCreated(event: EventLog2, eventData: EventData): void {
   let transaction = getOrCreateTransaction(event);
   let account = eventData.getAddressItemString("account")!;
   saveUserStat("deposit", account, transaction.timestamp);
@@ -518,7 +518,7 @@ function handleDepositCreated(event: EventLog1, eventData: EventData): void {
   depositRef.save();
 }
 
-function handleDepositExecuted(event: EventLog1, eventData: EventData): void {
+function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
   let depositRef = DepositRef.load(eventData.getBytes32Item("key")!.toHexString())!;
   let marketInfo = MarketInfo.load(depositRef.marketAddress)!;
 
