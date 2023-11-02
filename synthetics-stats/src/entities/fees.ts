@@ -445,7 +445,11 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
   let pendingIds = poolValueRef.pendingCollectedMarketFeesInfoIds;
   let fees = poolValueRef.pendingFeeUsds;
 
-  let latestTotalCumulative = BigInt.fromI32(0);
+  let latestTotalFee = CollectedMarketFeesInfo.load(event.market + ":total");
+
+  let latestTotalCumulative = latestTotalFee
+    ? latestTotalFee.cumulativeFeeUsdPerPoolValue
+    : BigInt.fromI32(0);
 
   for (let i = 0; i < pendingIds.length; i++) {
     let id = pendingIds[i];
@@ -468,6 +472,8 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
         } else {
           feeInfo.cumulativeFeeUsdPerPoolValue = latestTotalCumulative;
         }
+
+        feeInfo.save();
       }
     }
   }
