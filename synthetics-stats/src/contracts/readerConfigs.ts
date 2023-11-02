@@ -6,7 +6,7 @@ class ReaderContractConfig {
   constructor(
     readerContractAddress: string,
     dataStoreAddress: string,
-    public blockNumber: number
+    public blockNumber: i32
   ) {
     this.readerContractAddress = Address.fromString(readerContractAddress);
     this.dataStoreAddress = Address.fromString(dataStoreAddress);
