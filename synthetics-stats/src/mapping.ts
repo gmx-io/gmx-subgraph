@@ -29,7 +29,6 @@ import {
   saveOrderUpdate,
 } from "./entities/orders";
 import {
-  getMarketPoolValueFromContract,
   handlePositionImpactPoolDistributed,
   savePositionDecrease,
   savePositionIncrease,
@@ -53,15 +52,12 @@ import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
 
 import { updateTokenPrice } from "./entities/prices";
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 
 export function handleReader(): void {}
 export function handleBlock(block: ethereum.Block): void {}
 
-export function handleEventLog1(event: EventLog1): void {
-  log.warning("oh hello handleEventLog1", []);
-  getMarketPoolValueFromContract("0x1529876A9348D61C6c4a3EEe1fe6CbF1117Ca315");
-  log.warning("after!!!!!!!!!!!!!!!!!!!!!", []);
-  return;
+export function handleEventLog1(event: EventLog1, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -315,12 +311,12 @@ export function handleEventLog1(event: EventLog1): void {
   }
 
   if (eventName == "MarketPoolValueUpdated") {
-    handleMarketPoolValueUpdated(eventData);
+    let transaction = getOrCreateTransaction(event);
+    handleMarketPoolValueUpdated(eventData, transaction);
   }
 }
 
 export function handleEventLog2(event: EventLog2): void {
-  return;
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -428,4 +424,16 @@ export function handleEventLog2(event: EventLog2): void {
     );
     return;
   }
+}
+
+export function handleEventLog1Arbitrum(event: EventLog1): void {
+  handleEventLog1(event, "arbitrum");
+}
+
+export function handleEventLog1Fuji(event: EventLog1): void {
+  handleEventLog1(event, "fuji");
+}
+
+export function handleEventLog1Goerli(event: EventLog1): void {
+  handleEventLog1(event, "goerli");
 }

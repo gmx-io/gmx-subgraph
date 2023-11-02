@@ -10,6 +10,7 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { timestampToPeriodStart } from "../utils/time";
+import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -427,38 +428,25 @@ export function saveCollectedMarketFees(
   );
 }
 
-export function handleMarketPoolValueUpdated(eventData: EventData): void {
+export function handleMarketPoolValueUpdated(
+  eventData: EventData,
+  transaction: Transaction
+): void {
   let marketAddress = eventData.getAddressItemString("market")!;
   let poolValue = eventData.getIntItem("poolValue")!;
-  let poolValueRef = getOrCreatePoolValueRef(marketAddress);
-  poolValueRef.value = poolValue;
-
-  if (poolValue.toString() == "0") {
-    return;
-  }
-
-  let pendingIds = poolValueRef.pendingCollectedMarketFeesInfoIds;
-  let fees = poolValueRef.pendingFeeUsds;
-
-  for (let i = 0; i < pendingIds.length; i++) {
-    let id = pendingIds[i];
-    let feeInfo = CollectedMarketFeesInfo.load(id);
-    let fee = fees[i];
-
-    if (feeInfo) {
-      if (fee) {
-        feeInfo.feeUsdPerPoolValue = feeInfo.feeUsdPerPoolValue.plus(
-          calcFeeUsdPerPoolValue(fee, poolValue)
-        );
-        feeInfo.save();
-      }
-    }
-  }
-
-  poolValueRef.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
-  poolValueRef.pendingFeeUsds = new Array<BigInt>(0);
-
-  poolValueRef.save();
+  log.warning("handling MarketPoolValueUpdated, market={} poolValue={}", [
+    marketAddress,
+    poolValue.toString(),
+  ]);
+  let poolValueFromContract = getMarketPoolValueFromContract(
+    marketAddress,
+    "arbitrum",
+    transaction
+  );
+  log.warning("poolValueFromContract={} vs poolValue={}", [
+    poolValueFromContract.toString(),
+    poolValue.toString(),
+  ]);
 }
 
 function calcFeeUsdPerPoolValue(feeUsd: BigInt, poolValueUsd: BigInt): BigInt {
