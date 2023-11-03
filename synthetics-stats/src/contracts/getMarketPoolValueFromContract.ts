@@ -11,6 +11,7 @@ import { MarketInfo, TokenPrice, Transaction } from "../../generated/schema";
 import { getReaderContractConfigByNetwork } from "./readerConfigs";
 
 let ZERO = BigInt.fromI32(0);
+let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export function getMarketPoolValueFromContract(
   marketAddress: string,
@@ -27,18 +28,15 @@ export function getMarketPoolValueFromContract(
     return ZERO;
   }
 
-  log.warning("before bind", []);
   let contract = Reader.bind(contractConfig.readerContractAddress);
-  log.warning("after bind", []);
   let marketInfo = MarketInfo.load(marketAddress);
 
   if (!marketInfo) {
-    log.warning("MarketInfo not found {}", [marketAddress]);
-    return ZERO;
+    log.error("marketInfo not found {}", [marketAddress]);
+    throw new Error("marketInfo not found");
   }
 
   let marketArg = new Reader__getMarketTokenPriceInputMarketStruct(4);
-  log.warning("marketParams created", []);
   marketArg[0] = chainEthereum.Value.fromAddress(
     Address.fromString(marketInfo.marketToken)
   );
@@ -52,51 +50,37 @@ export function getMarketPoolValueFromContract(
     Address.fromString(marketInfo.shortToken)
   );
 
-  log.warning("marketParams assigned", []);
-
-  // indexToken
-  let indexTokenPrice = loadTokenPrice(marketInfo.indexToken)!;
   let indexTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputIndexTokenPriceStruct
-  >(indexTokenPrice.minPrice, indexTokenPrice.maxPrice);
-
-  // longToken
-  let longTokenPrice = loadTokenPrice(marketInfo.longToken)!;
+  >(marketInfo.indexToken);
   let longTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputLongTokenPriceStruct
-  >(longTokenPrice.minPrice, longTokenPrice.maxPrice);
-
-  // shortToken
-  let shortTokenPrice = loadTokenPrice(marketInfo.shortToken)!;
+  >(marketInfo.longToken);
   let shortTokenPriceArg = createPriceForContractCall<
     Reader__getMarketTokenPriceInputShortTokenPriceStruct
-  >(shortTokenPrice.minPrice, shortTokenPrice.maxPrice);
-
-  log.warning("prices created", []);
+  >(marketInfo.shortToken);
 
   let bytes = Bytes.fromHexString(
     "0xab15365d3aa743e766355e2557c230d8f943e195dc84d9b2b05928a07b635ee1"
   ) as Bytes;
 
-  log.warning("before call", []);
-
-  log.warning(
-    "args dataStoreAddress={}, marketArg.marketToken={}, marketArg.indexToken={},  marketArg.longToken={}, marketArg.shortToken={}, indexTokenPriceArg.min={}, indexTokenPriceArg.max={}, longTokenPriceArg.min={}, longTokenPriceArg.max={}, shortTokenPriceArg.min={}, shortTokenPriceArg.max={}, bytes={}",
-    [
-      contractConfig.dataStoreAddress.toHexString(),
-      marketArg.marketToken.toHexString(),
-      marketArg.indexToken.toHexString(),
-      marketArg.longToken.toHexString(),
-      marketArg.shortToken.toHexString(),
-      indexTokenPriceArg.min.toString(),
-      indexTokenPriceArg.max.toString(),
-      longTokenPriceArg.min.toString(),
-      longTokenPriceArg.max.toString(),
-      shortTokenPriceArg.min.toString(),
-      shortTokenPriceArg.max.toString(),
-      bytes.toHexString(),
-    ]
-  );
+  // log.warning(
+  //   "args dataStoreAddress={}, marketArg.marketToken={}, marketArg.indexToken={},  marketArg.longToken={}, marketArg.shortToken={}, indexTokenPriceArg.min={}, indexTokenPriceArg.max={}, longTokenPriceArg.min={}, longTokenPriceArg.max={}, shortTokenPriceArg.min={}, shortTokenPriceArg.max={}, bytes={}",
+  //   [
+  //     contractConfig.dataStoreAddress.toHexString(),
+  //     marketArg.marketToken.toHexString(),
+  //     marketArg.indexToken.toHexString(),
+  //     marketArg.longToken.toHexString(),
+  //     marketArg.shortToken.toHexString(),
+  //     indexTokenPriceArg.min.toString(),
+  //     indexTokenPriceArg.max.toString(),
+  //     longTokenPriceArg.min.toString(),
+  //     longTokenPriceArg.max.toString(),
+  //     shortTokenPriceArg.min.toString(),
+  //     shortTokenPriceArg.max.toString(),
+  //     bytes.toHexString(),
+  //   ]
+  // );
 
   let res = contract.getMarketTokenPrice(
     contractConfig.dataStoreAddress,
@@ -109,12 +93,26 @@ export function getMarketPoolValueFromContract(
   );
 
   let poolValue = res.value1.poolValue;
-  log.warning("after call poolValue={} ", [poolValue.toString()]);
+  // log.warning("after call poolValue  ={} ", [poolValue.toString()]);
 
   return poolValue;
 }
 
-function createPriceForContractCall<T>(minPrice: BigInt, maxPrice: BigInt): T {
+function createPriceForContractCall<T>(tokenAddress: string): T {
+  let minPrice: BigInt = ZERO;
+  let maxPrice: BigInt = ZERO;
+  let indexTokenPrice = loadTokenPrice(tokenAddress);
+
+  if (indexTokenPrice) {
+    minPrice = indexTokenPrice.minPrice;
+    maxPrice = indexTokenPrice.maxPrice;
+  } else {
+    if (tokenAddress != ZERO_ADDRESS) {
+      log.error("TokenPrice not found {}", [tokenAddress]);
+      throw new Error("tokenAddress is not zero address");
+    }
+  }
+
   let price = new Reader__getMarketTokenPriceInputIndexTokenPriceStruct(2) as T;
   price[0] = chainEthereum.Value.fromUnsignedBigInt(minPrice);
   price[1] = chainEthereum.Value.fromUnsignedBigInt(maxPrice);

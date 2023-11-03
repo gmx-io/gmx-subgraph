@@ -41,6 +41,11 @@ readerContractByNetwork.set(
   )
 );
 
+readerContractByNetwork.set(
+  "avalanche",
+  new ReaderContractConfig("0xd868eF2fa279b510F64F44C66F08a0AEeBcBdB6b", "", 1)
+);
+
 export function getReaderContractConfigByNetwork(
   network: string
 ): ReaderContractConfig {
