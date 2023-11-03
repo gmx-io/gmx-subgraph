@@ -1,5 +1,4 @@
 import { Bytes } from "@graphprotocol/graph-ts";
-
 import {
   EventLog1,
   EventLog2,
@@ -9,8 +8,8 @@ import { Order } from "../generated/schema";
 import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
-  handleMarketPoolValueUpdated,
-  saveCollectedMarketFees,
+  saveCollectedMarketFeesForPeriod,
+  saveCollectedMarketFeesTotal,
   savePositionFeesInfo,
   savePositionFeesInfoWithPeriod,
   saveSwapFeesInfo,
@@ -208,7 +207,32 @@ function handleEventLog1(event: EventLog1, network: string): void {
       .plus(feeAmountForPool)
       .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
-    saveCollectedMarketFees(swapFeesInfo, null, transaction, action);
+
+    let totalFees = saveCollectedMarketFeesTotal(
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      swapFeesInfo.feeAmountForPool,
+      swapFeesInfo.feeUsdForPool,
+      transaction.timestamp
+    );
+    saveCollectedMarketFeesForPeriod(
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      swapFeesInfo.feeAmountForPool,
+      swapFeesInfo.feeUsdForPool,
+      totalFees,
+      "1h",
+      transaction.timestamp
+    );
+    saveCollectedMarketFeesForPeriod(
+      swapFeesInfo.marketAddress,
+      swapFeesInfo.tokenAddress,
+      swapFeesInfo.feeAmountForPool,
+      swapFeesInfo.feeUsdForPool,
+      totalFees,
+      "1d",
+      transaction.timestamp
+    );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(
       feeAmountForPool,
@@ -243,8 +267,31 @@ function handleEventLog1(event: EventLog1, network: string): void {
       "PositionFeesCollected",
       transaction
     );
-    let action = eventData.getStringItem("action")!;
-    saveCollectedMarketFees(null, positionFeesInfo, transaction, action);
+    let totalFees = saveCollectedMarketFeesTotal(
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      positionFeesInfo.feeAmountForPool,
+      positionFeesInfo.feeUsdForPool,
+      transaction.timestamp
+    );
+    saveCollectedMarketFeesForPeriod(
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      positionFeesInfo.feeAmountForPool,
+      positionFeesInfo.feeUsdForPool,
+      totalFees,
+      "1h",
+      transaction.timestamp
+    );
+    saveCollectedMarketFeesForPeriod(
+      positionFeesInfo.marketAddress,
+      positionFeesInfo.collateralTokenAddress,
+      positionFeesInfo.feeAmountForPool,
+      positionFeesInfo.feeUsdForPool,
+      totalFees,
+      "1d",
+      transaction.timestamp
+    );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
@@ -303,11 +350,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let transaction = getOrCreateTransaction(event);
     saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
     return;
-  }
-
-  if (eventName == "MarketPoolValueUpdated") {
-    let transaction = getOrCreateTransaction(event);
-    handleMarketPoolValueUpdated(eventData, transaction);
   }
 }
 

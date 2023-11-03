@@ -1,7 +1,6 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
-  PoolValueRef,
   PositionFeesInfo,
   PositionFeesInfoWithPeriod,
   SwapFeesInfo,
@@ -10,7 +9,6 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { timestampToPeriodStart } from "../utils/time";
-import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -27,7 +25,24 @@ swapFeeTypes.set(
   "0xda1ac8fcb4f900f8ab7c364d553e5b6b8bdc58f74160df840be80995056f3838"
 );
 
-function saveCollectedMarketFeesTotal(
+export function getSwapActionByFeeType(swapFeeType: string): string {
+  if (swapFeeType == swapFeeTypes.get("SWAP_FEE_TYPE")) {
+    return "swap";
+  }
+
+  if (swapFeeType == swapFeeTypes.get("DEPOSIT_FEE_TYPE")) {
+    return "deposit";
+  }
+
+  if (swapFeeType == swapFeeTypes.get("WITHDRAWAL_FEE_TYPE")) {
+    return "withdrawal";
+  }
+
+  log.error("Unknown swap fee type: {}", [swapFeeType]);
+  throw new Error("Unknown swap fee type: " + swapFeeType);
+}
+
+export function saveCollectedMarketFeesTotal(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
@@ -56,9 +71,7 @@ function saveCollectedMarketFeesTotal(
   return totalFees;
 }
 
-function saveCollectedMarketFeesForPeriod(
-  actionName: string,
-  poolValue: BigInt,
+export function saveCollectedMarketFeesForPeriod(
   marketAddress: string,
   tokenAddress: string,
   feeAmountForPool: BigInt,
@@ -74,9 +87,6 @@ function saveCollectedMarketFeesForPeriod(
     period
   );
 
-  let poolValueRef = getOrCreatePoolValueRef(marketAddress);
-  let shouldCalulateAprNow = getShouldCalculateAprForFeeEvent(actionName);
-
   feesForPeriod.cummulativeFeeAmountForPool =
     totalFees.cummulativeFeeAmountForPool;
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
@@ -85,24 +95,6 @@ function saveCollectedMarketFeesForPeriod(
     feeAmountForPool
   );
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
-
-  if (shouldCalulateAprNow) {
-    feesForPeriod.feeUsdPerPoolValue = feesForPeriod.feeUsdPerPoolValue.plus(
-      calcFeeUsdPerPoolValue(feeUsdForPool, poolValue)
-    );
-    // if not updating apr immediately, adding it to the queue of corresponding market
-  } else {
-    let pendingFeeUsds = poolValueRef.pendingFeeUsds;
-    pendingFeeUsds.push(feeUsdForPool);
-    poolValueRef.pendingFeeUsds = pendingFeeUsds;
-
-    let pendingIds = poolValueRef.pendingCollectedMarketFeesInfoIds;
-    pendingIds.push(feesForPeriod.id);
-    poolValueRef.pendingCollectedMarketFeesInfoIds = pendingIds;
-
-    poolValueRef.save();
-  }
-
   feesForPeriod.save();
 
   return feesForPeriod;
@@ -226,8 +218,6 @@ function getOrCreateCollectedMarketFees(
     collectedFees.feeUsdForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeAmountForPool = BigInt.fromI32(0);
     collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
-    collectedFees.feeUsdPerPoolValue = BigInt.fromI32(0);
-    collectedFees.feeUsdPerGmToken = BigInt.fromI32(0);
   }
 
   return collectedFees as CollectedMarketFeesInfo;
@@ -367,110 +357,4 @@ function getOrCreatePositionFeesInfoWithPeriod(
   }
 
   return feeInfo as PositionFeesInfoWithPeriod;
-}
-
-function getShouldCalculateAprForFeeEvent(actionName: string): boolean {
-  let isSwapOrDeposit = actionName == "swap" || actionName == "deposit";
-  return !isSwapOrDeposit;
-}
-
-export function saveCollectedMarketFees(
-  swapFeesInfo: SwapFeesInfo | null,
-  positionFeesInfo: PositionFeesInfo | null,
-  transaction: Transaction,
-  action: string
-): void {
-  let marketAddress = swapFeesInfo
-    ? swapFeesInfo.marketAddress
-    : positionFeesInfo!.marketAddress;
-  let tokenAddress = swapFeesInfo
-    ? swapFeesInfo.tokenAddress
-    : positionFeesInfo!.collateralTokenAddress;
-  let feeAmountForPool = swapFeesInfo
-    ? swapFeesInfo.feeAmountForPool
-    : positionFeesInfo!.feeAmountForPool;
-  let feeUsdForPool = swapFeesInfo
-    ? swapFeesInfo.feeUsdForPool
-    : positionFeesInfo!.feeUsdForPool;
-
-  let poolValueRef = getOrCreatePoolValueRef(
-    swapFeesInfo ? swapFeesInfo.marketAddress : positionFeesInfo!.marketAddress
-  );
-
-  let totalFees = saveCollectedMarketFeesTotal(
-    marketAddress,
-    tokenAddress,
-    feeAmountForPool,
-    feeUsdForPool,
-    transaction.timestamp
-  );
-  saveCollectedMarketFeesForPeriod(
-    action,
-    poolValueRef.value,
-    marketAddress,
-    tokenAddress,
-    feeAmountForPool,
-    feeUsdForPool,
-    totalFees,
-    "1h",
-    transaction.timestamp
-  );
-  saveCollectedMarketFeesForPeriod(
-    action,
-    poolValueRef.value,
-    marketAddress,
-    tokenAddress,
-    feeAmountForPool,
-    feeUsdForPool,
-    totalFees,
-    "1d",
-    transaction.timestamp
-  );
-}
-
-export function handleMarketPoolValueUpdated(
-  eventData: EventData,
-  transaction: Transaction
-): void {
-  let marketAddress = eventData.getAddressItemString("market")!;
-  let poolValue = eventData.getIntItem("poolValue")!;
-  log.warning("handling MarketPoolValueUpdated, market={} poolValue={}", [
-    marketAddress,
-    poolValue.toString(),
-  ]);
-  let poolValueFromContract = getMarketPoolValueFromContract(
-    marketAddress,
-    "arbitrum",
-    transaction
-  );
-  log.warning("poolValueFromContract={} vs poolValue={}", [
-    poolValueFromContract.toString(),
-    poolValue.toString(),
-  ]);
-}
-
-function calcFeeUsdPerPoolValue(feeUsd: BigInt, poolValueUsd: BigInt): BigInt {
-  let multiplier = BigInt.fromI32(10).pow(30);
-  let zero = BigInt.fromI32(0);
-  if (poolValueUsd.equals(zero)) {
-    return zero;
-  }
-
-  let res = feeUsd.times(multiplier).div(poolValueUsd);
-
-  return res;
-}
-
-function getOrCreatePoolValueRef(marketAddress: string): PoolValueRef {
-  let id = marketAddress;
-  let ref = PoolValueRef.load(id);
-
-  if (!ref) {
-    ref = new PoolValueRef(id);
-    ref.value = BigInt.fromI32(0);
-    ref.pendingFeeUsds = new Array<BigInt>(0);
-    ref.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
-  }
-
-  return ref!;
 }
