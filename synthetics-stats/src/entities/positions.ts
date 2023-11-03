@@ -117,21 +117,3 @@ export function savePositionDecrease(
 
   return entity;
 }
-
-export function handlePositionImpactPoolDistributed(
-  eventData: EventData,
-  transaction: Transaction
-): void {
-  // let event = new PositionImpactPoolDistributedEventData(eventData);
-  // let poolValue: BigInt | null = null;
-  // if (transaction.blockNumber <= 42258999) return;
-  // poolValue = getMarketPoolValueFromContract(event.market, "goerli");
-  // if (poolValue) {
-  //   log.warning("poolValue {}", [poolValue.toString()]);
-  // } else {
-  //   log.warning("getMarketPoolValueFromContract failed, blockNumber={}", [
-  //     `${transaction.blockNumber}`,
-  //   ]);
-  //   log.warning("poolValue null", []);
-  // }
-}

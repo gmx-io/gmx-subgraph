@@ -27,7 +27,6 @@ import {
   saveOrderUpdate,
 } from "./entities/orders";
 import {
-  handlePositionImpactPoolDistributed,
   savePositionDecrease,
   savePositionIncrease,
 } from "./entities/positions";
@@ -57,12 +56,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
     event.params.eventData as EventLogEventDataStruct
   );
   let eventId = getIdFromEvent(event);
-
-  if (eventName == "PositionImpactPoolDistributed") {
-    let transaction = getOrCreateTransaction(event);
-    handlePositionImpactPoolDistributed(eventData, transaction);
-    return;
-  }
 
   if (eventName == "OraclePriceUpdate") {
     updateTokenPrice(eventData);
