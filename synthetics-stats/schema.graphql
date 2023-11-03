@@ -13,9 +13,12 @@ enum TradeActionType {
   OrderUpdated
 }
 
-enum ClaimCollateralActionType {
+enum ClaimActionType {
   ClaimPriceImpact
   ClaimFunding
+  SettleFundingFeeCreated
+  SettleFundingFeeExecuted
+  SettleFundingFeeCancelled
 }
 
 type AffiliateRewardUpdate @entity(immutable: true) {
@@ -67,6 +70,12 @@ type Order @entity {
   executedTxn: Transaction
 }
 
+type TokenPrice @entity {
+  id: ID!
+  min: BigInt!
+  max: BigInt!
+}
+
 type PositionIncrease @entity(immutable: true) {
   # orderKey
   id: ID!
@@ -90,17 +99,11 @@ type PositionIncrease @entity(immutable: true) {
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
-  pnlUsd: BigInt!
+  priceImpactUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
-}
-
-type TokenPrice @entity {
-  # tokenAddress
-  id: ID!
-  minPrice: BigInt!
-  maxPrice: BigInt!
 }
 
 type PositionDecrease @entity(immutable: true) {
@@ -121,12 +124,13 @@ type PositionDecrease @entity(immutable: true) {
   collateralDeltaAmount: BigInt!
   executionPrice: BigInt!
   priceImpactDiffUsd: BigInt!
+  priceImpactUsd: BigInt!
   orderType: BigInt!
   borrowingFactor: BigInt!
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
-  pnlUsd: BigInt!
+  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
@@ -227,7 +231,10 @@ type TradeAction @entity(immutable: true) {
   executionPrice: BigInt
   collateralTokenPriceMin: BigInt
   collateralTokenPriceMax: BigInt
+  indexTokenPriceMin: BigInt
+  indexTokenPriceMax: BigInt
   priceImpactDiffUsd: BigInt
+  priceImpactUsd: BigInt
   priceImpactAmount: BigInt
   positionFeeAmount: BigInt
   borrowingFeeAmount: BigInt
@@ -249,13 +256,30 @@ type TradeAction @entity(immutable: true) {
 type ClaimCollateralAction @entity(immutable: true) {
   # transactionHash:account:eventName
   id: ID!
-  eventName: ClaimCollateralActionType!
+  eventName: ClaimActionType!
   account: String!
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
   amounts: [BigInt!]!
 
   transaction: Transaction!
+}
+
+type ClaimAction @entity {
+  # transactionHash:account:eventName
+  id: ID!
+  eventName: ClaimActionType!
+  account: String!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
+  isLongOrders: [Boolean!]!
+  transaction: Transaction!
+}
+
+type ClaimRef @entity {
+  # order.id
+  id: ID!
 }
 
 type PoolAmountUpdate @entity(immutable: true) {
@@ -265,6 +289,14 @@ type PoolAmountUpdate @entity(immutable: true) {
   delta: BigInt!
   nextValue: BigInt!
   transaction: Transaction!
+}
+
+type ClaimableFundingFeeInfo @entity(immutable: true) {
+  # transactionHash:account
+  id: ID!
+  marketAddresses: [String!]!
+  tokenAddresses: [String!]!
+  amounts: [BigInt!]!
 }
 
 type Transaction @entity {

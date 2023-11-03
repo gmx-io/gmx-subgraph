@@ -7,6 +7,8 @@ import {
   SwapInfo,
   TradeAction,
   Transaction,
+  MarketInfo,
+  TokenPrice,
 } from "../../generated/schema";
 import { getSwapInfoId } from "./swaps";
 import { orderTypes } from "./orders";
@@ -83,6 +85,13 @@ export function saveOrderFrozenTradeAction(
   transaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
+  let marketInfo = MarketInfo.load(order.marketAddress);
+
+  if (marketInfo) {
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.min;
+    tradeAction.indexTokenPriceMax = tokenPrice.max;
+  }
 
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
@@ -134,6 +143,14 @@ export function savePositionIncreaseExecutedTradeAction(
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionIncrease = PositionIncrease.load(order.id);
 
+  let marketInfo = MarketInfo.load(order.marketAddress);
+
+  if (marketInfo) {
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.min;
+    tradeAction.indexTokenPriceMax = tokenPrice.max;
+  }
+
   if (positionIncrease == null) {
     throw new Error("PositionIncrease not found " + order.id);
   }
@@ -148,6 +165,7 @@ export function savePositionIncreaseExecutedTradeAction(
   tradeAction.sizeDeltaUsd = positionIncrease.sizeDeltaUsd;
 
   tradeAction.executionPrice = positionIncrease.executionPrice;
+  tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
 
   tradeAction.transaction = transaction.id;
 
@@ -164,6 +182,14 @@ export function savePositionDecreaseExecutedTradeAction(
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
   let positionFeesInfo: PositionFeesInfo | null = null;
+
+  let marketInfo = MarketInfo.load(order.marketAddress);
+
+  if (marketInfo) {
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.min;
+    tradeAction.indexTokenPriceMax = tokenPrice.max;
+  }
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);
@@ -205,12 +231,20 @@ export function savePositionDecreaseExecutedTradeAction(
 
   tradeAction.priceImpactDiffUsd = positionDecrease.priceImpactDiffUsd;
   tradeAction.priceImpactAmount = positionDecrease.priceImpactAmount;
+  tradeAction.priceImpactUsd = positionDecrease.priceImpactUsd;
 
   tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
   tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
   tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
-  tradeAction.pnlUsd = positionDecrease.pnlUsd;
+  tradeAction.pnlUsd = positionDecrease.basePnlUsd
+    .minus(
+      positionFeesInfo.positionFeeAmount
+        .plus(positionFeesInfo.borrowingFeeAmount)
+        .plus(positionFeesInfo.fundingFeeAmount)
+        .times(positionFeesInfo.collateralTokenPriceMax)
+    )
+    .minus(positionDecrease.priceImpactUsd);
 
   tradeAction.transaction = transaction.id;
 

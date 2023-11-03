@@ -4,10 +4,18 @@ import {
   EventLog2,
   EventLogEventDataStruct,
 } from "../generated/EventEmitter/EventEmitter";
-import { Order } from "../generated/schema";
-import { handleCollateralClaimAction as saveCollateralClaimedAction } from "./entities/claims";
+import { ClaimAction, ClaimRef, Order } from "../generated/schema";
+import {
+  saveClaimActionOnOrderCreated,
+  saveClaimActionOnOrderExecuted,
+  isFundingFeeSettleOrder,
+  saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
+  handleCollateralClaimAction,
+  saveClaimActionOnOrderCancelled,
+} from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
+  getSwapActionByFeeType,
   saveCollectedMarketFeesForPeriod,
   saveCollectedMarketFeesTotal,
   savePositionFeesInfo,
@@ -47,6 +55,8 @@ import {
   saveVolumeInfo,
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
+import { saveUserStat } from "./entities/user";
+import { saveTokenPrice } from "./entities/prices";
 
 import { updateTokenPrice } from "./entities/prices";
 
@@ -58,7 +68,11 @@ function handleEventLog1(event: EventLog1, network: string): void {
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OraclePriceUpdate") {
-    updateTokenPrice(eventData);
+    saveTokenPrice(
+      eventData.getAddressItem("token")!,
+      eventData.getUintItem("minPrice")!,
+      eventData.getUintItem("maxPrice")!
+    );
     return;
   }
 
@@ -144,16 +158,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
     return;
   }
 
-  if (eventName == "OrderSizeDeltaAutoUpdated") {
-    saveOrderSizeDeltaAutoUpdate(eventData);
-    return;
-  }
-
-  if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    saveOrderCollateralAutoUpdate(eventData);
-    return;
-  }
-
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderFrozenState(eventData);
@@ -169,6 +173,16 @@ function handleEventLog1(event: EventLog1, network: string): void {
       order.frozenReasonBytes as Bytes,
       transaction
     );
+    return;
+  }
+
+  if (eventName == "OrderSizeDeltaAutoUpdated") {
+    saveOrderSizeDeltaAutoUpdate(eventData);
+    return;
+  }
+
+  if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
+    saveOrderCollateralAutoUpdate(eventData);
     return;
   }
 
@@ -195,7 +209,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
     let amountAfterFees = eventData.getUintItem("amountAfterFees")!;
-    let action = eventData.getStringItem("action")!;
+    let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
     let totalAmountIn = amountAfterFees
       .plus(feeAmountForPool)
       .plus(feeReceiverAmount);
@@ -335,13 +349,19 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "FundingFeesClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimFunding");
+    handleCollateralClaimAction("ClaimFunding", eventData, transaction);
     return;
   }
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    saveCollateralClaimedAction(eventData, transaction, "ClaimPriceImpact");
+    handleCollateralClaimAction("ClaimPriceImpactFee", eventData, transaction);
+    return;
+  }
+
+  if (eventName == "ClaimableFundingUpdated") {
+    let transaction = getOrCreateTransaction(event);
+    handleClaimableFundingUpdated(eventData, transaction);
     return;
   }
 }
@@ -354,9 +374,13 @@ function handleEventLog2(event: EventLog2, network: string): void {
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
-    let tranaction = getOrCreateTransaction(event);
-    let order = saveOrder(eventData, tranaction);
-    saveOrderCreatedTradeAction(eventId, order, tranaction);
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrder(eventData, transaction);
+    if (isFundingFeeSettleOrder(order)) {
+      saveClaimActionOnOrderCreated(transaction, eventData);
+    } else {
+      saveOrderCreatedTradeAction(eventId, order, transaction);
+    }
     return;
   }
 
@@ -402,11 +426,15 @@ function handleEventLog2(event: EventLog2, network: string): void {
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(
-        eventId,
-        order as Order,
-        transaction
-      );
+      if (ClaimRef.load(order.id)) {
+        saveClaimActionOnOrderExecuted(transaction, eventData);
+      } else {
+        savePositionDecreaseExecutedTradeAction(
+          eventId,
+          order as Order,
+          transaction
+        );
+      }
     }
     return;
   }
@@ -415,13 +443,17 @@ function handleEventLog2(event: EventLog2, network: string): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
-      saveOrderCancelledTradeAction(
-        eventId,
-        order as Order,
-        order.cancelledReason as string,
-        order.cancelledReasonBytes as Bytes,
-        transaction
-      );
+      if (ClaimRef.load(order.id)) {
+        saveClaimActionOnOrderCancelled(transaction, eventData);
+      } else {
+        saveOrderCancelledTradeAction(
+          eventId,
+          order!,
+          order.cancelledReason as string,
+          order.cancelledReasonBytes as Bytes,
+          transaction
+        );
+      }
     }
 
     return;

@@ -1,17 +1,19 @@
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { TokenPrice } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
-import { OraclePriceUpdateEventData } from "../utils/events/OraclePriceUpdateEventData";
 
-export function updateTokenPrice(eventData: EventData): void {
-  let event = new OraclePriceUpdateEventData(eventData);
-  let tokenPrice = TokenPrice.load(event.token);
-
-  if (!tokenPrice) {
-    tokenPrice = new TokenPrice(event.token);
+export function saveTokenPrice(
+  tokenAddress: Address,
+  min: BigInt,
+  max: BigInt
+): TokenPrice | null {
+  let id = tokenAddress.toHexString();
+  let entity = TokenPrice.load(id);
+  if (entity == null) {
+    entity = new TokenPrice(id);
   }
+  entity.min = min;
+  entity.max = max;
+  entity.save();
 
-  tokenPrice.minPrice = event.minPrice;
-  tokenPrice.maxPrice = event.maxPrice;
-
-  tokenPrice.save();
+  return entity;
 }
