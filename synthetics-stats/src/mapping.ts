@@ -1,6 +1,6 @@
-import { Bytes, BigInt } from "@graphprotocol/graph-ts";
+import { Bytes, BigInt, log } from "@graphprotocol/graph-ts";
 
-import { EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
+import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
 import { MarketTokenTemplate } from "../generated/templates";
 import { ClaimRef, DepositRef, MarketInfo, Order, TokenPrice } from "../generated/schema";
@@ -106,14 +106,24 @@ export function handleMarketTokenTransfer(event: Transfer): void {
   if (from != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
-    saveUserMarketInfo(from, marketAddress, value.neg(), event.block.timestamp.toI32());
+    saveUserMarketInfo(from, marketAddress, value.neg());
   }
 
   // `to` user receives GM tokens
   if (to != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
-    saveUserMarketInfo(to, marketAddress, value, event.block.timestamp.toI32());
+    saveUserMarketInfo(to, marketAddress, value);
+  }
+}
+
+export function handleEventLog(event: EventLog): void {
+  let eventName = event.params.eventName;
+  let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
+
+  if (eventName == "DepositExecuted") {
+    handleDepositExecuted(event as EventLog2, eventData);
+    return;
   }
 }
 
@@ -139,11 +149,6 @@ export function handleEventLog1(event: EventLog1): void {
 
   if (eventName == "DepositCreated") {
     handleDepositCreated(event as EventLog2, eventData);
-    return;
-  }
-
-  if (eventName == "DepositExecuted") {
-    handleDepositExecuted(event as EventLog2, eventData);
     return;
   }
 
@@ -514,23 +519,24 @@ function handleDepositCreated(event: EventLog2, eventData: EventData): void {
   saveUserStat("deposit", account, transaction.timestamp);
 
   let depositRef = new DepositRef(eventData.getBytes32Item("key")!.toHexString());
-  depositRef.marketAddress = eventData.getBytes32Item("market")!.toHexString();
+  depositRef.marketAddress = eventData.getAddressItemString("market")!;
+
+  // old DepositCreated event does not contain "account"
+  depositRef.account = eventData.getAddressItemString("account")!;
   depositRef.save();
 }
 
 function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
-  let depositRef = DepositRef.load(eventData.getBytes32Item("key")!.toHexString())!;
+  let key = eventData.getBytes32Item("key")!.toHexString();
+  let depositRef = DepositRef.load(key)!;
   let marketInfo = MarketInfo.load(depositRef.marketAddress)!;
 
   let longTokenAmount = eventData.getUintItem("longTokenAmount")!;
   let longTokenPrice = TokenPrice.load(marketInfo.longToken)!;
+
   let shortTokenAmount = eventData.getUintItem("shortTokenAmount")!;
   let shortTokenPrice = TokenPrice.load(marketInfo.shortToken)!;
 
   let depositUsd = longTokenAmount.times(longTokenPrice.min).plus(shortTokenAmount.times(shortTokenPrice.min));
-  saveUserGlpGmMigrationStatGmData(
-    eventData.getAddressItemString("account")!,
-    event.block.timestamp.toI32(),
-    depositUsd
-  );
+  saveUserGlpGmMigrationStatGmData(depositRef.account, event.block.timestamp.toI32(), depositUsd);
 }

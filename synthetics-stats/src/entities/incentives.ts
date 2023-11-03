@@ -3,8 +3,7 @@ import {
   UserGlpGmMigrationStat,
   LiquidityProviderIncentivesStat,
   MarketIncentivesStat,
-  UserMarketInfo,
-  UserMarketInfoDebug
+  UserMarketInfo
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { periodToSeconds, timestampToPeriodStart } from "../utils/time";
@@ -14,27 +13,11 @@ import { getMarketInfo } from "./markets";
 let ZERO = BigInt.fromI32(0);
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 
-export function saveUserMarketInfo(
-  account: string,
-  marketAddress: string,
-  marketTokensDelta: BigInt,
-  timestamp: i32
-): void {
+export function saveUserMarketInfo(account: string, marketAddress: string, marketTokensDelta: BigInt): void {
   let entity = _getUserMarketInfo(account, marketAddress);
   entity.marketTokensBalance = entity.marketTokensBalance.plus(marketTokensDelta);
 
   entity.save();
-
-  // TODO remove before merging
-  let debugEntityId =
-    account + ":" + marketAddress + ":" + timestamp.toString() + ":" + entity.marketTokensBalance.toString();
-  let debugEntity = new UserMarketInfoDebug(debugEntityId);
-  debugEntity.marketTokensBalance = entity.marketTokensBalance;
-  debugEntity.marketTokensBalanceDelta = marketTokensDelta;
-  debugEntity.account = account;
-  debugEntity.marketAddress = marketAddress;
-  debugEntity.timestamp = timestamp;
-  debugEntity.save();
 }
 
 export function saveLiquidityProviderIncentivesStat(
