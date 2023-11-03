@@ -55,10 +55,8 @@ import {
   saveVolumeInfo,
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
-import { saveUserStat } from "./entities/user";
 import { saveTokenPrice } from "./entities/prices";
-
-import { updateTokenPrice } from "./entities/prices";
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 
 function handleEventLog1(event: EventLog1, network: string): void {
   let eventName = event.params.eventName;
@@ -214,6 +212,12 @@ function handleEventLog1(event: EventLog1, network: string): void {
       .plus(feeAmountForPool)
       .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
+
+    getMarketPoolValueFromContract(
+      swapFeesInfo.marketAddress,
+      network,
+      transaction
+    );
 
     let totalFees = saveCollectedMarketFeesTotal(
       swapFeesInfo.marketAddress,

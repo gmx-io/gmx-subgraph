@@ -6,6 +6,7 @@ import {
   VolumeInfo,
 } from "../../generated/schema";
 import { timestampToPeriodStart } from "../utils/time";
+import { getMarketInfo } from "./markets";
 
 export function saveVolumeInfo(
   type: string,
@@ -28,7 +29,7 @@ export function saveVolumeInfo(
     totalVolumeInfo.swapVolumeUsd = totalVolumeInfo.swapVolumeUsd.plus(volume);
   }
 
-  if(type == "deposit"){
+  if (type == "deposit") {
     hourlyVolumeInfo.depositVolumeUsd = hourlyVolumeInfo.depositVolumeUsd.plus(
       volume
     );
@@ -40,7 +41,7 @@ export function saveVolumeInfo(
     );
   }
 
-  if(type == "withdrawal"){
+  if (type == "withdrawal") {
     hourlyVolumeInfo.withdrawalVolumeUsd = hourlyVolumeInfo.withdrawalVolumeUsd.plus(
       volume
     );
@@ -150,12 +151,7 @@ export function savePositionVolumeInfo(
   marketToken: string,
   sizeInUsd: BigInt
 ): void {
-  let marketInfo = MarketInfo.load(marketToken);
-
-  if (marketInfo === null) {
-    return;
-  }
-
+  let marketInfo = getMarketInfo(marketToken);
   let hourlyVolumeInfo = getOrCreatePositionVolumeInfo(
     timestamp,
     collateralToken,
