@@ -1,7 +1,6 @@
-import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 
 import {
-  EventEmitter,
   EventLog1,
   EventLog2,
   EventLogEventDataStruct,
@@ -43,21 +42,17 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction,
 } from "./entities/trades";
+import { saveUserStat } from "./entities/user";
 import {
   savePositionVolumeInfo,
   saveSwapVolumeInfo,
   saveVolumeInfo,
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
-import { saveUserStat } from "./entities/user";
 
 import { updateTokenPrice } from "./entities/prices";
-import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 
-export function handleReader(): void {}
-export function handleBlock(block: ethereum.Block): void {}
-
-export function handleEventLog1(event: EventLog1, network: string): void {
+function handleEventLog1(event: EventLog1, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -316,7 +311,7 @@ export function handleEventLog1(event: EventLog1, network: string): void {
   }
 }
 
-export function handleEventLog2(event: EventLog2): void {
+function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -430,10 +425,30 @@ export function handleEventLog1Arbitrum(event: EventLog1): void {
   handleEventLog1(event, "arbitrum");
 }
 
+export function handleEventLog1Goerli(event: EventLog1): void {
+  handleEventLog1(event, "goerli");
+}
+
+export function handleEventLog1Avalanche(event: EventLog1): void {
+  handleEventLog1(event, "avalanche");
+}
+
 export function handleEventLog1Fuji(event: EventLog1): void {
   handleEventLog1(event, "fuji");
 }
 
-export function handleEventLog1Goerli(event: EventLog1): void {
-  handleEventLog1(event, "goerli");
+export function handleEventLog2Arbitrum(event: EventLog2): void {
+  handleEventLog2(event, "arbitrum");
+}
+
+export function handleEventLog2Goerli(event: EventLog2): void {
+  handleEventLog2(event, "goerli");
+}
+
+export function handleEventLog2Avalanche(event: EventLog2): void {
+  handleEventLog2(event, "avalanche");
+}
+
+export function handleEventLog2Fuji(event: EventLog2): void {
+  handleEventLog2(event, "fuji");
 }
