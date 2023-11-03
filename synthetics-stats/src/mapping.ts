@@ -201,7 +201,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
-
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;

@@ -27,6 +27,8 @@ dataSources:
       abis:
         - name: EventEmitter
           file: ./abis/EventEmitter.json
+        - name: Reader
+          file: ./abis/Reader.json
       eventHandlers:
         - event: EventLog1(address,string,indexed string,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
           handler: handleEventLog1Avalanche
