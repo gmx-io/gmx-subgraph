@@ -46,7 +46,7 @@ readerContractByNetwork.set(
   new ReaderContractConfig(
     "0xd868eF2fa279b510F64F44C66F08a0AEeBcBdB6b",
     "0x73BA021ACF4Bb6741E82690DdB821e7936050f8C",
-    32500437 + 1
+    35500794 + 1
   )
 );
 

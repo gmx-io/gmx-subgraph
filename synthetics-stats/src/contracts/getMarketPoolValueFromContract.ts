@@ -25,10 +25,6 @@ export function getMarketPoolValueFromContract(
   let contractConfig = getReaderContractConfigByNetwork(network);
 
   if (transaction.blockNumber < contractConfig.blockNumber) {
-    log.warning("blockNumber too low blockNumber={}, expected={}", [
-      BigInt.fromI32(transaction.blockNumber).toString(),
-      BigInt.fromI32(contractConfig.blockNumber).toString(),
-    ]);
     return ZERO;
   }
 

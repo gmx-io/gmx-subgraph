@@ -29,8 +29,8 @@ export function getMarketInfo(marketAddress: string): MarketInfo {
       entity.shortToken = marketConfig.shortToken;
       entity.save();
     } else {
-      log.error("marketConfig not found {}", [marketAddress]);
-      throw new Error("marketConfig not found");
+      log.error("MarketInfo not found {}", [marketAddress]);
+      throw new Error("MarketInfo not found");
     }
   }
 

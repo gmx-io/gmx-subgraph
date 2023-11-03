@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -13,6 +13,8 @@ import {
 import { getSwapInfoId } from "./swaps";
 import { orderTypes } from "./orders";
 import { getMarketInfo } from "./markets";
+
+let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export function saveOrderCreatedTradeAction(
   eventId: string,
@@ -86,10 +88,13 @@ export function saveOrderFrozenTradeAction(
   transaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
-  let marketInfo = getMarketInfo(order.marketAddress);
-  let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
-  tradeAction.indexTokenPriceMin = tokenPrice.min;
-  tradeAction.indexTokenPriceMax = tokenPrice.max;
+
+  if (order.marketAddress != ZERO_ADDRESS) {
+    let marketInfo = getMarketInfo(order.marketAddress);
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.min;
+    tradeAction.indexTokenPriceMax = tokenPrice.max;
+  }
 
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
