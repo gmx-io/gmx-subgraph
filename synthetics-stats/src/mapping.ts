@@ -8,18 +8,19 @@ import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { SellUSDG } from "../generated/Vault/Vault";
 
 import {
-  saveClaimActionOnOrderCreated,
-  saveClaimActionOnOrderExecuted,
-  isFundingFeeSettleOrder,
   saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
   handleCollateralClaimAction,
-  saveClaimActionOnOrderCancelled
+  isFundingFeeSettleOrder,
+  saveClaimActionOnOrderCancelled,
+  saveClaimActionOnOrderCreated,
+  saveClaimActionOnOrderExecuted
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
-  saveCollectedMarketFeesForPeriod,
-  saveCollectedMarketFeesTotal,
+  handleMarketPoolValueUpdated,
+  handlePositionImpactPoolDistributed,
+  saveCollectedMarketFees,
   savePositionFeesInfo,
   savePositionFeesInfoWithPeriod,
   saveSwapFeesInfo,
@@ -37,6 +38,7 @@ import {
   saveOrderUpdate
 } from "./entities/orders";
 import { savePositionDecrease, savePositionIncrease } from "./entities/positions";
+import { getTokenPrice, handleOraclePriceUpdate } from "./entities/prices";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import {
   saveOrderCancelledTradeAction,
@@ -50,7 +52,6 @@ import {
 import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
-import { saveTokenPrice } from "./entities/prices";
 import {
   saveLiquidityProviderIncentivesStat,
   saveMarketIncentivesStat,
@@ -59,7 +60,6 @@ import {
   saveUserMarketInfo
 } from "./entities/incentives";
 import { saveDistribution } from "./entities/distributions";
-
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -127,19 +127,10 @@ export function handleEventLog(event: EventLog): void {
   }
 }
 
-export function handleEventLog1(event: EventLog1): void {
+function handleEventLog1(event: EventLog1, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
   let eventId = getIdFromEvent(event);
-
-  if (eventName == "OraclePriceUpdate") {
-    saveTokenPrice(
-      eventData.getAddressItem("token")!,
-      eventData.getUintItem("minPrice")!,
-      eventData.getUintItem("maxPrice")!
-    );
-    return;
-  }
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
@@ -257,6 +248,7 @@ export function handleEventLog1(event: EventLog1): void {
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
+
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
@@ -264,32 +256,7 @@ export function handleEventLog1(event: EventLog1): void {
     let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
     let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
-
-    let totalFees = saveCollectedMarketFeesTotal(
-      swapFeesInfo.marketAddress,
-      swapFeesInfo.tokenAddress,
-      swapFeesInfo.feeAmountForPool,
-      swapFeesInfo.feeUsdForPool,
-      transaction.timestamp
-    );
-    saveCollectedMarketFeesForPeriod(
-      swapFeesInfo.marketAddress,
-      swapFeesInfo.tokenAddress,
-      swapFeesInfo.feeAmountForPool,
-      swapFeesInfo.feeUsdForPool,
-      totalFees,
-      "1h",
-      transaction.timestamp
-    );
-    saveCollectedMarketFeesForPeriod(
-      swapFeesInfo.marketAddress,
-      swapFeesInfo.tokenAddress,
-      swapFeesInfo.feeAmountForPool,
-      swapFeesInfo.feeUsdForPool,
-      totalFees,
-      "1d",
-      transaction.timestamp
-    );
+    saveCollectedMarketFees(action, transaction, swapFeesInfo.marketAddress, swapFeesInfo.feeUsdForPool);
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
     return;
@@ -311,31 +278,9 @@ export function handleEventLog1(event: EventLog1): void {
     let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
 
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
-    let totalFees = saveCollectedMarketFeesTotal(
-      positionFeesInfo.marketAddress,
-      positionFeesInfo.collateralTokenAddress,
-      positionFeesInfo.feeAmountForPool,
-      positionFeesInfo.feeUsdForPool,
-      transaction.timestamp
-    );
-    saveCollectedMarketFeesForPeriod(
-      positionFeesInfo.marketAddress,
-      positionFeesInfo.collateralTokenAddress,
-      positionFeesInfo.feeAmountForPool,
-      positionFeesInfo.feeUsdForPool,
-      totalFees,
-      "1h",
-      transaction.timestamp
-    );
-    saveCollectedMarketFeesForPeriod(
-      positionFeesInfo.marketAddress,
-      positionFeesInfo.collateralTokenAddress,
-      positionFeesInfo.feeAmountForPool,
-      positionFeesInfo.feeUsdForPool,
-      totalFees,
-      "1d",
-      transaction.timestamp
-    );
+
+    let action = eventData.getStringItem("action")!;
+    saveCollectedMarketFees(action, transaction, positionFeesInfo.marketAddress, positionFeesInfo.feeUsdForPool);
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
@@ -397,11 +342,24 @@ export function handleEventLog1(event: EventLog1): void {
     saveMarketIncentivesStat(eventData, event);
 
     saveMarketInfoTokensSupply(eventData);
+
+    handleMarketPoolValueUpdated(eventData);
+    return;
+  }
+
+  if (eventName == "PositionImpactPoolDistributed") {
+    let transaction = getOrCreateTransaction(event);
+    handlePositionImpactPoolDistributed(eventData, transaction);
+    return;
+  }
+
+  if (eventName == "OraclePriceUpdate") {
+    handleOraclePriceUpdate(eventData);
     return;
   }
 }
 
-export function handleEventLog2(event: EventLog2): void {
+function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
   let eventId = getIdFromEvent(event);
@@ -532,11 +490,43 @@ function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
   let marketInfo = MarketInfo.load(depositRef.marketAddress)!;
 
   let longTokenAmount = eventData.getUintItem("longTokenAmount")!;
-  let longTokenPrice = TokenPrice.load(marketInfo.longToken)!;
+  let longTokenPrice = getTokenPrice(marketInfo.longToken)!;
 
   let shortTokenAmount = eventData.getUintItem("shortTokenAmount")!;
-  let shortTokenPrice = TokenPrice.load(marketInfo.shortToken)!;
+  let shortTokenPrice = getTokenPrice(marketInfo.shortToken)!;
 
-  let depositUsd = longTokenAmount.times(longTokenPrice.min).plus(shortTokenAmount.times(shortTokenPrice.min));
+  let depositUsd = longTokenAmount.times(longTokenPrice).plus(shortTokenAmount.times(shortTokenPrice));
   saveUserGlpGmMigrationStatGmData(depositRef.account, event.block.timestamp.toI32(), depositUsd);
+}
+
+export function handleEventLog1Arbitrum(event: EventLog1): void {
+  handleEventLog1(event, "arbitrum");
+}
+
+export function handleEventLog1Goerli(event: EventLog1): void {
+  handleEventLog1(event, "goerli");
+}
+
+export function handleEventLog1Avalanche(event: EventLog1): void {
+  handleEventLog1(event, "avalanche");
+}
+
+export function handleEventLog1Fuji(event: EventLog1): void {
+  handleEventLog1(event, "fuji");
+}
+
+export function handleEventLog2Arbitrum(event: EventLog2): void {
+  handleEventLog2(event, "arbitrum");
+}
+
+export function handleEventLog2Goerli(event: EventLog2): void {
+  handleEventLog2(event, "goerli");
+}
+
+export function handleEventLog2Avalanche(event: EventLog2): void {
+  handleEventLog2(event, "avalanche");
+}
+
+export function handleEventLog2Fuji(event: EventLog2): void {
+  handleEventLog2(event, "fuji");
 }
