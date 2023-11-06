@@ -90,8 +90,6 @@ function saveCollectedMarketFeesForPeriod(
     period
   );
 
-  let poolValueRef = getPoolValue(marketAddress);
-
   updateCollectedFeesPerPoolValue(
     actionName,
     marketAddress,
@@ -102,7 +100,6 @@ function saveCollectedMarketFeesForPeriod(
 
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
-
   feesForPeriod.save();
 
   return feesForPeriod;

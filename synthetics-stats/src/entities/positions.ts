@@ -1,6 +1,5 @@
 import {
   PositionDecrease,
-  PositionFeesInfo,
   PositionIncrease,
   Transaction,
 } from "../../generated/schema";
