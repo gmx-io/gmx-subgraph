@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -12,6 +12,9 @@ import {
 } from "../../generated/schema";
 import { getSwapInfoId } from "./swaps";
 import { orderTypes } from "./orders";
+import { getMarketInfo } from "./markets";
+
+let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export function saveOrderCreatedTradeAction(
   eventId: string,
@@ -85,9 +88,9 @@ export function saveOrderFrozenTradeAction(
   transaction: Transaction
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
-  let marketInfo = MarketInfo.load(order.marketAddress);
 
-  if (marketInfo) {
+  if (order.marketAddress != ZERO_ADDRESS) {
+    let marketInfo = getMarketInfo(order.marketAddress);
     let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
     tradeAction.indexTokenPriceMin = tokenPrice.min;
     tradeAction.indexTokenPriceMax = tokenPrice.max;
@@ -142,14 +145,11 @@ export function savePositionIncreaseExecutedTradeAction(
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionIncrease = PositionIncrease.load(order.id);
+  let marketInfo = getMarketInfo(order.marketAddress);
+  let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
 
-  let marketInfo = MarketInfo.load(order.marketAddress);
-
-  if (marketInfo) {
-    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
-    tradeAction.indexTokenPriceMin = tokenPrice.min;
-    tradeAction.indexTokenPriceMax = tokenPrice.max;
-  }
+  tradeAction.indexTokenPriceMin = tokenPrice.min;
+  tradeAction.indexTokenPriceMax = tokenPrice.max;
 
   if (positionIncrease == null) {
     throw new Error("PositionIncrease not found " + order.id);
@@ -182,14 +182,11 @@ export function savePositionDecreaseExecutedTradeAction(
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
   let positionFeesInfo: PositionFeesInfo | null = null;
+  let marketInfo = getMarketInfo(order.marketAddress);
+  let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
 
-  let marketInfo = MarketInfo.load(order.marketAddress);
-
-  if (marketInfo) {
-    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
-    tradeAction.indexTokenPriceMin = tokenPrice.min;
-    tradeAction.indexTokenPriceMax = tokenPrice.max;
-  }
+  tradeAction.indexTokenPriceMin = tokenPrice.min;
+  tradeAction.indexTokenPriceMax = tokenPrice.max;
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);

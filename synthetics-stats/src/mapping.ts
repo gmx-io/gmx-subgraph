@@ -48,16 +48,17 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction,
 } from "./entities/trades";
+import { saveUserStat } from "./entities/user";
 import {
   savePositionVolumeInfo,
   saveSwapVolumeInfo,
   saveVolumeInfo,
 } from "./entities/volume";
 import { EventData } from "./utils/eventData";
-import { saveUserStat } from "./entities/user";
 import { saveTokenPrice } from "./entities/prices";
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 
-export function handleEventLog1(event: EventLog1): void {
+function handleEventLog1(event: EventLog1, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -362,7 +363,7 @@ export function handleEventLog1(event: EventLog1): void {
   }
 }
 
-export function handleEventLog2(event: EventLog2): void {
+function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
   let eventData = new EventData(
     event.params.eventData as EventLogEventDataStruct
@@ -482,4 +483,36 @@ export function handleEventLog2(event: EventLog2): void {
     );
     return;
   }
+}
+
+export function handleEventLog1Arbitrum(event: EventLog1): void {
+  handleEventLog1(event, "arbitrum");
+}
+
+export function handleEventLog1Goerli(event: EventLog1): void {
+  handleEventLog1(event, "goerli");
+}
+
+export function handleEventLog1Avalanche(event: EventLog1): void {
+  handleEventLog1(event, "avalanche");
+}
+
+export function handleEventLog1Fuji(event: EventLog1): void {
+  handleEventLog1(event, "fuji");
+}
+
+export function handleEventLog2Arbitrum(event: EventLog2): void {
+  handleEventLog2(event, "arbitrum");
+}
+
+export function handleEventLog2Goerli(event: EventLog2): void {
+  handleEventLog2(event, "goerli");
+}
+
+export function handleEventLog2Avalanche(event: EventLog2): void {
+  handleEventLog2(event, "avalanche");
+}
+
+export function handleEventLog2Fuji(event: EventLog2): void {
+  handleEventLog2(event, "fuji");
 }
