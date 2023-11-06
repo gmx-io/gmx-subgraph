@@ -101,7 +101,6 @@ function saveCollectedMarketFeesForPeriod(
   );
 
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
-  feesForPeriod.poolValue = poolValueRef.poolValue;
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
 
   feesForPeriod.save();
@@ -256,11 +255,10 @@ function getOrCreateCollectedMarketFees(
     collectedFees.marketAddress = marketAddress;
     collectedFees.period = period;
     collectedFees.timestampGroup = timestampGroup;
-    collectedFees.feeUsdForPool = BigInt.fromI32(0);
-    collectedFees.cummulativeFeeUsdForPool = BigInt.fromI32(0);
-    collectedFees.feeUsdPerPoolValue = BigInt.fromI32(0);
-    collectedFees.cumulativeFeeUsdPerPoolValue = BigInt.fromI32(0);
-    collectedFees.poolValue = BigInt.fromI32(777);
+    collectedFees.feeUsdForPool = ZERO;
+    collectedFees.cummulativeFeeUsdForPool = ZERO;
+    collectedFees.feeUsdPerPoolValue = ZERO;
+    collectedFees.cumulativeFeeUsdPerPoolValue = ZERO;
   }
 
   return collectedFees as CollectedMarketFeesInfo;
@@ -361,8 +359,8 @@ function getOrCreateSwapFeesInfoWithPeriod(
   if (feeInfo == null) {
     feeInfo = new SwapFeesInfoWithPeriod(id);
     feeInfo.period = period;
-    feeInfo.totalFeeUsdForPool = BigInt.fromI32(0);
-    feeInfo.totalFeeReceiverUsd = BigInt.fromI32(0);
+    feeInfo.totalFeeUsdForPool = ZERO;
+    feeInfo.totalFeeReceiverUsd = ZERO;
   }
 
   return feeInfo as SwapFeesInfoWithPeriod;
@@ -377,11 +375,11 @@ function getOrCreatePositionFeesInfoWithPeriod(
   if (feeInfo == null) {
     feeInfo = new PositionFeesInfoWithPeriod(id);
     feeInfo.period = period;
-    feeInfo.totalBorrowingFeeUsd = BigInt.fromI32(0);
-    feeInfo.totalPositionFeeAmount = BigInt.fromI32(0);
-    feeInfo.totalPositionFeeUsd = BigInt.fromI32(0);
-    feeInfo.totalPositionFeeAmountForPool = BigInt.fromI32(0);
-    feeInfo.totalPositionFeeUsdForPool = BigInt.fromI32(0);
+    feeInfo.totalBorrowingFeeUsd = ZERO;
+    feeInfo.totalPositionFeeAmount = ZERO;
+    feeInfo.totalPositionFeeUsd = ZERO;
+    feeInfo.totalPositionFeeAmountForPool = ZERO;
+    feeInfo.totalPositionFeeUsdForPool = ZERO;
   }
 
   return feeInfo as PositionFeesInfoWithPeriod;
@@ -439,7 +437,7 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
 
   let latestTotalCumulative = latestTotalFee
     ? latestTotalFee.cumulativeFeeUsdPerPoolValue
-    : BigInt.fromI32(0);
+    : ZERO;
 
   for (let i = 0; i < pendingIds.length; i++) {
     let id = pendingIds[i];
@@ -453,8 +451,6 @@ export function handleMarketPoolValueUpdated(eventData: EventData): void {
           feeUsd,
           event.poolValue
         );
-
-        feeInfo.poolValue = event.poolValue;
 
         if (feeInfo.id.endsWith(":total")) {
           feeInfo.cumulativeFeeUsdPerPoolValue = feeInfo.feeUsdPerPoolValue;
@@ -505,7 +501,6 @@ export function handlePositionImpactPoolDistributed(
   );
 
   feesFor1h.feeUsdForPool = feesFor1h.feeUsdForPool.plus(amountUsd);
-  feesFor1h.poolValue = poolValueRef.poolValue;
 
   // total
   let feesForTotal = getOrCreateCollectedMarketFees(
@@ -520,7 +515,6 @@ export function handlePositionImpactPoolDistributed(
     poolValueRef.poolValue
   );
   feesForTotal.feeUsdForPool = feesForTotal.feeUsdForPool.plus(amountUsd);
-  feesForTotal.poolValue = poolValueRef.poolValue;
 
   feesForTotal.cumulativeFeeUsdPerPoolValue = feesForTotal.feeUsdPerPoolValue;
   feesFor1h.cumulativeFeeUsdPerPoolValue = feesForTotal.feeUsdPerPoolValue;

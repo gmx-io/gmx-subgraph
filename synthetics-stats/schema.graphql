@@ -208,7 +208,6 @@ type CollectedMarketFeesInfo @entity {
   cumulativeFeeUsdPerPoolValue: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
-  poolValue: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {
