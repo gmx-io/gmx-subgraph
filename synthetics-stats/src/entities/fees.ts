@@ -116,11 +116,11 @@ function updateCollectedFeesPerPoolValue(
   feeUsdForPool: BigInt
 ): void {
   let poolValueRef = getPoolValue(marketAddress);
-  let shouldCalulateAprNow = getShouldCalculateAprForFeeEventNow(
+  let shouldCalculateAprNow = getShouldCalculateAprForFeeEventNow(
     poolValueRef.poolValue,
     actionName
   );
-  if (shouldCalulateAprNow) {
+  if (shouldCalculateAprNow) {
     feesEntity.feeUsdPerPoolValue = getUpdatedFeeUsdPerPoolValue(
       feesEntity,
       feeUsdForPool,

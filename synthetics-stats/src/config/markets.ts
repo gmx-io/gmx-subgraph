@@ -3,11 +3,11 @@ function createMarket(
   indexToken: string,
   longToken: string,
   shortToken: string
-): DebugMarketInfo {
-  return new DebugMarketInfo(marketToken, indexToken, longToken, shortToken);
+): MarketInfoConfig {
+  return new MarketInfoConfig(marketToken, indexToken, longToken, shortToken);
 }
 
-export class DebugMarketInfo {
+export class MarketInfoConfig {
   constructor(
     public marketToken: string,
     public indexToken: string,
@@ -16,7 +16,7 @@ export class DebugMarketInfo {
   ) {}
 }
 
-export let markets = new Map<string, DebugMarketInfo>();
+export let markets = new Map<string, MarketInfoConfig>();
 
 // goerli
 
