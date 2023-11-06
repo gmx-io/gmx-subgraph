@@ -405,7 +405,7 @@ type LiquidityProviderIncentivesStat @entity {
   # used for liquidity providers incentives program
   # tracks average weighted liquidity provided by user per week
 
-  # account + market + period + timestamp
+  # account:market:period:timestamp
   id: ID!
   period: String!
   timestamp: Int!
@@ -422,7 +422,7 @@ type MarketIncentivesStat @entity {
   # used for incentives program
   # tracks average weighted liquidity in each pool
 
-  # marketAddress + period + timestamp
+  # marketAddress:period:timestamp
   id: ID!
   period: String!
   timestamp: Int!
@@ -435,7 +435,7 @@ type MarketIncentivesStat @entity {
 }
 
 type UserMarketInfo @entity {
-  # account + marketAddress
+  # account:marketAddress
   id: ID!
 
   marketTokensBalance: BigInt!
@@ -444,7 +444,7 @@ type UserMarketInfo @entity {
 }
 
 type UserGlpGmMigrationStat @entity {
-  # account + period + timestamp
+  # account:period:timestamp
   id: ID!
   timestamp: Int!
   period: String!
@@ -457,6 +457,7 @@ type UserGlpGmMigrationStat @entity {
 }
 
 type Distribution @entity {
+  # receiver:txHash:typeId
   id: ID!
 
   receiver: String!
