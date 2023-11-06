@@ -1,7 +1,9 @@
-import { log } from "@graphprotocol/graph-ts";
-import { MarketInfo } from "../../generated/schema";
+import { BigInt, log } from "@graphprotocol/graph-ts";
+import { MarketInfo, PoolValue } from "../../generated/schema";
 import { marketConfigs } from "../config/markets";
 import { EventData } from "../utils/eventData";
+
+let ZERO = BigInt.fromI32(0);
 
 export function saveMarketInfo(eventData: EventData): MarketInfo {
   let id = eventData.getAddressItemString("marketToken")!;
@@ -11,6 +13,12 @@ export function saveMarketInfo(eventData: EventData): MarketInfo {
   marketInfo.longToken = eventData.getAddressItemString("longToken")!;
   marketInfo.shortToken = eventData.getAddressItemString("shortToken")!;
   marketInfo.save();
+
+  let poolValueRef = new PoolValue(id);
+  poolValueRef.poolValue = ZERO;
+  poolValueRef.pendingFeeUsds = new Array<BigInt>(0);
+  poolValueRef.pendingCollectedMarketFeesInfoIds = new Array<string>(0);
+  poolValueRef.save();
 
   return marketInfo as MarketInfo;
 }

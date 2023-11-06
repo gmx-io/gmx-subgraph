@@ -92,8 +92,8 @@ export function saveOrderFrozenTradeAction(
   if (order.marketAddress != ZERO_ADDRESS) {
     let marketInfo = getMarketInfo(order.marketAddress);
     let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
-    tradeAction.indexTokenPriceMin = tokenPrice.min;
-    tradeAction.indexTokenPriceMax = tokenPrice.max;
+    tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+    tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
   }
 
   tradeAction.eventName = "OrderFrozen";
@@ -148,8 +148,8 @@ export function savePositionIncreaseExecutedTradeAction(
   let marketInfo = getMarketInfo(order.marketAddress);
   let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
 
-  tradeAction.indexTokenPriceMin = tokenPrice.min;
-  tradeAction.indexTokenPriceMax = tokenPrice.max;
+  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
 
   if (positionIncrease == null) {
     throw new Error("PositionIncrease not found " + order.id);
@@ -185,8 +185,8 @@ export function savePositionDecreaseExecutedTradeAction(
   let marketInfo = getMarketInfo(order.marketAddress);
   let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
 
-  tradeAction.indexTokenPriceMin = tokenPrice.min;
-  tradeAction.indexTokenPriceMax = tokenPrice.max;
+  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);

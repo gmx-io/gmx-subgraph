@@ -70,12 +70,6 @@ type Order @entity {
   executedTxn: Transaction
 }
 
-type TokenPrice @entity {
-  id: ID!
-  min: BigInt!
-  max: BigInt!
-}
-
 type PositionIncrease @entity(immutable: true) {
   # orderKey
   id: ID!
@@ -153,7 +147,6 @@ type PositionFeesInfo @entity(immutable: true) {
   positionFeeAmount: BigInt!
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   totalRebateFactor: BigInt!
@@ -192,21 +185,27 @@ type SwapFeesInfo @entity(immutable: true) {
 
   tokenPrice: BigInt!
   feeReceiverAmount: BigInt!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
 
   transaction: Transaction!
 }
 
+type PoolValue @entity {
+  # marketAddress
+  id: ID!
+  poolValue: BigInt!
+  pendingFeeUsds: [BigInt!]!
+  pendingCollectedMarketFeesInfoIds: [String!]!
+}
+
 type CollectedMarketFeesInfo @entity {
-  # marketAddress:tokenAddress:period:timestampGroup
+  # marketAddress:period:timestampGroup
   id: ID!
   period: String!
   marketAddress: String!
-  tokenAddress: String!
-  feeAmountForPool: BigInt!
   feeUsdForPool: BigInt!
-  cummulativeFeeAmountForPool: BigInt!
+  feeUsdPerPoolValue: BigInt!
+  cumulativeFeeUsdPerPoolValue: BigInt!
   cummulativeFeeUsdForPool: BigInt!
   timestampGroup: Int!
 }
@@ -251,6 +250,14 @@ type TradeAction @entity(immutable: true) {
   reasonBytes: Bytes
 
   transaction: Transaction!
+}
+
+type TokenPrice @entity {
+  # tokenAddress
+  id: ID!
+
+  minPrice: BigInt!
+  maxPrice: BigInt!
 }
 
 type ClaimCollateralAction @entity(immutable: true) {
@@ -374,8 +381,6 @@ type SwapFeesInfoWithPeriod @entity {
   # timestamp | total
   id: ID!
   period: String!
-  totalFeeReceiverAmount: BigInt!
-  totalFeeAmountForPool: BigInt!
 
   totalFeeReceiverUsd: BigInt!
   totalFeeUsdForPool: BigInt!
