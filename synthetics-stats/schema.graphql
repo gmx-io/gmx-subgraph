@@ -322,6 +322,14 @@ type MarketInfo @entity {
   indexToken: String!
   longToken: String!
   shortToken: String!
+
+  marketTokensSupply: BigInt!
+}
+
+type DepositRef @entity {
+  id: ID!
+  marketAddress: String!
+  account: String!
 }
 
 type VolumeInfo @entity {
@@ -396,4 +404,83 @@ type PositionFeesInfoWithPeriod @entity {
   totalPositionFeeAmount: BigInt!
   totalPositionFeeUsd: BigInt!
   totalBorrowingFeeUsd: BigInt!
+}
+
+type LiquidityProviderIncentivesStat @entity {
+  # used for liquidity providers incentives program
+  # tracks average weighted liquidity provided by user per week
+
+  # account:market:period:timestamp
+  id: ID!
+  period: String!
+  timestamp: Int!
+  account: String!
+  marketAddress: String!
+
+  updatedTimestamp: Int!
+  lastMarketTokensBalance: BigInt!
+  cumulativeTimeByMarketTokensBalance: BigInt!
+  weightedAverageMarketTokensBalance: BigInt!
+}
+
+type MarketIncentivesStat @entity {
+  # used for incentives program
+  # tracks average weighted liquidity in each pool
+
+  # marketAddress:period:timestamp
+  id: ID!
+  period: String!
+  timestamp: Int!
+  marketAddress: String!
+
+  updatedTimestamp: Int!
+  lastMarketTokensSupply: BigInt!
+  cumulativeTimeByMarketTokensSupply: BigInt!
+  weightedAverageMarketTokensSupply: BigInt!
+}
+
+type UserMarketInfo @entity {
+  # account:marketAddress
+  id: ID!
+
+  marketTokensBalance: BigInt!
+  account: String!
+  marketAddress: String!
+}
+
+type UserGlpGmMigrationStat @entity {
+  # account:period:timestamp
+  id: ID!
+  timestamp: Int!
+  period: String!
+  account: String!
+
+  glpRedemptionUsd: BigInt!
+  glpRedemptionFeeBpsByUsd: BigInt! # used to calculate average
+  glpRedemptionWeightedAverageFeeBps: Int!
+  gmDepositUsd: BigInt!
+}
+
+type Distribution @entity {
+  # receiver:txHash:typeId
+  id: ID!
+
+  receiver: String!
+  amounts: [BigInt!]!
+  amountsInUsd: [BigInt!]!
+  tokens: [String!]!
+
+  # 0 default
+  # 1 airdrop, affiliate. used in referrals subgraph
+  # 2 airdrop, traders. used in referrals subgraph
+  # 1000 v2, claim, affiliate. used in referrals subgraph
+
+  # 1001 v2, STIP GM incentives airdrop
+  # 1002 v2, STIP GLP -> GM migration rebates airdrop
+  # 1003 v2, STIP trading incentives airdrop
+  typeId: Int!
+
+  transactionHash: String!
+  blockNumber: Int!
+  timestamp: Int!
 }

@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { log, BigInt } from "@graphprotocol/graph-ts";
 import { MarketInfo, PoolValue } from "../../generated/schema";
 import { marketConfigs } from "../config/markets";
 import { EventData } from "../utils/eventData";
@@ -12,6 +12,7 @@ export function saveMarketInfo(eventData: EventData): MarketInfo {
   marketInfo.indexToken = eventData.getAddressItemString("indexToken")!;
   marketInfo.longToken = eventData.getAddressItemString("longToken")!;
   marketInfo.shortToken = eventData.getAddressItemString("shortToken")!;
+  marketInfo.marketTokensSupply = BigInt.fromI32(0);
   marketInfo.save();
 
   let poolValueRef = new PoolValue(id);
@@ -43,4 +44,13 @@ export function getMarketInfo(marketAddress: string): MarketInfo {
   }
 
   return entity!;
+}
+
+export function saveMarketInfoTokensSupply(eventData: EventData): void {
+  let id = eventData.getAddressItemString("market")!;
+  let marketInfo = getMarketInfo(id);
+
+  marketInfo.marketTokensSupply = eventData.getUintItem("marketTokensSupply")!;
+
+  marketInfo.save();
 }
