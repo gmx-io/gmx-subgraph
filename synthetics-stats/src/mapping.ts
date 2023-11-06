@@ -212,12 +212,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
       .plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
 
-    getMarketPoolValueFromContract(
-      swapFeesInfo.marketAddress,
-      network,
-      transaction
-    );
-
     let totalFees = saveCollectedMarketFeesTotal(
       swapFeesInfo.marketAddress,
       swapFeesInfo.tokenAddress,
