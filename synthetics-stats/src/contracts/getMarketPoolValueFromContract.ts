@@ -5,7 +5,7 @@ import {
   Reader__getMarketTokenPriceInputIndexTokenPriceStruct,
   Reader__getMarketTokenPriceInputLongTokenPriceStruct,
   Reader__getMarketTokenPriceInputMarketStruct,
-  Reader__getMarketTokenPriceInputShortTokenPriceStruct,
+  Reader__getMarketTokenPriceInputShortTokenPriceStruct
 } from "./Reader";
 import { MarketInfo, TokenPrice, Transaction } from "../../generated/schema";
 import { getReaderContractConfigByNetwork } from "./readerConfigs";
@@ -32,28 +32,20 @@ export function getMarketPoolValueFromContract(
   let marketInfo = getMarketInfo(marketAddress);
 
   let marketArg = new Reader__getMarketTokenPriceInputMarketStruct(4);
-  marketArg[0] = chainEthereum.Value.fromAddress(
-    Address.fromString(marketInfo.marketToken)
-  );
-  marketArg[1] = chainEthereum.Value.fromAddress(
-    Address.fromString(marketInfo.indexToken)
-  );
-  marketArg[2] = chainEthereum.Value.fromAddress(
-    Address.fromString(marketInfo.longToken)
-  );
-  marketArg[3] = chainEthereum.Value.fromAddress(
-    Address.fromString(marketInfo.shortToken)
-  );
+  marketArg[0] = chainEthereum.Value.fromAddress(Address.fromString(marketInfo.marketToken));
+  marketArg[1] = chainEthereum.Value.fromAddress(Address.fromString(marketInfo.indexToken));
+  marketArg[2] = chainEthereum.Value.fromAddress(Address.fromString(marketInfo.longToken));
+  marketArg[3] = chainEthereum.Value.fromAddress(Address.fromString(marketInfo.shortToken));
 
-  let indexTokenPriceArg = createPriceForContractCall<
-    Reader__getMarketTokenPriceInputIndexTokenPriceStruct
-  >(marketInfo.indexToken);
-  let longTokenPriceArg = createPriceForContractCall<
-    Reader__getMarketTokenPriceInputLongTokenPriceStruct
-  >(marketInfo.longToken);
-  let shortTokenPriceArg = createPriceForContractCall<
-    Reader__getMarketTokenPriceInputShortTokenPriceStruct
-  >(marketInfo.shortToken);
+  let indexTokenPriceArg = createPriceForContractCall<Reader__getMarketTokenPriceInputIndexTokenPriceStruct>(
+    marketInfo.indexToken
+  );
+  let longTokenPriceArg = createPriceForContractCall<Reader__getMarketTokenPriceInputLongTokenPriceStruct>(
+    marketInfo.longToken
+  );
+  let shortTokenPriceArg = createPriceForContractCall<Reader__getMarketTokenPriceInputShortTokenPriceStruct>(
+    marketInfo.shortToken
+  );
 
   /*
   log.warning(
@@ -94,8 +86,8 @@ function createPriceForContractCall<T>(tokenAddress: string): T {
   let tokenPrice = TokenPrice.load(tokenAddress);
 
   if (tokenPrice) {
-    minPrice = tokenPrice.min;
-    maxPrice = tokenPrice.max;
+    minPrice = tokenPrice.minPrice;
+    maxPrice = tokenPrice.maxPrice;
   } else if (tokenAddress != ZERO_ADDRESS) {
     log.error("TokenPrice not found {}", [tokenAddress]);
     throw new Error("tokenAddress is not zero address");

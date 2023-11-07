@@ -204,10 +204,33 @@ type CollectedMarketFeesInfo @entity {
   period: String!
   marketAddress: String!
   feeUsdForPool: BigInt!
+  cummulativeFeeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!
   cumulativeFeeUsdPerPoolValue: BigInt!
-  cummulativeFeeUsdForPool: BigInt!
+  feeUsdPerGmToken: BigInt!
+  cumulativeFeeUsdPerGmToken: BigInt!
   timestampGroup: Int!
+}
+
+type UserGmTokensBalanceChange @entity(immutable: true) {
+  # account:marketAddress:timestamp
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokensDelta: BigInt!
+  tokensBalance: BigInt!
+  timestamp: Int!
+  income: BigInt!
+  cumulativeIncome: BigInt!
+  cumulativeFeeUsdPerGmToken: BigInt!
+}
+
+type LatestUserGmTokensBalanceChangeRef @entity {
+  # account:marketAddress
+  id: ID!
+  account: String!
+  marketAddress: String!
+  latestUserGmTokensBalanceChange: UserGmTokensBalanceChange
 }
 
 type TradeAction @entity(immutable: true) {

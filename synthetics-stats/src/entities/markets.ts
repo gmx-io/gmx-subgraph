@@ -46,11 +46,8 @@ export function getMarketInfo(marketAddress: string): MarketInfo {
   return entity!;
 }
 
-export function saveMarketInfoTokensSupply(eventData: EventData): void {
-  let id = eventData.getAddressItemString("market")!;
-  let marketInfo = getMarketInfo(id);
-
-  marketInfo.marketTokensSupply = eventData.getUintItem("marketTokensSupply")!;
-
+export function saveMarketInfoTokensSupply(marketAddress: string, value: BigInt): void {
+  let marketInfo = getMarketInfo(marketAddress);
+  marketInfo.marketTokensSupply = marketInfo.marketTokensSupply.plus(value);
   marketInfo.save();
 }
