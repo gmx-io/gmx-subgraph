@@ -62,7 +62,7 @@ export function getMarketPoolValueFromContract(
       longTokenPriceArg.max.toString(),
       shortTokenPriceArg.min.toString(),
       shortTokenPriceArg.max.toString(),
-      MAX_PNL_FACTOR_FOR_TRADERS.toHexString(),
+      MAX_PNL_FACTOR_FOR_TRADERS.toHexString()
     ]
   );
   */

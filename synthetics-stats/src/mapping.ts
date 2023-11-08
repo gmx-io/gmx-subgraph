@@ -18,7 +18,6 @@ import {
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
-  handleMarketPoolValueUpdated,
   handlePositionImpactPoolDistributed,
   saveCollectedMarketFees,
   savePositionFeesInfo,
@@ -368,9 +367,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "MarketPoolValueUpdated") {
     // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
     saveMarketIncentivesStat(eventData, event);
-
-    let transaction = getOrCreateTransaction(event);
-    handleMarketPoolValueUpdated(eventData, transaction, network);
     return;
   }
 

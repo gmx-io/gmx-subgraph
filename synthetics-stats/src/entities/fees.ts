@@ -270,25 +270,6 @@ export function saveCollectedMarketFees(
   feesForPeriod.save();
 }
 
-export function handleMarketPoolValueUpdated(eventData: EventData, transaction: Transaction, network: string): void {
-  let event = new MarketPoolValueUpdatedEventData(eventData);
-
-  if (event.poolValue.equals(ZERO)) {
-    log.warning("Pool value is zero: {}", [event.market]);
-    return;
-  }
-
-  let poolValueFromEvent = event.poolValue;
-  let poolValueFromContract = getMarketPoolValueFromContract(event.market, network, transaction);
-
-  if (poolValueFromContract.equals(ZERO)) return;
-
-  log.warning("Pool value from event: {}, from contract: {}", [
-    poolValueFromEvent.toString(),
-    poolValueFromContract.toString()
-  ]);
-}
-
 export function handlePositionImpactPoolDistributed(
   eventData: EventData,
   transaction: Transaction,
