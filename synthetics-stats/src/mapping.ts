@@ -63,17 +63,11 @@ import { saveDistribution } from "./entities/distributions";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
-  let maxFeeBasisPointsForRebate = BigInt.fromI32(25);
-  let feeBasisPoints = event.params.feeBasisPoints;
-  if (feeBasisPoints.gt(maxFeeBasisPointsForRebate)) {
-    feeBasisPoints = maxFeeBasisPointsForRebate;
-  }
-
   saveUserGlpGmMigrationStatGlpData(
     event.params.account.toHexString(),
     event.block.timestamp.toI32(),
     event.params.usdgAmount,
-    feeBasisPoints
+    event.params.feeBasisPoints
   );
 }
 

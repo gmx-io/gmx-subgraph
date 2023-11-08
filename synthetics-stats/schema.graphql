@@ -484,3 +484,11 @@ type Distribution @entity {
   blockNumber: Int!
   timestamp: Int!
 }
+
+type GlpGmMigrationStat @entity {
+  # "total"
+  id: ID!
+
+  eligableRedemptionUsd: BigInt!
+  # eligableRedemptionInArb: BigInt!
+}
