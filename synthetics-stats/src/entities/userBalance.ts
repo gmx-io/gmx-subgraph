@@ -31,7 +31,6 @@ export function saveUserGmTokensBalanceChange(
 
   entity.tokensBalance = entity.tokensBalance.notEqual(ZERO) ? entity.tokensBalance.plus(value) : prevValue.plus(value);
   entity.tokensDelta = entity.tokensDelta.notEqual(ZERO) ? entity.tokensDelta.plus(value) : value;
-  entity.income = income;
   entity.cumulativeIncome = entity.cumulativeIncome.notEqual(ZERO)
     ? entity.cumulativeIncome
     : prevCumulativeIncome.plus(income);
@@ -64,7 +63,7 @@ function saveLatestUserGmTokensBalanceChange(change: UserGmTokensBalanceChange):
     latestRef.marketAddress = change.marketAddress;
   }
 
-  // several transfers can be in one transaction
+  // several transfers can be in one transaction, i.e. have the same id
   if (latestRef.latestUserGmTokensBalanceChange != change.id) {
     latestRef.latestUserGmTokensBalanceChange = change.id;
   }
@@ -97,7 +96,6 @@ function _getOrCreateUserGmTokensBalanceChange(
   newEntity.tokensDelta = ZERO;
   newEntity.tokensBalance = ZERO;
   newEntity.timestamp = transaction.timestamp;
-  newEntity.income = ZERO;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
 

@@ -220,7 +220,6 @@ type UserGmTokensBalanceChange @entity(immutable: true) {
   tokensDelta: BigInt!
   tokensBalance: BigInt!
   timestamp: Int!
-  income: BigInt!
   cumulativeIncome: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
 }
