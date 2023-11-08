@@ -27,7 +27,7 @@ export function saveUserGmTokensBalanceChange(
   let totalFees = CollectedMarketFeesInfo.load(marketAddress + ":total");
   let prevValue = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
-  let income = prevEntity ? calcEarningsForEntity(prevEntity) : ZERO;
+  let income = prevEntity ? calcIncomeForEntity(prevEntity) : ZERO;
 
   entity.tokensBalance = entity.tokensBalance.notEqual(ZERO) ? entity.tokensBalance.plus(value) : prevValue.plus(value);
   entity.tokensDelta = entity.tokensDelta.notEqual(ZERO) ? entity.tokensDelta.plus(value) : value;
@@ -72,7 +72,7 @@ function saveLatestUserGmTokensBalanceChange(change: UserGmTokensBalanceChange):
   latestRef.save();
 }
 
-function calcEarningsForEntity(entity: UserGmTokensBalanceChange | null): BigInt {
+function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null): BigInt {
   if (!entity) return ZERO;
   if (entity.tokensBalance.equals(ZERO)) return ZERO;
 
