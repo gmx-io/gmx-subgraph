@@ -18,7 +18,6 @@ import {
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
-  handleMarketPoolValueUpdated,
   handlePositionImpactPoolDistributed,
   saveCollectedMarketFees,
   savePositionFeesInfo,
@@ -60,6 +59,7 @@ import {
   saveUserMarketInfo
 } from "./entities/incentives";
 import { saveDistribution } from "./entities/distributions";
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -268,8 +268,16 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
     let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
+    let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, network, transaction);
+    let marketInfo = getMarketInfo(swapFeesInfo.marketAddress);
 
-    saveCollectedMarketFees(action, transaction, swapFeesInfo.marketAddress, swapFeesInfo.feeUsdForPool);
+    saveCollectedMarketFees(
+      transaction,
+      swapFeesInfo.marketAddress,
+      poolValue,
+      swapFeesInfo.feeUsdForPool,
+      marketInfo.marketTokensSupply
+    );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
     return;
@@ -290,9 +298,16 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
     let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
-    let action = eventData.getStringItem("action")!;
+    let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
+    let marketInfo = getMarketInfo(positionFeesInfo.marketAddress);
 
-    saveCollectedMarketFees(action, transaction, positionFeesInfo.marketAddress, positionFeesInfo.feeUsdForPool);
+    saveCollectedMarketFees(
+      transaction,
+      positionFeesInfo.marketAddress,
+      poolValue,
+      positionFeesInfo.feeUsdForPool,
+      marketInfo.marketTokensSupply
+    );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
@@ -352,13 +367,12 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "MarketPoolValueUpdated") {
     // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
     saveMarketIncentivesStat(eventData, event);
-    handleMarketPoolValueUpdated(eventData);
     return;
   }
 
   if (eventName == "PositionImpactPoolDistributed") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionImpactPoolDistributed(eventData, transaction);
+    handlePositionImpactPoolDistributed(eventData, transaction, network);
     return;
   }
 
