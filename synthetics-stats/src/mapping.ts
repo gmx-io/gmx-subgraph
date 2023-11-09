@@ -61,6 +61,7 @@ import {
 import { saveDistribution } from "./entities/distributions";
 import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
+import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/fees";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -131,19 +132,19 @@ export function handleMarketTokenTransfer(event: Transfer): void {
 }
 
 export function handleEventLog(event: EventLog): void {
-  let eventName = event.params.eventName;
-  let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
+  // FIXME network
+  let eventData = new EventData(event, "unknown");
 
-  if (eventName == "DepositExecuted") {
+  if (eventData.eventName == "DepositExecuted") {
     handleDepositExecuted(event as EventLog2, eventData);
     return;
   }
 }
 
 function handleEventLog1(event: EventLog1, network: string): void {
-  let eventName = event.params.eventName;
-  let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
-  let eventId = getIdFromEvent(event);
+  let eventData = new EventData(event as EventLog, network);
+  let eventName = eventData.eventName;
+  let eventId = eventData.eventId;
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
@@ -259,27 +260,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
   }
 
   if (eventName == "SwapFeesCollected") {
-    let transaction = getOrCreateTransaction(event);
-    let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
-    let tokenPrice = eventData.getUintItem("tokenPrice")!;
-    let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
-    let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
-    let amountAfterFees = eventData.getUintItem("amountAfterFees")!;
-    let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
-    let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
-    let volumeUsd = totalAmountIn.times(tokenPrice);
-    let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, network, transaction);
-    let marketInfo = getMarketInfo(swapFeesInfo.marketAddress);
-
-    saveCollectedMarketFees(
-      transaction,
-      swapFeesInfo.marketAddress,
-      poolValue,
-      swapFeesInfo.feeUsdForPool,
-      marketInfo.marketTokensSupply
-    );
-    saveVolumeInfo(action, transaction.timestamp, volumeUsd);
-    saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
+    handleSwapFeesCollected(eventData);
     return;
   }
 
@@ -292,29 +273,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
   }
 
   if (eventName == "PositionFeesCollected") {
-    let transaction = getOrCreateTransaction(event);
-    let positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
-    let positionFeeAmountForPool = eventData.getUintItem("positionFeeAmountForPool")!;
-    let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
-    let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
-    let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
-    let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
-    let marketInfo = getMarketInfo(positionFeesInfo.marketAddress);
-
-    saveCollectedMarketFees(
-      transaction,
-      positionFeesInfo.marketAddress,
-      poolValue,
-      positionFeesInfo.feeUsdForPool,
-      marketInfo.marketTokensSupply
-    );
-    savePositionFeesInfoWithPeriod(
-      positionFeeAmount,
-      positionFeeAmountForPool,
-      borrowingFeeUsd,
-      collateralTokenPriceMin,
-      transaction.timestamp
-    );
+    handlePositionFeesCollected(eventData);
     return;
   }
 
