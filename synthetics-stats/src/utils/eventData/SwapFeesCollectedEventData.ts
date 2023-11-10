@@ -20,50 +20,49 @@ export class SwapFeesCollectedEventData {
   constructor(private eventData: EventData) {}
 
   get uiFeeReceiver(): string {
-    return this.eventData.getAddressItemString("uiFeeReceiver")!;
+    return this.eventData.getAddressItemStringOrDie("uiFeeReceiver");
   }
 
   get market(): string {
-    return this.eventData.getAddressItemString("market")!;
+    return this.eventData.getAddressItemStringOrDie("market");
   }
 
   get token(): string {
-    return this.eventData.getAddressItemString("token")!;
+    return this.eventData.getAddressItemStringOrDie("token");
   }
 
   get tokenPrice(): BigInt {
-    return this.eventData.getUintItem("tokenPrice")!;
+    return this.eventData.getUintItemOrDie("tokenPrice");
   }
 
   get feeReceiverAmount(): BigInt {
-    return this.eventData.getUintItem("feeReceiverAmount")!;
+    return this.eventData.getUintItemOrDie("feeReceiverAmount");
   }
 
   get feeAmountForPool(): BigInt {
-    return this.eventData.getUintItem("feeAmountForPool")!;
+    return this.eventData.getUintItemOrDie("feeAmountForPool");
   }
 
   get amountAfterFees(): BigInt {
-    return this.eventData.getUintItem("amountAfterFees")!;
+    return this.eventData.getUintItemOrDie("amountAfterFees");
   }
 
   get uiFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItem("uiFeeReceiverFactor")!;
+    return this.eventData.getUintItemOrDie("uiFeeReceiverFactor");
   }
 
   get uiFeeAmount(): BigInt {
-    return this.eventData.getUintItem("uiFeeAmount")!;
+    return this.eventData.getUintItemOrDie("uiFeeAmount");
   }
 
   get tradeKey(): string {
-    return this.eventData.getBytes32Item("tradeKey")!.toHexString();
+    return this.eventData.getBytes32ItemOrDie("tradeKey").toHexString();
   }
 
   get action(): string {
-    return this.eventData.getStringItem("action")!;
+    return this.eventData.getStringItemOrDie("action");
   }
 
-  // might be null
   get swapFeeType(): Bytes | null {
     return this.eventData.getBytes32Item("swapFeeType");
   }

@@ -12,6 +12,7 @@ import {
 } from "../../generated/EventEmitter/EventEmitter";
 import { Transaction } from "../../generated/schema";
 import { getIdFromEvent, getOrCreateTransaction } from "../entities/common";
+import { notNullOrDie } from "./typings";
 
 export class EventData {
   rawData: EventLogEventDataStruct;
@@ -30,7 +31,7 @@ export class EventData {
     return this._cachedTransaction as Transaction;
   }
 
-  get timestamp(): number {
+  get timestamp(): i32 {
     return this.transaction.timestamp;
   }
 
@@ -50,6 +51,10 @@ export class EventData {
     return getItemByKey<Address, EventLogEventDataAddressItemsItemsStruct>(this.rawData.addressItems.items, key);
   }
 
+  getAddressItemOrDie(key: string): Address {
+    return notNullOrDie<Address>(this.getAddressItem(key));
+  }
+
   getAddressItemString(key: string): string | null {
     let item = this.getAddressItem(key);
 
@@ -60,11 +65,19 @@ export class EventData {
     return null;
   }
 
+  getAddressItemStringOrDie(key: string): string {
+    return notNullOrDie<string>(this.getAddressItemString(key));
+  }
+
   getAddressArrayItem(key: string): Array<Address> | null {
     return getItemByKey<Array<Address>, EventLogEventDataAddressItemsArrayItemsStruct>(
       this.rawData.addressItems.arrayItems,
       key
     );
+  }
+
+  getAddressArrayItemOrDie(key: string): Array<Address> {
+    return notNullOrDie<Array<Address>>(this.getAddressArrayItem(key));
   }
 
   getAddressArrayItemString(key: string): Array<string> | null {
@@ -85,6 +98,10 @@ export class EventData {
     return null;
   }
 
+  getAddressArrayItemStringOrDie(key: string): Array<string> {
+    return notNullOrDie<Array<string>>(this.getAddressArrayItemString(key));
+  }
+
   getStringItem(key: string): string | null {
     let items = this.rawData.stringItems.items;
     for (let i = 0; i < items.length; i++) {
@@ -96,6 +113,10 @@ export class EventData {
     return null;
   }
 
+  getStringItemOrDie(key: string): string {
+    return notNullOrDie<string>(this.getStringItem(key));
+  }
+
   getStringArrayItem(key: string): Array<string> | null {
     return getItemByKey<Array<string>, EventLogEventDataStringItemsArrayItemsStruct>(
       this.rawData.stringItems.arrayItems,
@@ -103,8 +124,16 @@ export class EventData {
     );
   }
 
+  getStringArrayItemOrDie(key: string): Array<string> {
+    return notNullOrDie<Array<string>>(this.getStringArrayItem(key));
+  }
+
   getUintItem(key: string): BigInt | null {
     return getItemByKey<BigInt, EventLogEventDataUintItemsItemsStruct>(this.rawData.uintItems.items, key);
+  }
+
+  getUintItemOrDie(key: string): BigInt {
+    return notNullOrDie<BigInt>(this.getUintItem(key));
   }
 
   getUintArrayItem(key: string): Array<BigInt> | null {
@@ -114,11 +143,19 @@ export class EventData {
     );
   }
 
+  getUintArrayItemOrDie(key: string): Array<BigInt> {
+    return notNullOrDie<Array<BigInt>>(this.getUintArrayItem(key));
+  }
+
   getIntItem(key: string): BigInt | null {
     return getItemByKey<BigInt, EventLogEventDataUintItemsItemsStruct>(
       this.rawData.intItems.items as Array<EventLogEventDataUintItemsItemsStruct>,
       key
     );
+  }
+
+  getIntItemOrDie(key: string): BigInt {
+    return notNullOrDie<BigInt>(this.getIntItem(key));
   }
 
   getIntArrayItem(key: string): Array<BigInt> | null {
@@ -128,8 +165,16 @@ export class EventData {
     );
   }
 
+  getIntArrayItemOrDie(key: string): Array<BigInt> {
+    return notNullOrDie<Array<BigInt>>(this.getIntArrayItem(key));
+  }
+
   getBytesItem(key: string): Bytes | null {
     return getItemByKey<Bytes, EventLogEventDataBytesItemsItemsStruct>(this.rawData.bytesItems.items, key);
+  }
+
+  getBytesItemOrDie(key: string): Bytes {
+    return notNullOrDie<Bytes>(this.getBytesItem(key));
   }
 
   getBytesArrayItem(key: string): Array<Bytes> | null {
@@ -139,6 +184,10 @@ export class EventData {
     );
   }
 
+  getBytesArrayItemOrDie(key: string): Array<Bytes> {
+    return notNullOrDie<Array<Bytes>>(this.getBytesArrayItem(key));
+  }
+
   getBytes32Item(key: string): Bytes | null {
     return getItemByKey<Bytes, EventLogEventDataBytesItemsItemsStruct>(
       this.rawData.bytes32Items.items as Array<EventLogEventDataBytesItemsItemsStruct>,
@@ -146,11 +195,19 @@ export class EventData {
     );
   }
 
+  getBytes32ItemOrDie(key: string): Bytes {
+    return notNullOrDie<Bytes>(this.getBytes32Item(key));
+  }
+
   getBytes32ArrayItem(key: string): Array<Bytes> | null {
     return getItemByKey<Array<Bytes>, EventLogEventDataBytesItemsArrayItemsStruct>(
       this.rawData.bytes32Items.arrayItems,
       key
     );
+  }
+
+  getBytes32ArrayItemOrDie(key: string): Array<Bytes> {
+    return notNullOrDie<Array<Bytes>>(this.getBytes32ArrayItem(key));
   }
 
   // boolean type is not nullable in AssemblyScript, so we return false if the key is not found
@@ -164,6 +221,10 @@ export class EventData {
     }
 
     return false;
+  }
+
+  getBoolItemOrDie(key: string): boolean {
+    return notNullOrDie<boolean>(this.getBoolItem(key));
   }
 }
 

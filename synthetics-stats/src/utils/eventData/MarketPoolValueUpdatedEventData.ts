@@ -23,62 +23,62 @@ export class MarketPoolValueUpdatedEventData {
   constructor(private eventData: EventData) {}
 
   get market(): string {
-    return this.eventData.getAddressItemString("market")!;
+    return this.eventData.getAddressItemStringOrDie("market");
   }
 
   get longTokenAmount(): BigInt {
-    return this.eventData.getUintItem("longTokenAmount")!;
+    return this.eventData.getUintItemOrDie("longTokenAmount");
   }
 
   get shortTokenAmount(): BigInt {
-    return this.eventData.getUintItem("shortTokenAmount")!;
+    return this.eventData.getUintItemOrDie("shortTokenAmount");
   }
 
   get longTokenUsd(): BigInt {
-    return this.eventData.getUintItem("longTokenUsd")!;
+    return this.eventData.getUintItemOrDie("longTokenUsd");
   }
 
   get shortTokenUsd(): BigInt {
-    return this.eventData.getUintItem("shortTokenUsd")!;
+    return this.eventData.getUintItemOrDie("shortTokenUsd");
   }
 
   get totalBorrowingFees(): BigInt {
-    return this.eventData.getUintItem("totalBorrowingFees")!;
+    return this.eventData.getUintItemOrDie("totalBorrowingFees");
   }
 
   get borrowingFeePoolFactor(): BigInt {
-    return this.eventData.getUintItem("borrowingFeePoolFactor")!;
+    return this.eventData.getUintItemOrDie("borrowingFeePoolFactor");
   }
 
   get impactPoolAmount(): BigInt {
-    return this.eventData.getUintItem("impactPoolAmount")!;
+    return this.eventData.getUintItemOrDie("impactPoolAmount");
   }
 
   get marketTokensSupply(): BigInt {
-    return this.eventData.getUintItem("marketTokensSupply")!;
+    return this.eventData.getUintItemOrDie("marketTokensSupply");
   }
 
   get poolValue(): BigInt {
-    return this.eventData.getIntItem("poolValue")!;
+    return this.eventData.getIntItemOrDie("poolValue");
   }
 
   get longPnl(): BigInt {
-    return this.eventData.getIntItem("longPnl")!;
+    return this.eventData.getIntItemOrDie("longPnl");
   }
 
   get shortPnl(): BigInt {
-    return this.eventData.getIntItem("shortPnl")!;
+    return this.eventData.getIntItemOrDie("shortPnl");
   }
 
   get netPnl(): BigInt {
-    return this.eventData.getIntItem("netPnl")!;
+    return this.eventData.getIntItemOrDie("netPnl");
   }
 
   get actionType(): string {
-    return this.eventData.getBytes32Item("actionType")!.toHexString();
+    return this.eventData.getBytes32ItemOrDie("actionType").toHexString();
   }
 
   get tradeKey(): string {
-    return this.eventData.getBytes32Item("tradeKey")!.toHexString();
+    return this.eventData.getBytes32ItemOrDie("tradeKey").toHexString();
   }
 }
