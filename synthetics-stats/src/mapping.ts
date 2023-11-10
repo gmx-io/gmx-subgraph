@@ -131,9 +131,8 @@ export function handleMarketTokenTransfer(event: Transfer): void {
   }
 }
 
-export function handleEventLog(event: EventLog): void {
-  // FIXME network
-  let eventData = new EventData(event, "unknown");
+export function handleEventLog(event: EventLog, network: string): void {
+  let eventData = new EventData(event, network);
 
   if (eventData.eventName == "DepositExecuted") {
     handleDepositExecuted(event as EventLog2, eventData);
@@ -477,6 +476,14 @@ function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
 
   let depositUsd = longTokenAmount.times(longTokenPrice).plus(shortTokenAmount.times(shortTokenPrice));
   saveUserGlpGmMigrationStatGmData(depositRef.account, event.block.timestamp.toI32(), depositUsd);
+}
+
+export function handleEventLogArbitrum(event: EventLog): void {
+  handleEventLog(event, "arbitrum");
+}
+
+export function handleEventLogAvalanche(event: EventLog): void {
+  handleEventLog(event, "avalanche");
 }
 
 export function handleEventLog1Arbitrum(event: EventLog1): void {
