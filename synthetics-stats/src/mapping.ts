@@ -10,9 +10,7 @@ import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken
 import {
   saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
   handleCollateralClaimAction,
-  isFundingFeeSettleOrder,
-  saveClaimActionOnOrderCancelled,
-  saveClaimActionOnOrderCreated
+  saveClaimActionOnOrderCancelled
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import { saveDistribution } from "./entities/distributions";
@@ -27,7 +25,6 @@ import {
 import { saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
 import {
   orderTypes,
-  saveOrder,
   saveOrderCancelledState,
   saveOrderCollateralAutoUpdate,
   saveOrderExecutedState,
@@ -40,7 +37,6 @@ import { getTokenPrice, handleOraclePriceUpdate } from "./entities/prices";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import {
   saveOrderCancelledTradeAction,
-  saveOrderCreatedTradeAction,
   saveOrderFrozenTradeAction,
   saveOrderUpdatedTradeAction,
   savePositionDecreaseExecutedTradeAction,
@@ -51,7 +47,7 @@ import { saveUserStat } from "./entities/user";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
-import { handleOrderExecuted } from "./handlers/ordersHandlers";
+import { handleOrderCreated, handleOrderExecuted } from "./handlers/ordersHandlers";
 import { EventData } from "./utils/eventData";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -335,13 +331,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
-    let transaction = getOrCreateTransaction(event);
-    let order = saveOrder(eventData, transaction);
-    if (isFundingFeeSettleOrder(order)) {
-      saveClaimActionOnOrderCreated(eventData);
-    } else {
-      saveOrderCreatedTradeAction(eventId, order, transaction);
-    }
+    handleOrderCreated(eventData);
     return;
   }
 

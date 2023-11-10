@@ -1,12 +1,18 @@
 import { ClaimRef, Order } from "../../generated/schema";
-import { saveClaimActionOnOrderExecuted } from "../entities/claims";
-import { orderTypes, saveOrderExecutedState } from "../entities/orders";
 import {
+  isFundingFeeSettleOrder,
+  saveClaimActionOnOrderCreated,
+  saveClaimActionOnOrderExecuted
+} from "../entities/claims";
+import { orderTypes, saveOrder, saveOrderExecutedState } from "../entities/orders";
+import {
+  saveOrderCreatedTradeAction,
   savePositionDecreaseExecutedTradeAction,
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction
 } from "../entities/trades";
 import { EventData } from "../utils/eventData";
+import { OrderCreatedEventData } from "../utils/eventData/OrderCreatedEventData";
 
 export function handleOrderExecuted(eventData: EventData): void {
   let order = saveOrderExecutedState(eventData);
@@ -33,5 +39,16 @@ export function handleOrderExecuted(eventData: EventData): void {
     } else {
       savePositionDecreaseExecutedTradeAction(eventData, order as Order);
     }
+  }
+}
+
+export function handleOrderCreated(eventData: EventData): void {
+  let data = new OrderCreatedEventData(eventData);
+  let order = saveOrder(data, eventData.transaction);
+
+  if (isFundingFeeSettleOrder(order)) {
+    saveClaimActionOnOrderCreated(eventData);
+  } else {
+    saveOrderCreatedTradeAction(eventData, order);
   }
 }

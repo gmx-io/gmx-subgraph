@@ -1,6 +1,7 @@
 import { Order, Transaction } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { BigInt } from "@graphprotocol/graph-ts";
+import { OrderCreatedEventData } from "../utils/eventData/OrderCreatedEventData";
 
 export let orderTypes = new Map<string, BigInt>();
 
@@ -13,32 +14,30 @@ orderTypes.set("LimitDecrease", BigInt.fromI32(5));
 orderTypes.set("StopLossDecrease", BigInt.fromI32(6));
 orderTypes.set("Liquidation", BigInt.fromI32(7));
 
-export function saveOrder(eventData: EventData, transaction: Transaction): Order {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrder(eventData: OrderCreatedEventData, transaction: Transaction): Order {
+  let key = eventData.key;
 
   let order = new Order(key);
 
-  order.account = eventData.getAddressItemString("account")!;
-  order.receiver = eventData.getAddressItemString("receiver")!;
-  order.callbackContract = eventData.getAddressItemString("callbackContract")!;
-  order.marketAddress = eventData.getAddressItemString("market")!;
-  order.swapPath = eventData.getAddressArrayItemString("swapPath")! || [];
-  order.initialCollateralTokenAddress = eventData.getAddressItemString("initialCollateralToken")!;
-  order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-  order.initialCollateralDeltaAmount = eventData.getUintItem("initialCollateralDeltaAmount")!;
-  order.triggerPrice = eventData.getUintItem("triggerPrice")!;
-  order.acceptablePrice = eventData.getUintItem("acceptablePrice")!;
-  order.callbackGasLimit = eventData.getUintItem("callbakGasLimit")!;
-  order.minOutputAmount = eventData.getUintItem("minOutputAmount")!;
-  order.executionFee = eventData.getUintItem("executionFee")!;
-  order.updatedAtBlock = eventData.getUintItem("updatedAtBlock")!;
-  order.orderType = eventData.getUintItem("orderType")!;
-  order.isLong = eventData.getBoolItem("isLong")!;
-  order.shouldUnwrapNativeToken = eventData.getBoolItem("shouldUnwrapNativeToken")!;
+  order.account = eventData.account;
+  order.receiver = eventData.receiver;
+  order.callbackContract = eventData.callbackContract;
+  order.marketAddress = eventData.market;
+  order.swapPath = eventData.swapPath || [];
+  order.initialCollateralTokenAddress = eventData.initialCollateralToken;
+  order.sizeDeltaUsd = eventData.sizeDeltaUsd;
+  order.initialCollateralDeltaAmount = eventData.initialCollateralDeltaAmount;
+  order.triggerPrice = eventData.triggerPrice;
+  order.acceptablePrice = eventData.acceptablePrice;
+  order.callbackGasLimit = eventData.callbackGasLimit;
+  order.minOutputAmount = eventData.minOutputAmount;
+  order.executionFee = eventData.executionFee;
+  order.updatedAtBlock = eventData.updatedAtBlock;
+  order.orderType = eventData.orderType;
+  order.isLong = eventData.isLong;
+  order.shouldUnwrapNativeToken = eventData.shouldUnwrapNativeToken;
 
-  let isFrozen = eventData.getBoolItem("isFrozen")!;
-
-  if (isFrozen) {
+  if (eventData.isFrozen) {
     order.status = "Frozen";
   } else {
     order.status = "Created";

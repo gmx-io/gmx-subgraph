@@ -16,11 +16,11 @@ import { EventData } from "../utils/eventData";
 
 let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-export function saveOrderCreatedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventId, order);
+export function saveOrderCreatedTradeAction(eventData: EventData, order: Order): TradeAction {
+  let tradeAction = getTradeActionFromOrder(eventData.eventId, order);
 
   tradeAction.eventName = "OrderCreated";
-  tradeAction.transaction = transaction.id;
+  tradeAction.transaction = eventData.transaction.id;
 
   tradeAction.save();
 
