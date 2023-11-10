@@ -1,31 +1,30 @@
-import { Bytes, BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 
-import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
-import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
-import { MarketTokenTemplate } from "../generated/templates";
-import { ClaimRef, DepositRef, MarketInfo, Order, PoolValue, TokenPrice } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
+import { EventLog, EventLog1, EventLog2 } from "../generated/EventEmitter/EventEmitter";
 import { SellUSDG } from "../generated/Vault/Vault";
+import { ClaimRef, DepositRef, MarketInfo, Order } from "../generated/schema";
+import { MarketTokenTemplate } from "../generated/templates";
+import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
 
 import {
   saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
   handleCollateralClaimAction,
   isFundingFeeSettleOrder,
   saveClaimActionOnOrderCancelled,
-  saveClaimActionOnOrderCreated,
-  saveClaimActionOnOrderExecuted
+  saveClaimActionOnOrderCreated
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
+import { saveDistribution } from "./entities/distributions";
+import { handlePositionImpactPoolDistributed, savePositionFeesInfo } from "./entities/fees";
 import {
-  getSwapActionByFeeType,
-  handlePositionImpactPoolDistributed,
-  saveCollectedMarketFees,
-  savePositionFeesInfo,
-  savePositionFeesInfoWithPeriod,
-  saveSwapFeesInfo,
-  saveSwapFeesInfoWithPeriod
-} from "./entities/fees";
-import { getMarketInfo, saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
+  saveLiquidityProviderIncentivesStat,
+  saveMarketIncentivesStat,
+  saveUserGlpGmMigrationStatGlpData,
+  saveUserGlpGmMigrationStatGmData,
+  saveUserMarketInfo
+} from "./entities/incentives";
+import { saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
 import {
   orderTypes,
   saveOrder,
@@ -48,20 +47,12 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction
 } from "./entities/trades";
-import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
-import { EventData } from "./utils/eventData";
 import { saveUserStat } from "./entities/user";
-import {
-  saveLiquidityProviderIncentivesStat,
-  saveMarketIncentivesStat,
-  saveUserGlpGmMigrationStatGlpData,
-  saveUserGlpGmMigrationStatGmData,
-  saveUserMarketInfo
-} from "./entities/incentives";
-import { saveDistribution } from "./entities/distributions";
-import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
+import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
+import { handleOrderExecuted } from "./handlers/ordersHandlers";
+import { EventData } from "./utils/eventData";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -165,26 +156,26 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "OrderExecuted") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderExecutedState(eventData, transaction);
+    let order = saveOrderExecutedState(eventData);
 
     if (order == null) {
       return;
     }
 
     if (order.orderType == orderTypes.get("MarketSwap") || order.orderType == orderTypes.get("LimitSwap")) {
-      saveSwapExecutedTradeAction(eventId, order as Order, transaction);
+      saveSwapExecutedTradeAction(eventData, order as Order);
     } else if (
       order.orderType == orderTypes.get("MarketIncrease") ||
       order.orderType == orderTypes.get("LimitIncrease")
     ) {
-      savePositionIncreaseExecutedTradeAction(eventId, order as Order, transaction);
+      savePositionIncreaseExecutedTradeAction(eventData, order as Order);
     } else if (
       order.orderType == orderTypes.get("MarketDecrease") ||
       order.orderType == orderTypes.get("LimitDecrease") ||
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(eventId, order as Order, transaction);
+      savePositionDecreaseExecutedTradeAction(eventData, order as Order);
     }
     return;
   }
@@ -347,7 +338,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrder(eventData, transaction);
     if (isFundingFeeSettleOrder(order)) {
-      saveClaimActionOnOrderCreated(transaction, eventData);
+      saveClaimActionOnOrderCreated(eventData);
     } else {
       saveOrderCreatedTradeAction(eventId, order, transaction);
     }
@@ -372,32 +363,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
   }
 
   if (eventName == "OrderExecuted") {
-    let transaction = getOrCreateTransaction(event);
-    let order = saveOrderExecutedState(eventData, transaction);
-
-    if (order == null) {
-      return;
-    }
-
-    if (order.orderType == orderTypes.get("MarketSwap") || order.orderType == orderTypes.get("LimitSwap")) {
-      saveSwapExecutedTradeAction(eventId, order as Order, transaction);
-    } else if (
-      order.orderType == orderTypes.get("MarketIncrease") ||
-      order.orderType == orderTypes.get("LimitIncrease")
-    ) {
-      savePositionIncreaseExecutedTradeAction(eventId, order as Order, transaction);
-    } else if (
-      order.orderType == orderTypes.get("MarketDecrease") ||
-      order.orderType == orderTypes.get("LimitDecrease") ||
-      order.orderType == orderTypes.get("StopLossDecrease") ||
-      order.orderType == orderTypes.get("Liquidation")
-    ) {
-      if (ClaimRef.load(order.id)) {
-        saveClaimActionOnOrderExecuted(transaction, eventData);
-      } else {
-        savePositionDecreaseExecutedTradeAction(eventId, order as Order, transaction);
-      }
-    }
+    handleOrderExecuted(eventData);
     return;
   }
 
@@ -406,7 +372,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
     let order = saveOrderCancelledState(eventData, transaction);
     if (order !== null) {
       if (ClaimRef.load(order.id)) {
-        saveClaimActionOnOrderCancelled(transaction, eventData);
+        saveClaimActionOnOrderCancelled(eventData);
       } else {
         saveOrderCancelledTradeAction(
           eventId,
