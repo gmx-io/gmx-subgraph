@@ -61,7 +61,7 @@ import {
 import { saveDistribution } from "./entities/distributions";
 import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
-import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/fees";
+import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -266,9 +266,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   // Only for liquidations if remaining collateral is not sufficient to pay the fees
   if (eventName == "PositionFeesInfo") {
-    let transaction = getOrCreateTransaction(event);
-    savePositionFeesInfo(eventData, "PositionFeesInfo", transaction);
-
+    savePositionFeesInfo(eventData);
     return;
   }
 
@@ -343,7 +341,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
 function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
-  let eventData = new EventData(event.params.eventData as EventLogEventDataStruct);
+  let eventData = new EventData(event as EventLog, network);
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {

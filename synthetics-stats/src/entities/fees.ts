@@ -15,6 +15,7 @@ import { PositionImpactPoolDistributedEventData } from "../utils/eventData/Posit
 import { getTokenPrice } from "./prices";
 import { MarketPoolValueUpdatedEventData } from "../utils/eventData/MarketPoolValueUpdatedEventData";
 import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
+import { SwapFeesCollectedEventData } from "../utils/eventData/SwapFeesCollectedEventData";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -55,18 +56,18 @@ function updateCollectedFeesFractions(
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 }
 
-export function saveSwapFeesInfo(eventData: EventData, eventId: string, transaction: Transaction): SwapFeesInfo {
-  let swapFeesInfo = new SwapFeesInfo(eventId);
+export function saveSwapFeesInfo(data: SwapFeesCollectedEventData, eventData: EventData): SwapFeesInfo {
+  let swapFeesInfo = new SwapFeesInfo(eventData.eventId);
 
-  swapFeesInfo.marketAddress = eventData.getAddressItemString("market")!;
-  swapFeesInfo.tokenAddress = eventData.getAddressItemString("token")!;
+  swapFeesInfo.marketAddress = data.market;
+  swapFeesInfo.tokenAddress = data.token;
 
-  let swapFeeType = eventData.getBytes32Item("swapFeeType");
+  let swapFeeType = data.swapFeeType;
 
   if (swapFeeType != null) {
     swapFeesInfo.swapFeeType = swapFeeType.toHexString();
   } else {
-    let action = eventData.getStringItem("action");
+    let action = data.action;
 
     if (action == "deposit") {
       swapFeesInfo.swapFeeType = swapFeeTypes.get("DEPOSIT_FEE_TYPE")!;
@@ -77,30 +78,26 @@ export function saveSwapFeesInfo(eventData: EventData, eventId: string, transact
     }
   }
 
-  swapFeesInfo.tokenPrice = eventData.getUintItem("tokenPrice")!;
-  swapFeesInfo.feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
-  swapFeesInfo.feeUsdForPool = eventData.getUintItem("feeAmountForPool")!.times(swapFeesInfo.tokenPrice);
+  swapFeesInfo.tokenPrice = data.tokenPrice;
+  swapFeesInfo.feeReceiverAmount = data.feeReceiverAmount;
+  swapFeesInfo.feeUsdForPool = data.feeAmountForPool.times(swapFeesInfo.tokenPrice);
 
-  swapFeesInfo.transaction = transaction.id;
+  swapFeesInfo.transaction = eventData.transaction.id;
 
   swapFeesInfo.save();
 
   return swapFeesInfo;
 }
 
-export function savePositionFeesInfo(
-  eventData: EventData,
-  eventName: string,
-  transaction: Transaction
-): PositionFeesInfo {
+export function savePositionFeesInfo(eventData: EventData): PositionFeesInfo {
   let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
 
-  let id = orderKey + ":" + eventName;
+  let id = orderKey + ":" + eventData.eventName;
 
   let feesInfo = new PositionFeesInfo(id);
 
   feesInfo.orderKey = orderKey;
-  feesInfo.eventName = eventName;
+  feesInfo.eventName = eventData.eventName;
   feesInfo.marketAddress = eventData.getAddressItemString("market")!;
   feesInfo.collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
 
@@ -120,7 +117,7 @@ export function savePositionFeesInfo(
   feesInfo.traderDiscountAmount = eventData.getUintItem("traderDiscountAmount")!;
   feesInfo.affiliateRewardAmount = eventData.getUintItem("affiliateRewardAmount")!;
 
-  feesInfo.transaction = transaction.id;
+  feesInfo.transaction = eventData.transaction.id;
 
   feesInfo.save();
 
