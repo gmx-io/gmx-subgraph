@@ -25,3 +25,13 @@ export function getTokenPrice(tokenAddress: string, useMax: boolean = false): Bi
   }
   return useMax ? priceRef.maxPrice : priceRef.minPrice;
 }
+
+export function convertUsdToAmount(tokenAddress: string, usd: BigInt, useMax: boolean = true): BigInt {
+  let price = getTokenPrice(tokenAddress, useMax);
+  return usd.div(price);
+}
+
+export function convertAmountToUsd(tokenAddress: string, amount: BigInt, useMax: boolean = false): BigInt {
+  let price = getTokenPrice(tokenAddress, useMax);
+  return amount.times(price);
+}

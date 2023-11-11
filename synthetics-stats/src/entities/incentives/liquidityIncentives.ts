@@ -5,20 +5,20 @@ import {
   MarketIncentivesStat,
   UserMarketInfo,
   GlpGmMigrationStat
-} from "../../generated/schema";
-import { EventData } from "../utils/eventData";
-import { periodToSeconds, timestampToPeriodStart } from "../utils/time";
-import { EventLog1 } from "../../generated/EventEmitter/EventEmitter";
-import { getMarketInfo } from "./markets";
-import { getTokenPrice } from "./prices";
+} from "../../../generated/schema";
+import { EventData } from "../../utils/eventData";
+import { periodToSeconds, timestampToPeriodStart } from "../../utils/time";
+import { EventLog1 } from "../../../generated/EventEmitter/EventEmitter";
+import { getMarketInfo } from "../markets";
+import { convertAmountToUsd, convertUsdToAmount, getTokenPrice } from "../prices";
+import { ZERO } from "../../utils/number";
 
-let ZERO = BigInt.fromI32(0);
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 let ARB_PRECISION = BigInt.fromI32(10).pow(18);
 
-// TODO restore correct timestamp
 // let INCENTIVES_START_TIMESTAMP = 1699401600;
-let INCENTIVES_START_TIMESTAMP = 1690833600;
+// TODO update start timestamp
+let INCENTIVES_START_TIMESTAMP = 1690833600; // earlier timestamp for testing
 
 // TODO update caps to correct
 let GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB = BigInt.fromI32(5_000_000).times(ARB_PRECISION); // 100m ARB
@@ -41,7 +41,7 @@ export function saveLiquidityProviderIncentivesStat(
   marketTokenBalanceDelta: BigInt,
   timestamp: i32
 ): void {
-  if (!_incentivesStarted(timestamp)) {
+  if (!_incentivesActive(timestamp)) {
     return;
   }
 
@@ -77,7 +77,7 @@ export function saveLiquidityProviderIncentivesStat(
 }
 
 export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1): void {
-  if (!_incentivesStarted(event.block.timestamp.toI32())) {
+  if (!_incentivesActive(event.block.timestamp.toI32())) {
     return;
   }
 
@@ -157,13 +157,13 @@ export function saveUserGlpGmMigrationStatGlpData(
   usdgAmount: BigInt,
   feeBasisPoints: BigInt
 ): void {
-  if (!_incentivesStarted(timestamp)) {
+  if (!_incentivesActive(timestamp)) {
     return;
   }
 
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
   let usdAmount = usdgAmount.times(BigInt.fromI32(10).pow(12));
-  let eligableDiff = _getEligableRedemptionDiff(
+  let eligableDiff = _getCappedEligableRedemptionDiff(
     entity.glpRedemptionUsd,
     entity.glpRedemptionUsd.plus(usdAmount),
     entity.gmDepositUsd
@@ -178,47 +178,45 @@ export function saveUserGlpGmMigrationStatGlpData(
   entity.glpRedemptionFeeBpsByUsd = entity.glpRedemptionFeeBpsByUsd.plus(usdAmount.times(feeBasisPoints));
   entity.glpRedemptionWeightedAverageFeeBps = entity.glpRedemptionFeeBpsByUsd.div(entity.glpRedemptionUsd).toI32();
 
-  entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
+  if (eligableDiff.inArb.gt(ZERO)) {
+    entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
+    entity.eligableRedemptionUsd = entity.eligableRedemptionUsd.plus(eligableDiff.usd);
+    entity.eligableUpdatedTimestamp = timestamp;
+  }
   entity.save();
 
   _saveGlpGmMigrationStat(eligableDiff);
 }
 
 export function saveUserGlpGmMigrationStatGmData(account: string, timestamp: i32, depositUsd: BigInt): void {
-  if (!_incentivesStarted(timestamp)) {
+  if (!_incentivesActive(timestamp)) {
     return;
   }
 
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
-  let eligableDiff = _getEligableRedemptionDiff(
+  let eligableDiff = _getCappedEligableRedemptionDiff(
     entity.gmDepositUsd,
     entity.gmDepositUsd.plus(depositUsd),
     entity.glpRedemptionUsd
   );
 
   entity.gmDepositUsd = entity.gmDepositUsd.plus(depositUsd);
-  entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
+  if (eligableDiff.inArb.gt(ZERO)) {
+    entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
+    entity.eligableRedemptionUsd = entity.eligableRedemptionUsd.plus(eligableDiff.usd);
+    entity.eligableUpdatedTimestamp = timestamp;
+  }
 
   entity.save();
 
   _saveGlpGmMigrationStat(eligableDiff);
 }
 
-function _convertArbToUsd(arbAmount: BigInt): BigInt {
-  let arbPrice = getTokenPrice(_getArbTokenAddress(), false);
-  return arbAmount.times(arbPrice);
-}
-
-function _convertUsdToArb(usd: BigInt): BigInt {
-  let arbPrice = getTokenPrice(_getArbTokenAddress(), true);
-  return usd.div(arbPrice);
-}
-
 function _getArbTokenAddress(): string {
   return "0x912ce59144191c1204e64559fe8253a0e49e6548";
 }
 
-function _incentivesStarted(timestamp: i32): boolean {
+function _incentivesActive(timestamp: i32): boolean {
   return timestamp > INCENTIVES_START_TIMESTAMP;
 }
 
@@ -226,7 +224,7 @@ class EligableRedemptionDiffResult {
   constructor(public usd: BigInt, public inArb: BigInt) {}
 }
 
-function _getEligableRedemptionDiff(
+function _getCappedEligableRedemptionDiff(
   usdBefore: BigInt,
   usdAfter: BigInt,
   otherUsd: BigInt
@@ -244,11 +242,11 @@ function _getEligableRedemptionDiff(
   let minBefore = usdBefore.lt(otherUsd) ? usdBefore : otherUsd;
   let minAfter = usdAfter.lt(otherUsd) ? usdAfter : otherUsd;
   let diffUsd = minAfter.minus(minBefore);
-  let diffInArb = _convertUsdToArb(diffUsd);
+  let diffInArb = convertUsdToAmount(_getArbTokenAddress(), diffUsd);
 
   if (entity.eligableRedemptionInArb.plus(diffInArb).gt(GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB)) {
     diffInArb = GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB.minus(entity.eligableRedemptionInArb);
-    diffUsd = _convertArbToUsd(diffInArb);
+    diffUsd = convertAmountToUsd(_getArbTokenAddress(), diffInArb);
   }
 
   return new EligableRedemptionDiffResult(diffUsd, diffInArb);
@@ -292,6 +290,8 @@ function _getOrCreateUserGlpGmMigrationStatGlpData(account: string, timestamp: i
     entity.glpRedemptionWeightedAverageFeeBps = 0;
     entity.gmDepositUsd = ZERO;
     entity.eligableRedemptionInArb = ZERO;
+    entity.eligableRedemptionUsd = ZERO;
+    entity.eligableUpdatedTimestamp = 0;
   }
 
   return entity!;

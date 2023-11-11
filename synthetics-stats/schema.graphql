@@ -457,9 +457,12 @@ type UserGlpGmMigrationStat @entity {
 
   glpRedemptionUsd: BigInt!
   glpRedemptionFeeBpsByUsd: BigInt! # used to calculate average
-  glpRedemptionWeightedAverageFeeBps: Int!
+  glpRedemptionWeightedAverageFeeBps: Int! # used to calculate rebate
   gmDepositUsd: BigInt!
-  eligableRedemptionInArb: BigInt!
+
+  eligableRedemptionInArb: BigInt! # used to calculate rebate
+  eligableRedemptionUsd: BigInt! # for debugging
+  eligableUpdatedTimestamp: Int! # for debugging
 }
 
 type GlpGmMigrationStat @entity {
@@ -470,6 +473,34 @@ type GlpGmMigrationStat @entity {
   eligableRedemptionInArb: BigInt!
 }
 
+type UserTradingIncentivesStat @entity {
+  # account:period:timestamp
+  id: ID!
+  timestamp: Int!
+  period: String!
+  account: String!
+
+  positionFeesUsd: BigInt!
+  positionFeesInArb: BigInt!
+
+  eligableFeesInArb: BigInt! # used to calculate rebate
+  eligableFeesUsd: BigInt! # for debugging
+  eligableUpdatedTimestamp: Int! # for debugging
+}
+
+type TradingIncentivesStat @entity {
+  # period:timestamp
+  id: ID!
+  timestamp: Int!
+  period: String!
+
+  positionFeesUsd: BigInt!
+  positionFeesInArb: BigInt!
+
+  eligableFeesInArb: BigInt! # used to calculate rebate
+  eligableFeesUsd: BigInt! # for debugging
+  rebatesCapInArb: BigInt!
+}
 
 type Distribution @entity {
   # receiver:txHash:typeId
