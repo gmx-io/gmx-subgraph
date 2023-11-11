@@ -164,8 +164,8 @@ export function saveUserGlpGmMigrationStatGlpData(
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
   let usdAmount = usdgAmount.times(BigInt.fromI32(10).pow(12));
   let eligableDiff = _getEligableRedemptionDiff(
-    entity.glpRedemptionUsd.minus(usdAmount),
     entity.glpRedemptionUsd,
+    entity.glpRedemptionUsd.plus(usdAmount),
     entity.gmDepositUsd
   );
 
@@ -191,8 +191,8 @@ export function saveUserGlpGmMigrationStatGmData(account: string, timestamp: i32
 
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
   let eligableDiff = _getEligableRedemptionDiff(
-    entity.gmDepositUsd.minus(depositUsd),
     entity.gmDepositUsd,
+    entity.gmDepositUsd.plus(depositUsd),
     entity.glpRedemptionUsd
   );
 
