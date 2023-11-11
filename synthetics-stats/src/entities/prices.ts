@@ -18,7 +18,10 @@ function getOrCreateTokenPrice(tokenAddress: string): TokenPrice {
   return tokenPrice ? tokenPrice! : new TokenPrice(tokenAddress);
 }
 
-export function getTokenPrice(tokenAddress: string): BigInt {
-  let pricesRef = TokenPrice.load(tokenAddress);
-  return pricesRef ? pricesRef.minPrice : BigInt.fromI32(0);
+export function getTokenPrice(tokenAddress: string, useMax: boolean = false): BigInt {
+  let priceRef = TokenPrice.load(tokenAddress);
+  if (!priceRef) {
+    return BigInt.fromI32(0);
+  }
+  return useMax ? priceRef.maxPrice : priceRef.minPrice;
 }

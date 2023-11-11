@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   UserGlpGmMigrationStat,
   LiquidityProviderIncentivesStat,
@@ -10,15 +10,19 @@ import { EventData } from "../utils/eventData";
 import { periodToSeconds, timestampToPeriodStart } from "../utils/time";
 import { EventLog1 } from "../../generated/EventEmitter/EventEmitter";
 import { getMarketInfo } from "./markets";
+import { getTokenPrice } from "./prices";
 
 let ZERO = BigInt.fromI32(0);
 let SECONDS_IN_WEEK = periodToSeconds("1w");
-let INCENTIVES_START_TIMESTAMP = 1699401600;
-// let INCENTIVES_START_TIMESTAMP = 0;
-let USD_PRECISION = BigInt.fromI32(10).pow(30);
+let ARB_PRECISION = BigInt.fromI32(10).pow(18);
 
-let GLP_GM_MIGRATION_DECREASE_THRESHOLD = BigInt.fromI32(100_000_000).times(USD_PRECISION); // $100m
-let GLP_GM_MIGRATION_CAP_THRESHOLD = BigInt.fromI32(200_000_000).times(USD_PRECISION); // $200m
+// TODO restore correct timestamp
+// let INCENTIVES_START_TIMESTAMP = 1699401600;
+let INCENTIVES_START_TIMESTAMP = 1690833600;
+
+// TODO update caps to correct
+let GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB = BigInt.fromI32(5_000_000).times(ARB_PRECISION); // 100m ARB
+let GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB = BigInt.fromI32(10_000_000).times(ARB_PRECISION); // 200m ARB
 
 let MAX_FEE_BASIS_POINTS_FOR_REBATE = BigInt.fromI32(25);
 let MAX_FEE_BASIS_POINTS_FOR_REBATE_REDUCED = BigInt.fromI32(10);
@@ -121,18 +125,30 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
   entity.save();
 }
 
-function _getMaxFeeBasisPointsForRebate(): BigInt {
+function _getMaxFeeBasisPointsForRebate(eligableDiffInArb: BigInt): BigInt {
   let globalEntity = _getOrCreateGlpGmMigrationStat();
+  let eligableRedemptionInArb = globalEntity.eligableRedemptionInArb;
+  // if eligableRedemptionInArb = 10m and eligableDiffInArb = 1,5m should return 25 bps
+  // if eligableRedemptionInArb = 99m and eligableDiffInArb = 1,5m should return 20 bps ((25 * 1m + 10 * 0.5m) / 1.5m)
+  // if eligableRedemptionInArb = 100m and eligableDiffInArb = 1,5m should return 10 bps
 
-  if (globalEntity.eligableRedemptionUsd.lt(GLP_GM_MIGRATION_DECREASE_THRESHOLD)) {
-    return MAX_FEE_BASIS_POINTS_FOR_REBATE;
+  let nextEligableRedemptionInArb = eligableRedemptionInArb.plus(eligableDiffInArb);
+  if (!eligableRedemptionInArb.gt(GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB)) {
+    if (!nextEligableRedemptionInArb.gt(GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB)) {
+      return MAX_FEE_BASIS_POINTS_FOR_REBATE;
+    }
+
+    return GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB.minus(eligableRedemptionInArb)
+      .times(MAX_FEE_BASIS_POINTS_FOR_REBATE)
+      .plus(
+        nextEligableRedemptionInArb
+          .minus(GLP_GM_MIGRATION_DECREASE_THRESHOLD_IN_ARB)
+          .times(MAX_FEE_BASIS_POINTS_FOR_REBATE_REDUCED)
+      )
+      .div(eligableDiffInArb);
   }
 
-  if (globalEntity.eligableRedemptionUsd.lt(GLP_GM_MIGRATION_CAP_THRESHOLD)) {
-    return MAX_FEE_BASIS_POINTS_FOR_REBATE_REDUCED;
-  }
-
-  return ZERO;
+  return MAX_FEE_BASIS_POINTS_FOR_REBATE_REDUCED;
 }
 
 export function saveUserGlpGmMigrationStatGlpData(
@@ -146,20 +162,26 @@ export function saveUserGlpGmMigrationStatGlpData(
   }
 
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
-  let maxFeeBasisPointsForRebate = _getMaxFeeBasisPointsForRebate();
+  let usdAmount = usdgAmount.times(BigInt.fromI32(10).pow(12));
+  let eligableDiff = _getEligableRedemptionDiff(
+    entity.glpRedemptionUsd.minus(usdAmount),
+    entity.glpRedemptionUsd,
+    entity.gmDepositUsd
+  );
+
+  let maxFeeBasisPointsForRebate = _getMaxFeeBasisPointsForRebate(eligableDiff.inArb);
   if (feeBasisPoints.gt(maxFeeBasisPointsForRebate)) {
     feeBasisPoints = maxFeeBasisPointsForRebate;
   }
 
-  let usdAmount = usdgAmount.times(BigInt.fromI32(10).pow(12));
   entity.glpRedemptionUsd = entity.glpRedemptionUsd.plus(usdAmount);
   entity.glpRedemptionFeeBpsByUsd = entity.glpRedemptionFeeBpsByUsd.plus(usdAmount.times(feeBasisPoints));
   entity.glpRedemptionWeightedAverageFeeBps = entity.glpRedemptionFeeBpsByUsd.div(entity.glpRedemptionUsd).toI32();
+
+  entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
   entity.save();
 
-  if (_incentivesStarted(timestamp)) {
-    _saveGlpGmMigrationStat(entity.glpRedemptionUsd.minus(usdAmount), entity.glpRedemptionUsd, entity.gmDepositUsd);
-  }
+  _saveGlpGmMigrationStat(eligableDiff);
 }
 
 export function saveUserGlpGmMigrationStatGmData(account: string, timestamp: i32, depositUsd: BigInt): void {
@@ -168,41 +190,88 @@ export function saveUserGlpGmMigrationStatGmData(account: string, timestamp: i32
   }
 
   let entity = _getOrCreateUserGlpGmMigrationStatGlpData(account, timestamp);
+  let eligableDiff = _getEligableRedemptionDiff(
+    entity.gmDepositUsd.minus(depositUsd),
+    entity.gmDepositUsd,
+    entity.glpRedemptionUsd
+  );
 
   entity.gmDepositUsd = entity.gmDepositUsd.plus(depositUsd);
+  entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(eligableDiff.inArb);
 
   entity.save();
 
-  _saveGlpGmMigrationStat(entity.gmDepositUsd.minus(depositUsd), entity.gmDepositUsd, entity.glpRedemptionUsd);
+  _saveGlpGmMigrationStat(eligableDiff);
+}
+
+function _convertArbToUsd(arbAmount: BigInt): BigInt {
+  let arbPrice = getTokenPrice(_getArbTokenAddress(), false);
+  return arbAmount.times(arbPrice);
+}
+
+function _convertUsdToArb(usd: BigInt): BigInt {
+  let arbPrice = getTokenPrice(_getArbTokenAddress(), true);
+  return usd.div(arbPrice);
+}
+
+function _getArbTokenAddress(): string {
+  return "0x912ce59144191c1204e64559fe8253a0e49e6548";
 }
 
 function _incentivesStarted(timestamp: i32): boolean {
   return timestamp > INCENTIVES_START_TIMESTAMP;
 }
 
-function _saveGlpGmMigrationStat(usdBefore: BigInt, usdAfter: BigInt, otherUsd: BigInt): void {
+class EligableRedemptionDiffResult {
+  constructor(public usd: BigInt, public inArb: BigInt) {}
+}
+
+function _getEligableRedemptionDiff(
+  usdBefore: BigInt,
+  usdAfter: BigInt,
+  otherUsd: BigInt
+): EligableRedemptionDiffResult {
   // case 1: gmDepositUsd: 1000, gmDepositUsd after: 1500, glpRedemptionUsd: 2000 => diffUsd: 500
   // case 2: gmDepositUsd: 1000, gmDepositUsd after: 1500, glpRedemptionUsd: 1200 => diffUsd: 200
   // case 3: gmDepositUsd: 1000, gmDepositUsd after: 1500, glpRedemptionUsd: 800 => diffUsd: 0
 
+  let entity = _getOrCreateGlpGmMigrationStat();
+
+  if (entity.eligableRedemptionInArb.gt(GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB)) {
+    return new EligableRedemptionDiffResult(ZERO, ZERO);
+  }
+
   let minBefore = usdBefore.lt(otherUsd) ? usdBefore : otherUsd;
   let minAfter = usdAfter.lt(otherUsd) ? usdAfter : otherUsd;
   let diffUsd = minAfter.minus(minBefore);
+  let diffInArb = _convertUsdToArb(diffUsd);
 
-  if (diffUsd.equals(ZERO)) {
+  if (entity.eligableRedemptionInArb.plus(diffInArb).gt(GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB)) {
+    diffInArb = GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB.minus(entity.eligableRedemptionInArb);
+    diffUsd = _convertArbToUsd(diffInArb);
+  }
+
+  return new EligableRedemptionDiffResult(diffUsd, diffInArb);
+}
+
+function _saveGlpGmMigrationStat(diff: EligableRedemptionDiffResult): void {
+  if (diff.usd.equals(ZERO)) {
     return;
   }
 
   let entity = _getOrCreateGlpGmMigrationStat();
-  entity.eligableRedemptionUsd = entity.eligableRedemptionUsd.plus(diffUsd);
+  entity.eligableRedemptionUsd = entity.eligableRedemptionUsd.plus(diff.usd);
+  entity.eligableRedemptionInArb = entity.eligableRedemptionInArb.plus(diff.inArb);
   entity.save();
 }
 
 function _getOrCreateGlpGmMigrationStat(): GlpGmMigrationStat {
-  let entity = GlpGmMigrationStat.load("total");
+  let id = "total";
+  let entity = GlpGmMigrationStat.load(id);
   if (entity == null) {
-    entity = new GlpGmMigrationStat("total");
+    entity = new GlpGmMigrationStat(id);
     entity.eligableRedemptionUsd = ZERO;
+    entity.eligableRedemptionInArb = ZERO;
   }
   return entity!;
 }
@@ -222,6 +291,7 @@ function _getOrCreateUserGlpGmMigrationStatGlpData(account: string, timestamp: i
     entity.glpRedemptionFeeBpsByUsd = ZERO;
     entity.glpRedemptionWeightedAverageFeeBps = 0;
     entity.gmDepositUsd = ZERO;
+    entity.eligableRedemptionInArb = ZERO;
   }
 
   return entity!;

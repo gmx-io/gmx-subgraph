@@ -459,7 +459,17 @@ type UserGlpGmMigrationStat @entity {
   glpRedemptionFeeBpsByUsd: BigInt! # used to calculate average
   glpRedemptionWeightedAverageFeeBps: Int!
   gmDepositUsd: BigInt!
+  eligableRedemptionInArb: BigInt!
 }
+
+type GlpGmMigrationStat @entity {
+  # "total"
+  id: ID!
+
+  eligableRedemptionUsd: BigInt!
+  eligableRedemptionInArb: BigInt!
+}
+
 
 type Distribution @entity {
   # receiver:txHash:typeId
@@ -483,12 +493,4 @@ type Distribution @entity {
   transactionHash: String!
   blockNumber: Int!
   timestamp: Int!
-}
-
-type GlpGmMigrationStat @entity {
-  # "total"
-  id: ID!
-
-  eligableRedemptionUsd: BigInt!
-  # eligableRedemptionInArb: BigInt!
 }
