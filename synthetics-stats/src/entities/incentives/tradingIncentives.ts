@@ -7,9 +7,8 @@ import { convertAmountToUsd, convertUsdToAmount } from "../prices";
 
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 
-// let INCENTIVES_START_TIMESTAMP = 1699401600;
-// TODO update start timestamp
-let INCENTIVES_START_TIMESTAMP = 1690833600; // earlier timestamp for testing
+let INCENTIVES_START_TIMESTAMP = 1700006400; // 2023-11-15 00:00:00
+// let INCENTIVES_START_TIMESTAMP = 1690833600; // earlier timestamp for testing
 
 let REBATE_PERCENT = BigInt.fromI32(7000);
 
@@ -72,13 +71,13 @@ export function saveTradingIncentivesStat(
   let positionFeesUsd = feesAmount.times(collateralTokenPrice);
   let positionFeesInArb = convertUsdToAmount(_getArbTokenAddress(), positionFeesUsd);
   let globalEntity = _getOrCreateTradingIncentivesStat(timestamp);
-  let eligibleFees = _getEligibleFees(positionFeesUsd, positionFeesInArb, globalEntity.eligableFeesInArb, timestamp);
+  let eligibleFees = _getEligibleFees(positionFeesUsd, positionFeesInArb, globalEntity.eligibleFeesInArb, timestamp);
 
   globalEntity.positionFeesUsd = globalEntity.positionFeesUsd.plus(positionFeesUsd);
   globalEntity.positionFeesInArb = globalEntity.positionFeesInArb.plus(positionFeesInArb);
   if (eligibleFees.inArb.gt(ZERO)) {
-    globalEntity.eligableFeesUsd = globalEntity.eligableFeesUsd.plus(eligibleFees.usd);
-    globalEntity.eligableFeesInArb = globalEntity.eligableFeesInArb.plus(eligibleFees.inArb);
+    globalEntity.eligibleFeesUsd = globalEntity.eligibleFeesUsd.plus(eligibleFees.usd);
+    globalEntity.eligibleFeesInArb = globalEntity.eligibleFeesInArb.plus(eligibleFees.inArb);
   }
   globalEntity.save();
 
@@ -86,9 +85,9 @@ export function saveTradingIncentivesStat(
   userEntity.positionFeesUsd = userEntity.positionFeesUsd.plus(positionFeesUsd);
   userEntity.positionFeesInArb = userEntity.positionFeesInArb.plus(positionFeesInArb);
   if (eligibleFees.inArb.gt(ZERO)) {
-    userEntity.eligableFeesInArb = userEntity.eligableFeesInArb.plus(eligibleFees.inArb);
-    userEntity.eligableFeesUsd = userEntity.eligableFeesUsd.plus(eligibleFees.usd);
-    userEntity.eligableUpdatedTimestamp = timestamp;
+    userEntity.eligibleFeesInArb = userEntity.eligibleFeesInArb.plus(eligibleFees.inArb);
+    userEntity.eligibleFeesUsd = userEntity.eligibleFeesUsd.plus(eligibleFees.usd);
+    userEntity.eligibleUpdatedTimestamp = timestamp;
   }
   userEntity.save();
 }
@@ -106,9 +105,9 @@ function _getOrCreateUserTradingIncentivesStat(account: string, timestamp: i32):
 
     entity.positionFeesUsd = ZERO;
     entity.positionFeesInArb = ZERO;
-    entity.eligableFeesInArb = ZERO;
-    entity.eligableFeesUsd = ZERO;
-    entity.eligableUpdatedTimestamp = 0;
+    entity.eligibleFeesInArb = ZERO;
+    entity.eligibleFeesUsd = ZERO;
+    entity.eligibleUpdatedTimestamp = 0;
   }
   return entity!;
 }
@@ -124,8 +123,8 @@ function _getOrCreateTradingIncentivesStat(timestamp: i32): TradingIncentivesSta
     entity.timestamp = startTimestamp;
     entity.positionFeesUsd = ZERO;
     entity.positionFeesInArb = ZERO;
-    entity.eligableFeesInArb = ZERO;
-    entity.eligableFeesUsd = ZERO;
+    entity.eligibleFeesInArb = ZERO;
+    entity.eligibleFeesUsd = ZERO;
     entity.rebatesCapInArb = _getRebatesCapForEpoch(timestamp);
   }
   return entity!;

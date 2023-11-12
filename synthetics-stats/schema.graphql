@@ -460,17 +460,17 @@ type UserGlpGmMigrationStat @entity {
   glpRedemptionWeightedAverageFeeBps: Int! # used to calculate rebate
   gmDepositUsd: BigInt!
 
-  eligableRedemptionInArb: BigInt! # used to calculate rebate
-  eligableRedemptionUsd: BigInt! # for debugging
-  eligableUpdatedTimestamp: Int! # for debugging
+  eligibleRedemptionInArb: BigInt! # used to calculate rebate
+  eligibleRedemptionUsd: BigInt! # for debugging
+  eligibleUpdatedTimestamp: Int! # for debugging
 }
 
 type GlpGmMigrationStat @entity {
   # "total"
   id: ID!
 
-  eligableRedemptionUsd: BigInt!
-  eligableRedemptionInArb: BigInt!
+  eligibleRedemptionUsd: BigInt!
+  eligibleRedemptionInArb: BigInt!
 }
 
 type UserTradingIncentivesStat @entity {
@@ -483,9 +483,9 @@ type UserTradingIncentivesStat @entity {
   positionFeesUsd: BigInt!
   positionFeesInArb: BigInt!
 
-  eligableFeesInArb: BigInt! # used to calculate rebate
-  eligableFeesUsd: BigInt! # for debugging
-  eligableUpdatedTimestamp: Int! # for debugging
+  eligibleFeesInArb: BigInt! # used to calculate rebate
+  eligibleFeesUsd: BigInt! # for debugging
+  eligibleUpdatedTimestamp: Int! # for debugging
 }
 
 type TradingIncentivesStat @entity {
@@ -497,8 +497,8 @@ type TradingIncentivesStat @entity {
   positionFeesUsd: BigInt!
   positionFeesInArb: BigInt!
 
-  eligableFeesInArb: BigInt! # used to calculate rebate
-  eligableFeesUsd: BigInt! # for debugging
+  eligibleFeesInArb: BigInt! # used to calculate rebate
+  eligibleFeesUsd: BigInt! # for debugging
   rebatesCapInArb: BigInt!
 }
 
