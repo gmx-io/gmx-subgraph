@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   UserGlpGmMigrationStat,
   LiquidityProviderIncentivesStat,
@@ -12,6 +12,7 @@ import { EventLog1 } from "../../../generated/EventEmitter/EventEmitter";
 import { getMarketInfo } from "../markets";
 import { convertAmountToUsd, convertUsdToAmount, getTokenPrice } from "../prices";
 import { ZERO } from "../../utils/number";
+import { MarketPoolValueUpdatedEventData } from "../../utils/eventData/MarketPoolValueUpdatedEventData";
 
 let SECONDS_IN_WEEK = periodToSeconds("1w");
 let ARB_PRECISION = BigInt.fromI32(10).pow(18);
@@ -91,8 +92,10 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
   // cumulative product is increased on each deposit or withdrawal:
   // cumulative product = cumulative product + (previous tokens supply * time since last deposit/withdrawal)
 
-  let marketTokensSupply = eventData.getUintItem("marketTokensSupply")!;
-  let marketAddress = eventData.getAddressItemString("market")!;
+  let data = new MarketPoolValueUpdatedEventData(eventData);
+
+  let marketTokensSupply = data.marketTokensSupply;
+  let marketAddress = data.market;
   let entity = _getOrCreateMarketIncentivesStat(marketAddress, event.block.timestamp.toI32());
 
   if (entity.updatedTimestamp == 0) {
