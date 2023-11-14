@@ -2,6 +2,7 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import { EventData } from "../utils/eventData";
 import { OraclePriceUpdateEventData } from "../utils/eventData/OraclePriceUpdateEventData";
 import { TokenPrice } from "../../generated/schema";
+import { ZERO } from "../utils/number";
 
 export function handleOraclePriceUpdate(eventData: EventData): void {
   let event = new OraclePriceUpdateEventData(eventData);
@@ -28,6 +29,9 @@ export function getTokenPrice(tokenAddress: string, useMax: boolean = false): Bi
 
 export function convertUsdToAmount(tokenAddress: string, usd: BigInt, useMax: boolean = true): BigInt {
   let price = getTokenPrice(tokenAddress, useMax);
+  if (price.equals(ZERO)) {
+    return ZERO;
+  }
   return usd.div(price);
 }
 
