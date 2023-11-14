@@ -61,6 +61,7 @@ import {
 import { saveDistribution } from "./entities/distributions";
 import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
+import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -269,14 +270,16 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
     let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, network, transaction);
-    let marketInfo = getMarketInfo(swapFeesInfo.marketAddress);
+    let marketTokensSupply = isDepositOrWithdrawalAction(action)
+      ? getMarketTokensSupplyFromContract(swapFeesInfo.marketAddress)
+      : getMarketInfo(swapFeesInfo.marketAddress).marketTokensSupply;
 
     saveCollectedMarketFees(
       transaction,
       swapFeesInfo.marketAddress,
       poolValue,
       swapFeesInfo.feeUsdForPool,
-      marketInfo.marketTokensSupply
+      marketTokensSupply
     );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
@@ -300,13 +303,14 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
     let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
     let marketInfo = getMarketInfo(positionFeesInfo.marketAddress);
+    let marketTokensSupply = getMarketTokensSupplyFromContract(positionFeesInfo.marketAddress);
 
     saveCollectedMarketFees(
       transaction,
       positionFeesInfo.marketAddress,
       poolValue,
       positionFeesInfo.feeUsdForPool,
-      marketInfo.marketTokensSupply
+      marketTokensSupply
     );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
@@ -492,6 +496,10 @@ function handleEventLog2(event: EventLog2, network: string): void {
     );
     return;
   }
+}
+
+function isDepositOrWithdrawalAction(action: string): boolean {
+  return action == "deposit" || action == "withdrawal";
 }
 
 function handleDepositCreated(event: EventLog2, eventData: EventData): void {
