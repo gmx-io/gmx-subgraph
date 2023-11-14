@@ -303,14 +303,13 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
     let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
     let marketInfo = getMarketInfo(positionFeesInfo.marketAddress);
-    let marketTokensSupply = getMarketTokensSupplyFromContract(positionFeesInfo.marketAddress);
 
     saveCollectedMarketFees(
       transaction,
       positionFeesInfo.marketAddress,
       poolValue,
       positionFeesInfo.feeUsdForPool,
-      marketTokensSupply
+      marketInfo.marketTokensSupply
     );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
