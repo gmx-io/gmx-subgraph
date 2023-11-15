@@ -10,16 +10,16 @@ let SECONDS_IN_WEEK = periodToSeconds("1w");
 let INCENTIVES_START_TIMESTAMP = 1700006400; // 2023-11-15 00:00:00
 // let INCENTIVES_START_TIMESTAMP = 1690833600; // earlier timestamp for testing
 
-let REBATE_PERCENT = BigInt.fromI32(7000);
+let REBATE_PERCENT = BigInt.fromI32(7500);
 
 function _getRebatesCapForEpoch(timestamp: i32): BigInt {
   // returns cap in ARB
   let weekIndex = _getEpochIndexSinceIncentivesStart(timestamp);
   // TODO update caps
   if (weekIndex == 0) {
-    return expandDecimals(BigInt.fromI32(5000), 18);
+    return expandDecimals(BigInt.fromI32(300000), 18);
   } else {
-    return expandDecimals(BigInt.fromI32(10000), 18);
+    return expandDecimals(BigInt.fromI32(300000), 18);
   }
 }
 
