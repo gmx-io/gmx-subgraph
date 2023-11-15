@@ -8,6 +8,10 @@ dataSources:
   - kind: ethereum/contract
     name: EventEmitter
     network: fuji
+    context:
+      foo:
+        type: Bool
+        data: true
     source:
       address: "0xc67D98AC5803aFD776958622CeEE332A0B2CabB9"
       abi: EventEmitter
