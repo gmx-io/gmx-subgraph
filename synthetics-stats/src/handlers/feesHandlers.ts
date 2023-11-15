@@ -1,3 +1,4 @@
+import { log } from "@graphprotocol/graph-ts";
 import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
 import { getOrCreateTransaction } from "../entities/common";
 import {
@@ -19,8 +20,11 @@ export function handleSwapFeesCollected(eventData: EventData): void {
   let data = new SwapFeesCollectedEventData(eventData);
   let swapFeesInfo = saveSwapFeesInfo(data, eventData);
   let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
-  let totalAmountIn = data.amountAfterFees.plus(data.feeAmountForPool).plus(data.feeReceiverAmount);
-  let volumeUsd = totalAmountIn.times(data.tokenPrice);
+  let feeReceiverAmount = data.feeReceiverAmount;
+  let tokenPrice = data.tokenPrice;
+
+  let totalAmountIn = data.amountAfterFees.plus(data.feeAmountForPool).plus(feeReceiverAmount);
+  let volumeUsd = totalAmountIn.times(tokenPrice);
   let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, eventData.network, transaction);
   let marketInfo = getMarketInfo(swapFeesInfo.marketAddress);
 
@@ -32,7 +36,7 @@ export function handleSwapFeesCollected(eventData: EventData): void {
     marketInfo.marketTokensSupply
   );
   saveVolumeInfo(action, transaction.timestamp, volumeUsd);
-  saveSwapFeesInfoWithPeriod(data.feeAmountForPool, data.feeReceiverAmount, data.tokenPrice, transaction.timestamp);
+  saveSwapFeesInfoWithPeriod(data.feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
 }
 
 export function handlePositionFeesCollected(eventData: EventData): void {

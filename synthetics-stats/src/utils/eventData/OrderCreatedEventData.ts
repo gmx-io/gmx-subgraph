@@ -53,8 +53,8 @@ export class OrderCreatedEventData {
     return this.eventData.getAddressItemStringOrDie("initialCollateralToken");
   }
 
-  get swapPath(): Array<string> {
-    return this.eventData.getAddressArrayItemStringOrDie("swapPath");
+  get swapPath(): Array<string> | null {
+    return this.eventData.getAddressArrayItemString("swapPath");
   }
 
   get orderType(): BigInt {

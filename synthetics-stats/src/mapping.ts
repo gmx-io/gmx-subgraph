@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { EventLog, EventLog1, EventLog2 } from "../generated/EventEmitter/EventEmitter";
@@ -48,7 +48,7 @@ import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
 import { handleOrderCreated, handleOrderExecuted } from "./handlers/ordersHandlers";
-import { EventData } from "./utils/eventData";
+import { EventData, createEventDataFromEvent } from "./utils/eventData";
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -119,7 +119,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
 }
 
 export function handleEventLog(event: EventLog, network: string): void {
-  let eventData = new EventData(event, network);
+  let eventData = createEventDataFromEvent<EventLog>(event, network);
 
   if (eventData.eventName == "DepositExecuted") {
     handleDepositExecuted(event as EventLog2, eventData);
@@ -128,7 +128,7 @@ export function handleEventLog(event: EventLog, network: string): void {
 }
 
 function handleEventLog1(event: EventLog1, network: string): void {
-  let eventData = new EventData(event as EventLog, network);
+  let eventData = createEventDataFromEvent<EventLog1>(event, network);
   let eventName = eventData.eventName;
   let eventId = eventData.eventId;
 
@@ -151,7 +151,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
   }
 
   if (eventName == "OrderExecuted") {
-    let transaction = getOrCreateTransaction(event);
     let order = saveOrderExecutedState(eventData);
 
     if (order == null) {
@@ -327,7 +326,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
 function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
-  let eventData = new EventData(event as EventLog, network);
+  let eventData = createEventDataFromEvent<EventLog2>(event, network);
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
@@ -438,8 +437,16 @@ export function handleEventLogArbitrum(event: EventLog): void {
   handleEventLog(event, "arbitrum");
 }
 
+export function handleEventLogGoerli(event: EventLog): void {
+  handleEventLog(event, "goerli");
+}
+
 export function handleEventLogAvalanche(event: EventLog): void {
   handleEventLog(event, "avalanche");
+}
+
+export function handleEventLogFuji(event: EventLog): void {
+  handleEventLog(event, "fuji");
 }
 
 export function handleEventLog1Arbitrum(event: EventLog1): void {

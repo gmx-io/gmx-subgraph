@@ -1,33 +1,50 @@
-import { Address, ethereum, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import {
-  EventLogEventDataAddressItemsItemsStruct,
-  EventLogEventDataUintItemsItemsStruct,
-  EventLogEventDataStruct,
+  EventLog,
+  EventLog1,
+  EventLog2,
   EventLogEventDataAddressItemsArrayItemsStruct,
-  EventLogEventDataUintItemsArrayItemsStruct,
-  EventLogEventDataBytesItemsItemsStruct,
+  EventLogEventDataAddressItemsItemsStruct,
   EventLogEventDataBytesItemsArrayItemsStruct,
+  EventLogEventDataBytesItemsItemsStruct,
   EventLogEventDataStringItemsArrayItemsStruct,
-  EventLog
+  EventLogEventDataStruct,
+  EventLogEventDataUintItemsArrayItemsStruct,
+  EventLogEventDataUintItemsItemsStruct
 } from "../../generated/EventEmitter/EventEmitter";
-import { Transaction } from "../../generated/schema";
+import { Transaction as TransactionEntity } from "../../generated/schema";
 import { getIdFromEvent, getOrCreateTransaction } from "../entities/common";
 
-export class EventData {
-  rawData: EventLogEventDataStruct;
-  _cachedTransaction: Transaction | null = null;
-  _cachedEventId: string | null = null;
-
-  constructor(public event: EventLog, public network: string) {
-    this.rawData = event.params.eventData;
+export function createEventDataFromEvent<T extends ethereum.Event>(event: T, network: string): EventData {
+  if (event instanceof EventLog) {
+    return new EventData(event, event.params.eventData, event.params.eventName, network);
+  } else if (event instanceof EventLog1) {
+    return new EventData(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
+  } else if (event instanceof EventLog2) {
+    return new EventData(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
   }
 
-  get transaction(): Transaction {
+  log.warning("Unknown event", []);
+  throw new Error("unknown event");
+}
+
+export class EventData {
+  _cachedTransaction: TransactionEntity | null = null;
+  _cachedEventId: string | null = null;
+
+  constructor(
+    private rawEvent: ethereum.Event,
+    private rawData: EventLogEventDataStruct,
+    public eventName: string,
+    public network: string
+  ) {}
+
+  get transaction(): TransactionEntity {
     if (this._cachedTransaction == null) {
-      this._cachedTransaction = getOrCreateTransaction(this.event);
+      this._cachedTransaction = getOrCreateTransaction(this.rawEvent);
     }
 
-    return this._cachedTransaction as Transaction;
+    return this._cachedTransaction as TransactionEntity;
   }
 
   get timestamp(): i32 {
@@ -36,14 +53,10 @@ export class EventData {
 
   get eventId(): string {
     if (this._cachedEventId == null) {
-      this._cachedEventId = getIdFromEvent(this.event);
+      this._cachedEventId = getIdFromEvent(this.rawEvent);
     }
 
     return this._cachedEventId as string;
-  }
-
-  get eventName(): string {
-    return this.event.params.eventName;
   }
 
   getAddressItem(key: string): Address | null {
@@ -51,7 +64,6 @@ export class EventData {
   }
 
   getAddressItemOrDie(key: string): Address {
-    log.warning("getAddressItemOrDie: fetching {}", [key]);
     let result = this.getAddressItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -71,7 +83,6 @@ export class EventData {
   }
 
   getAddressItemStringOrDie(key: string): string {
-    log.warning("fetching getAddressItemStringOrDie: {}", [key]);
     let result = this.getAddressItemString(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -88,7 +99,6 @@ export class EventData {
   }
 
   getAddressArrayItemOrDie(key: string): Array<Address> {
-    log.warning("fetching getAddressArrayItemOrDie: {}", [key]);
     let result = this.getAddressArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -115,16 +125,6 @@ export class EventData {
     return null;
   }
 
-  getAddressArrayItemStringOrDie(key: string): Array<string> {
-    log.warning("getAddressArrayItemStringOrDie: fetching {}", [key]);
-    let result = this.getAddressArrayItemString(key);
-    if (result == null) {
-      log.warning("received null for key {}", [key]);
-      throw new Error("received null");
-    }
-    return result!;
-  }
-
   getStringItem(key: string): string | null {
     let items = this.rawData.stringItems.items;
     for (let i = 0; i < items.length; i++) {
@@ -137,7 +137,6 @@ export class EventData {
   }
 
   getStringItemOrDie(key: string): string {
-    log.warning("getStringItemOrDie: fetching {}", [key]);
     let result = this.getStringItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -154,7 +153,6 @@ export class EventData {
   }
 
   getStringArrayItemOrDie(key: string): Array<string> {
-    log.warning("fetching getStringArrayItemOrDie: {}", [key]);
     let result = this.getStringArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -168,9 +166,8 @@ export class EventData {
   }
 
   getUintItemOrDie(key: string): BigInt {
-    log.warning("getUintItemOrDie: fetching {}", [key]);
     let result = this.getUintItem(key);
-    if (result == null) {
+    if (result == null || !result) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
     }
@@ -185,7 +182,6 @@ export class EventData {
   }
 
   getUintArrayItemOrDie(key: string): Array<BigInt> {
-    log.warning("getUintArrayItemOrDie: fetching {}", [key]);
     let result = this.getUintArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -202,7 +198,6 @@ export class EventData {
   }
 
   getIntItemOrDie(key: string): BigInt {
-    log.warning("getIntItemOrDie: fetching {}", [key]);
     let result = this.getIntItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -219,7 +214,6 @@ export class EventData {
   }
 
   getIntArrayItemOrDie(key: string): Array<BigInt> {
-    log.warning("getIntArrayItemOrDie: fetching {}", [key]);
     let result = this.getIntArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -233,7 +227,6 @@ export class EventData {
   }
 
   getBytesItemOrDie(key: string): Bytes {
-    log.warning("getBytesItemOrDie: fetching {}", [key]);
     let result = this.getBytesItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -250,7 +243,6 @@ export class EventData {
   }
 
   getBytesArrayItemOrDie(key: string): Array<Bytes> {
-    log.warning("getBytesArrayItemOrDie: fetching {}", [key]);
     let result = this.getBytesArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -267,7 +259,6 @@ export class EventData {
   }
 
   getBytes32ItemOrDie(key: string): Bytes {
-    log.warning("getBytes32ItemOrDie: fetching {}", [key]);
     let result = this.getBytes32Item(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -284,7 +275,6 @@ export class EventData {
   }
 
   getBytes32ArrayItemOrDie(key: string): Array<Bytes> {
-    log.warning("fetching getBytes32ArrayItemOrDie: {}", [key]);
     let result = this.getBytes32ArrayItem(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
@@ -307,13 +297,16 @@ export class EventData {
   }
 
   getBoolItemOrDie(key: string): boolean {
-    log.warning("fetching getBoolItemOrDie: {}", [key]);
-    let result = this.getBoolItem(key);
-    if (result === null) {
-      log.warning("received null for key {}", [key]);
-      throw new Error("received null");
+    let items = this.rawData.boolItems.items;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].key == key) {
+        return items[i].value;
+      }
     }
-    return result!;
+
+    log.warning("received null for key {}", [key]);
+    throw new Error("received null");
   }
 }
 
