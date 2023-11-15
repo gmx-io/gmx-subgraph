@@ -1,4 +1,4 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { EventLog, EventLog1, EventLog2 } from "../generated/EventEmitter/EventEmitter";
@@ -49,6 +49,7 @@ import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./en
 import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
 import { handleOrderCreated, handleOrderExecuted } from "./handlers/ordersHandlers";
 import { EventData, createEventDataFromEvent } from "./utils/eventData";
+
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {

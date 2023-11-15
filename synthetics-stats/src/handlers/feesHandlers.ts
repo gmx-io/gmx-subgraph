@@ -1,6 +1,5 @@
-import { log } from "@graphprotocol/graph-ts";
 import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
-import { getOrCreateTransaction } from "../entities/common";
+import { getMarketTokensSupplyFromContract } from "../contracts/getMarketTokensSupplyFromContract";
 import {
   getSwapActionByFeeType,
   saveCollectedMarketFees,
@@ -19,24 +18,27 @@ export function handleSwapFeesCollected(eventData: EventData): void {
   let transaction = eventData.transaction;
   let data = new SwapFeesCollectedEventData(eventData);
   let swapFeesInfo = saveSwapFeesInfo(data, eventData);
-  let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
-  let feeReceiverAmount = data.feeReceiverAmount;
   let tokenPrice = data.tokenPrice;
-
-  let totalAmountIn = data.amountAfterFees.plus(data.feeAmountForPool).plus(feeReceiverAmount);
+  let feeReceiverAmount = data.feeReceiverAmount;
+  let feeAmountForPool = data.feeAmountForPool;
+  let amountAfterFees = data.amountAfterFees;
+  let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
+  let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
   let volumeUsd = totalAmountIn.times(tokenPrice);
   let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, eventData.network, transaction);
-  let marketInfo = getMarketInfo(swapFeesInfo.marketAddress);
+  let marketTokensSupply = isDepositOrWithdrawalAction(action)
+    ? getMarketTokensSupplyFromContract(swapFeesInfo.marketAddress)
+    : getMarketInfo(swapFeesInfo.marketAddress).marketTokensSupply;
 
   saveCollectedMarketFees(
     transaction,
     swapFeesInfo.marketAddress,
     poolValue,
     swapFeesInfo.feeUsdForPool,
-    marketInfo.marketTokensSupply
+    marketTokensSupply
   );
   saveVolumeInfo(action, transaction.timestamp, volumeUsd);
-  saveSwapFeesInfoWithPeriod(data.feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
+  saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
 }
 
 export function handlePositionFeesCollected(eventData: EventData): void {
@@ -60,4 +62,8 @@ export function handlePositionFeesCollected(eventData: EventData): void {
     data.collateralTokenPriceMin,
     transaction.timestamp
   );
+}
+
+function isDepositOrWithdrawalAction(action: string): boolean {
+  return action == "deposit" || action == "withdrawal";
 }
