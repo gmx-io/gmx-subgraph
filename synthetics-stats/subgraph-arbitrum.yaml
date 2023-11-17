@@ -80,6 +80,26 @@ dataSources:
         - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
           handler: handleBatchSend
       file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: BatchSenderNew
+    network: arbitrum-one
+    source:
+      address: "0x5384E6cAd96B2877B5B3337A277577053BD1941D"
+      abi: BatchSender
+      startBlock: 150447937
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
 
 templates:
   - kind: ethereum/contract
