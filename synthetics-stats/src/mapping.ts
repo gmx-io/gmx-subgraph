@@ -3,7 +3,7 @@ import { Bytes, BigInt, log } from "@graphprotocol/graph-ts";
 import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
 import { MarketTokenTemplate } from "../generated/templates";
-import { ClaimRef, DepositRef, MarketInfo, Order, PoolValue, TokenPrice } from "../generated/schema";
+import { ClaimRef, DepositRef, MarketInfo, Order } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { SellUSDG } from "../generated/Vault/Vault";
 
@@ -106,7 +106,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
     saveUserMarketInfo(from, marketAddress, value.neg());
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction);
+    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex);
   }
 
   // `to` user receives GM tokens
@@ -115,7 +115,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
     saveUserMarketInfo(to, marketAddress, value);
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction);
+    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex);
   }
 
   if (from == ADDRESS_ZERO) {

@@ -2,19 +2,18 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   MarketInfo,
-  PoolValue,
   PositionFeesInfo,
   PositionFeesInfoWithPeriod,
   SwapFeesInfo,
   SwapFeesInfoWithPeriod,
   Transaction
 } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
-import { timestampToPeriodStart } from "../utils/time";
-import { PositionImpactPoolDistributedEventData } from "../utils/eventData/PositionImpactPoolDistributedEventData";
-import { getTokenPrice } from "./prices";
-import { MarketPoolValueUpdatedEventData } from "../utils/eventData/MarketPoolValueUpdatedEventData";
 import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
+import { getMarketTokensSupplyFromContract } from "../contracts/getMarketTokensSupplyFromContract";
+import { EventData } from "../utils/eventData";
+import { PositionImpactPoolDistributedEventData } from "../utils/eventData/PositionImpactPoolDistributedEventData";
+import { timestampToPeriodStart } from "../utils/time";
+import { getTokenPrice } from "./prices";
 
 export let swapFeeTypes = new Map<string, string>();
 
@@ -52,6 +51,7 @@ function updateCollectedFeesFractions(
   feesEntity.cumulativeFeeUsdPerPoolValue = totalFeesEntity.feeUsdPerPoolValue;
 
   feesEntity.feeUsdPerGmToken = getUpdatedFeeUsdPerGmToken(feesEntity, feeUsdForPool, marketTokensSupply);
+  feesEntity.prevCumulativeFeeUsdPerGmToken = feesEntity.cumulativeFeeUsdPerGmToken;
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 }
 
@@ -153,6 +153,7 @@ export function getOrCreateCollectedMarketFees(
     collectedFees.cumulativeFeeUsdPerPoolValue = ZERO;
     collectedFees.feeUsdPerGmToken = ZERO;
     collectedFees.cumulativeFeeUsdPerGmToken = ZERO;
+    collectedFees.prevCumulativeFeeUsdPerGmToken = ZERO;
   }
 
   return collectedFees as CollectedMarketFeesInfo;
@@ -275,20 +276,21 @@ export function handlePositionImpactPoolDistributed(
   transaction: Transaction,
   network: string
 ): void {
-  let event = new PositionImpactPoolDistributedEventData(eventData);
-  let marketInfo = MarketInfo.load(event.market);
+  let data = new PositionImpactPoolDistributedEventData(eventData);
+  let marketInfo = MarketInfo.load(data.market);
 
   if (!marketInfo) {
-    log.warning("Market not found: {}", [event.market]);
+    log.warning("Market not found: {}", [data.market]);
     throw new Error("Market not found");
   }
 
   let indexToken = marketInfo.indexToken;
   let tokenPrice = getTokenPrice(indexToken);
-  let amountUsd = event.distributionAmount.times(tokenPrice);
-  let poolValue = getMarketPoolValueFromContract(event.market, network, transaction);
+  let amountUsd = data.distributionAmount.times(tokenPrice);
+  let poolValue = getMarketPoolValueFromContract(data.market, network, transaction);
+  let marketTokensSupply = getMarketTokensSupplyFromContract(data.market);
 
-  saveCollectedMarketFees(transaction, event.market, poolValue, amountUsd, marketInfo.marketTokensSupply);
+  saveCollectedMarketFees(transaction, data.market, poolValue, amountUsd, marketTokensSupply);
 }
 
 function getUpdatedFeeUsdPerPoolValue(feeInfo: CollectedMarketFeesInfo, fee: BigInt, poolValue: BigInt): BigInt {
