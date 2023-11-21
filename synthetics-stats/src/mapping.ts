@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { EventLog, EventLog1, EventLog2 } from "../generated/EventEmitter/EventEmitter";
@@ -92,7 +92,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
     saveUserMarketInfo(from, marketAddress, value.neg());
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction);
+    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex);
   }
 
   // `to` user receives GM tokens
@@ -101,7 +101,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
     saveUserMarketInfo(to, marketAddress, value);
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction);
+    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex);
   }
 
   if (from == ADDRESS_ZERO) {

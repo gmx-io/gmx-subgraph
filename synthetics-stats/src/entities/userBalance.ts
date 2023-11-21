@@ -1,4 +1,4 @@
-import { Bytes, BigInt, log, Entity } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   LatestUserGmTokensBalanceChangeRef,
@@ -13,31 +13,32 @@ export function saveUserGmTokensBalanceChange(
   account: string,
   marketAddress: string,
   value: BigInt,
-  transaction: Transaction
+  transaction: Transaction,
+  transactionLogIndex: BigInt
 ): void {
   let prevEntity = getLatestUserGmTokensBalanceChange(account, marketAddress);
-  let entity = _getOrCreateUserGmTokensBalanceChange(account, marketAddress, transaction);
-
-  if (prevEntity) {
-    if (entity.id == prevEntity.id) {
-      prevEntity = null;
-    }
-  }
-
+  let entity = _createUserGmTokensBalanceChange(account, marketAddress, transaction, transactionLogIndex);
   let totalFees = CollectedMarketFeesInfo.load(marketAddress + ":total");
-  let prevValue = prevEntity ? prevEntity.tokensBalance : ZERO;
+  let prevBalance = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
   let income = prevEntity ? calcIncomeForEntity(prevEntity) : ZERO;
 
-  entity.tokensBalance = entity.tokensBalance.notEqual(ZERO) ? entity.tokensBalance.plus(value) : prevValue.plus(value);
-  entity.tokensDelta = entity.tokensDelta.notEqual(ZERO) ? entity.tokensDelta.plus(value) : value;
-  entity.cumulativeIncome = entity.cumulativeIncome.notEqual(ZERO)
-    ? entity.cumulativeIncome
-    : prevCumulativeIncome.plus(income);
+  entity.tokensBalance = prevBalance.plus(value);
+  entity.tokensDelta = value;
+  entity.cumulativeIncome = prevCumulativeIncome.plus(income);
+  entity.prevCumulativeFeeUsdPerGmToken = totalFees ? totalFees.prevCumulativeFeeUsdPerGmToken : ZERO;
   entity.cumulativeFeeUsdPerGmToken = totalFees ? totalFees.cumulativeFeeUsdPerGmToken : ZERO;
+  entity.index = getBalanceChangeNextIndex(account, marketAddress);
   entity.save();
 
   saveLatestUserGmTokensBalanceChange(entity);
+}
+
+function getBalanceChangeNextIndex(account: string, marketAddress: string): BigInt {
+  let id = account + ":" + marketAddress;
+  let latestRef = LatestUserGmTokensBalanceChangeRef.load(id);
+
+  return latestRef ? latestRef.nextIndex : BigInt.fromI32(0);
 }
 
 function getLatestUserGmTokensBalanceChange(account: string, marketAddress: string): UserGmTokensBalanceChange | null {
@@ -61,12 +62,11 @@ function saveLatestUserGmTokensBalanceChange(change: UserGmTokensBalanceChange):
     latestRef = new LatestUserGmTokensBalanceChangeRef(id);
     latestRef.account = change.account;
     latestRef.marketAddress = change.marketAddress;
+    latestRef.nextIndex = BigInt.fromI32(0);
   }
 
-  // several transfers can be in one transaction, i.e. have the same id
-  if (latestRef.latestUserGmTokensBalanceChange != change.id) {
-    latestRef.latestUserGmTokensBalanceChange = change.id;
-  }
+  latestRef.nextIndex = latestRef.nextIndex.plus(BigInt.fromI32(1));
+  latestRef.latestUserGmTokensBalanceChange = change.id;
 
   latestRef.save();
 }
@@ -76,28 +76,39 @@ function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null): BigInt {
   if (entity.tokensBalance.equals(ZERO)) return ZERO;
 
   let currentFees = getOrCreateCollectedMarketFees(entity.marketAddress, 0, "total");
-  let feeUsdPerGmToken = currentFees.cumulativeFeeUsdPerGmToken.minus(entity.cumulativeFeeUsdPerGmToken);
+  let feeUsdPerGmToken = currentFees.cumulativeFeeUsdPerGmToken.minus(entity.prevCumulativeFeeUsdPerGmToken);
 
   return feeUsdPerGmToken.times(entity.tokensBalance).div(BigInt.fromI32(10).pow(18));
 }
 
-function _getOrCreateUserGmTokensBalanceChange(
+function _createUserGmTokensBalanceChange(
   account: string,
   marketAddress: string,
-  transaction: Transaction
+  transaction: Transaction,
+  transactionLogIndex: BigInt
 ): UserGmTokensBalanceChange {
-  let entity = UserGmTokensBalanceChange.load(account + ":" + marketAddress + ":" + transaction.hash);
-  if (entity) return entity!;
+  let entity = UserGmTokensBalanceChange.load(
+    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString()
+  );
+  if (entity) {
+    log.warning("UserGmTokensBalanceChange already exists: {}", [entity.id]);
+    throw new Error("UserGmTokensBalanceChange already exists");
+  }
 
-  let newEntity = new UserGmTokensBalanceChange(account + ":" + marketAddress + ":" + transaction.hash);
+  let newEntity = new UserGmTokensBalanceChange(
+    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString()
+  );
 
   newEntity.account = account;
   newEntity.marketAddress = marketAddress;
+
+  newEntity.index = ZERO;
   newEntity.tokensDelta = ZERO;
   newEntity.tokensBalance = ZERO;
   newEntity.timestamp = transaction.timestamp;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
+  newEntity.prevCumulativeFeeUsdPerGmToken = ZERO;
 
   return newEntity;
 }
