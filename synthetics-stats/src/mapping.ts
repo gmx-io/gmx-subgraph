@@ -106,7 +106,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
     saveUserMarketInfo(from, marketAddress, value.neg());
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex);
+    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex, "out");
   }
 
   // `to` user receives GM tokens
@@ -115,7 +115,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
     saveUserMarketInfo(to, marketAddress, value);
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex);
+    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex, "in");
   }
 
   if (from == ADDRESS_ZERO) {
