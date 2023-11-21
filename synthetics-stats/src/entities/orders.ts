@@ -50,7 +50,7 @@ export function saveOrder(eventData: OrderCreatedEventData, transaction: Transac
 }
 
 export function saveOrderCancelledState(eventData: EventData, transaction: Transaction): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -59,8 +59,8 @@ export function saveOrderCancelledState(eventData: EventData, transaction: Trans
   }
 
   order.status = "Cancelled";
-  order.cancelledReason = eventData.getStringItem("reason")!;
-  order.cancelledReasonBytes = eventData.getBytesItem("reasonBytes")!;
+  order.cancelledReason = eventData.getStringItemOrNull("reason")!;
+  order.cancelledReasonBytes = eventData.getBytesItemOrNull("reasonBytes")!;
 
   order.cancelledTxn = transaction.id;
 
@@ -70,7 +70,7 @@ export function saveOrderCancelledState(eventData: EventData, transaction: Trans
 }
 
 export function saveOrderExecutedState(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -87,7 +87,7 @@ export function saveOrderExecutedState(eventData: EventData): Order | null {
 }
 
 export function saveOrderFrozenState(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -96,8 +96,8 @@ export function saveOrderFrozenState(eventData: EventData): Order | null {
   }
 
   order.status = "Frozen";
-  order.frozenReason = eventData.getStringItem("reason")!;
-  order.frozenReasonBytes = eventData.getBytesItem("reasonBytes")!;
+  order.frozenReason = eventData.getStringItemOrNull("reason")!;
+  order.frozenReasonBytes = eventData.getBytesItemOrNull("reasonBytes")!;
 
   order.save();
 
@@ -105,7 +105,7 @@ export function saveOrderFrozenState(eventData: EventData): Order | null {
 }
 
 export function saveOrderUpdate(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -113,10 +113,10 @@ export function saveOrderUpdate(eventData: EventData): Order | null {
     return null;
   }
 
-  order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-  order.triggerPrice = eventData.getUintItem("triggerPrice")!;
-  order.acceptablePrice = eventData.getUintItem("acceptablePrice")!;
-  order.minOutputAmount = eventData.getUintItem("minOutputAmount")!;
+  order.sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
+  order.triggerPrice = eventData.getUintItemOrNull("triggerPrice")!;
+  order.acceptablePrice = eventData.getUintItemOrNull("acceptablePrice")!;
+  order.minOutputAmount = eventData.getUintItemOrNull("minOutputAmount")!;
 
   order.save();
 
@@ -124,7 +124,7 @@ export function saveOrderUpdate(eventData: EventData): Order | null {
 }
 
 export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -132,7 +132,7 @@ export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order | null
     return null;
   }
 
-  order.sizeDeltaUsd = eventData.getUintItem("nextSizeDeltaUsd")!;
+  order.sizeDeltaUsd = eventData.getUintItemOrNull("nextSizeDeltaUsd")!;
 
   order.save();
 
@@ -140,7 +140,7 @@ export function saveOrderSizeDeltaAutoUpdate(eventData: EventData): Order | null
 }
 
 export function saveOrderCollateralAutoUpdate(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
 
   let order = Order.load(key);
 
@@ -148,7 +148,7 @@ export function saveOrderCollateralAutoUpdate(eventData: EventData): Order | nul
     return null;
   }
 
-  order.initialCollateralDeltaAmount = eventData.getUintItem("nextCollateralDeltaAmount")!;
+  order.initialCollateralDeltaAmount = eventData.getUintItemOrNull("nextCollateralDeltaAmount")!;
 
   order.save();
 

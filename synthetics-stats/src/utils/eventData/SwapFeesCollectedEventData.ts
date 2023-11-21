@@ -20,50 +20,50 @@ export class SwapFeesCollectedEventData {
   constructor(private eventData: EventData) {}
 
   get uiFeeReceiver(): string {
-    return this.eventData.getAddressItemStringOrDie("uiFeeReceiver");
+    return this.eventData.getAddressItemString("uiFeeReceiver");
   }
 
   get market(): string {
-    return this.eventData.getAddressItemStringOrDie("market");
+    return this.eventData.getAddressItemString("market");
   }
 
   get token(): string {
-    return this.eventData.getAddressItemStringOrDie("token");
+    return this.eventData.getAddressItemString("token");
   }
 
   get tokenPrice(): BigInt {
-    return this.eventData.getUintItemOrDie("tokenPrice");
+    return this.eventData.getUintItem("tokenPrice");
   }
 
   get feeReceiverAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("feeReceiverAmount");
+    return this.eventData.getUintItem("feeReceiverAmount");
   }
 
   get feeAmountForPool(): BigInt {
-    return this.eventData.getUintItemOrDie("feeAmountForPool");
+    return this.eventData.getUintItem("feeAmountForPool");
   }
 
   get amountAfterFees(): BigInt {
-    return this.eventData.getUintItemOrDie("amountAfterFees");
+    return this.eventData.getUintItem("amountAfterFees");
   }
 
   get uiFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItemOrDie("uiFeeReceiverFactor");
+    return this.eventData.getUintItem("uiFeeReceiverFactor");
   }
 
   get uiFeeAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("uiFeeAmount");
+    return this.eventData.getUintItem("uiFeeAmount");
   }
 
   get tradeKey(): string {
-    return this.eventData.getBytes32ItemOrDie("tradeKey").toHexString();
+    return this.eventData.getBytes32Item("tradeKey").toHexString();
   }
 
   get action(): string {
-    return this.eventData.getStringItemOrDie("action");
+    return this.eventData.getStringItem("action");
   }
 
   get swapFeeType(): Bytes | null {
-    return this.eventData.getBytes32Item("swapFeeType");
+    return this.eventData.getBytes32ItemOrNull("swapFeeType");
   }
 }

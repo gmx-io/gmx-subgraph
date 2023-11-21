@@ -59,12 +59,12 @@ export class EventData {
     return this._cachedEventId as string;
   }
 
-  getAddressItem(key: string): Address | null {
+  getAddressItemOrNull(key: string): Address | null {
     return getItemByKey<Address, EventLogEventDataAddressItemsItemsStruct>(this.rawData.addressItems.items, key);
   }
 
-  getAddressItemOrDie(key: string): Address {
-    let result = this.getAddressItem(key);
+  getAddressItem(key: string): Address {
+    let result = this.getAddressItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -72,8 +72,8 @@ export class EventData {
     return result!;
   }
 
-  getAddressItemString(key: string): string | null {
-    let item = this.getAddressItem(key);
+  getAddressItemStringOrNull(key: string): string | null {
+    let item = this.getAddressItemOrNull(key);
 
     if (item != null) {
       return item.toHexString();
@@ -82,8 +82,8 @@ export class EventData {
     return null;
   }
 
-  getAddressItemStringOrDie(key: string): string {
-    let result = this.getAddressItemString(key);
+  getAddressItemString(key: string): string {
+    let result = this.getAddressItemStringOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -91,15 +91,15 @@ export class EventData {
     return result!;
   }
 
-  getAddressArrayItem(key: string): Array<Address> | null {
+  getAddressArrayItemOrNull(key: string): Array<Address> | null {
     return getItemByKey<Array<Address>, EventLogEventDataAddressItemsArrayItemsStruct>(
       this.rawData.addressItems.arrayItems,
       key
     );
   }
 
-  getAddressArrayItemOrDie(key: string): Array<Address> {
-    let result = this.getAddressArrayItem(key);
+  getAddressArrayItem(key: string): Array<Address> {
+    let result = this.getAddressArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -107,8 +107,8 @@ export class EventData {
     return result!;
   }
 
-  getAddressArrayItemString(key: string): Array<string> | null {
-    let items = this.getAddressArrayItem(key);
+  getAddressArrayItemStringOrNull(key: string): Array<string> | null {
+    let items = this.getAddressArrayItemOrNull(key);
 
     if (items != null) {
       let _items = items as Array<Address>;
@@ -125,7 +125,7 @@ export class EventData {
     return null;
   }
 
-  getStringItem(key: string): string | null {
+  getStringItemOrNull(key: string): string | null {
     let items = this.rawData.stringItems.items;
     for (let i = 0; i < items.length; i++) {
       if (items[i].key == key) {
@@ -136,8 +136,8 @@ export class EventData {
     return null;
   }
 
-  getStringItemOrDie(key: string): string {
-    let result = this.getStringItem(key);
+  getStringItem(key: string): string {
+    let result = this.getStringItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -145,15 +145,15 @@ export class EventData {
     return result!;
   }
 
-  getStringArrayItem(key: string): Array<string> | null {
+  getStringArrayItemOrNull(key: string): Array<string> | null {
     return getItemByKey<Array<string>, EventLogEventDataStringItemsArrayItemsStruct>(
       this.rawData.stringItems.arrayItems,
       key
     );
   }
 
-  getStringArrayItemOrDie(key: string): Array<string> {
-    let result = this.getStringArrayItem(key);
+  getStringArrayItem(key: string): Array<string> {
+    let result = this.getStringArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -161,12 +161,12 @@ export class EventData {
     return result!;
   }
 
-  getUintItem(key: string): BigInt | null {
+  getUintItemOrNull(key: string): BigInt | null {
     return getItemByKey<BigInt, EventLogEventDataUintItemsItemsStruct>(this.rawData.uintItems.items, key);
   }
 
-  getUintItemOrDie(key: string): BigInt {
-    let result = this.getUintItem(key);
+  getUintItem(key: string): BigInt {
+    let result = this.getUintItemOrNull(key);
     if (result == null || !result) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -174,15 +174,15 @@ export class EventData {
     return result!;
   }
 
-  getUintArrayItem(key: string): Array<BigInt> | null {
+  getUintArrayItemOrNull(key: string): Array<BigInt> | null {
     return getItemByKey<Array<BigInt>, EventLogEventDataUintItemsArrayItemsStruct>(
       this.rawData.uintItems.arrayItems,
       key
     );
   }
 
-  getUintArrayItemOrDie(key: string): Array<BigInt> {
-    let result = this.getUintArrayItem(key);
+  getUintArrayItem(key: string): Array<BigInt> {
+    let result = this.getUintArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -190,15 +190,15 @@ export class EventData {
     return result!;
   }
 
-  getIntItem(key: string): BigInt | null {
+  getIntItemOrNull(key: string): BigInt | null {
     return getItemByKey<BigInt, EventLogEventDataUintItemsItemsStruct>(
       this.rawData.intItems.items as Array<EventLogEventDataUintItemsItemsStruct>,
       key
     );
   }
 
-  getIntItemOrDie(key: string): BigInt {
-    let result = this.getIntItem(key);
+  getIntItem(key: string): BigInt {
+    let result = this.getIntItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -206,15 +206,15 @@ export class EventData {
     return result!;
   }
 
-  getIntArrayItem(key: string): Array<BigInt> | null {
+  getIntArrayItemOrNull(key: string): Array<BigInt> | null {
     return getItemByKey<Array<BigInt>, EventLogEventDataUintItemsArrayItemsStruct>(
       this.rawData.intItems.arrayItems,
       key
     );
   }
 
-  getIntArrayItemOrDie(key: string): Array<BigInt> {
-    let result = this.getIntArrayItem(key);
+  getIntArrayItem(key: string): Array<BigInt> {
+    let result = this.getIntArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -222,12 +222,12 @@ export class EventData {
     return result!;
   }
 
-  getBytesItem(key: string): Bytes | null {
+  getBytesItemOrNull(key: string): Bytes | null {
     return getItemByKey<Bytes, EventLogEventDataBytesItemsItemsStruct>(this.rawData.bytesItems.items, key);
   }
 
-  getBytesItemOrDie(key: string): Bytes {
-    let result = this.getBytesItem(key);
+  getBytesItem(key: string): Bytes {
+    let result = this.getBytesItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -235,15 +235,15 @@ export class EventData {
     return result!;
   }
 
-  getBytesArrayItem(key: string): Array<Bytes> | null {
+  getBytesArrayItemOrNull(key: string): Array<Bytes> | null {
     return getItemByKey<Array<Bytes>, EventLogEventDataBytesItemsArrayItemsStruct>(
       this.rawData.bytesItems.arrayItems,
       key
     );
   }
 
-  getBytesArrayItemOrDie(key: string): Array<Bytes> {
-    let result = this.getBytesArrayItem(key);
+  getBytesArrayItem(key: string): Array<Bytes> {
+    let result = this.getBytesArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -251,15 +251,15 @@ export class EventData {
     return result!;
   }
 
-  getBytes32Item(key: string): Bytes | null {
+  getBytes32ItemOrNull(key: string): Bytes | null {
     return getItemByKey<Bytes, EventLogEventDataBytesItemsItemsStruct>(
       this.rawData.bytes32Items.items as Array<EventLogEventDataBytesItemsItemsStruct>,
       key
     );
   }
 
-  getBytes32ItemOrDie(key: string): Bytes {
-    let result = this.getBytes32Item(key);
+  getBytes32Item(key: string): Bytes {
+    let result = this.getBytes32ItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -267,15 +267,15 @@ export class EventData {
     return result!;
   }
 
-  getBytes32ArrayItem(key: string): Array<Bytes> | null {
+  getBytes32ArrayItemOrNull(key: string): Array<Bytes> | null {
     return getItemByKey<Array<Bytes>, EventLogEventDataBytesItemsArrayItemsStruct>(
       this.rawData.bytes32Items.arrayItems,
       key
     );
   }
 
-  getBytes32ArrayItemOrDie(key: string): Array<Bytes> {
-    let result = this.getBytes32ArrayItem(key);
+  getBytes32ArrayItem(key: string): Array<Bytes> {
+    let result = this.getBytes32ArrayItemOrNull(key);
     if (result == null) {
       log.warning("received null for key {}", [key]);
       throw new Error("received null");
@@ -284,7 +284,7 @@ export class EventData {
   }
 
   // boolean type is not nullable in AssemblyScript, so we return false if the key is not found
-  getBoolItem(key: string): boolean {
+  getBoolItemOrFalse(key: string): boolean {
     let items = this.rawData.boolItems.items;
 
     for (let i = 0; i < items.length; i++) {
@@ -296,7 +296,7 @@ export class EventData {
     return false;
   }
 
-  getBoolItemOrDie(key: string): boolean {
+  getBoolItem(key: string): boolean {
     let items = this.rawData.boolItems.items;
 
     for (let i = 0; i < items.length; i++) {

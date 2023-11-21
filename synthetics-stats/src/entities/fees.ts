@@ -90,7 +90,7 @@ export function saveSwapFeesInfo(data: SwapFeesCollectedEventData, eventData: Ev
 }
 
 export function savePositionFeesInfo(eventData: EventData): PositionFeesInfo {
-  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
+  let orderKey = eventData.getBytes32ItemOrNull("orderKey")!.toHexString();
 
   let id = orderKey + ":" + eventData.eventName;
 
@@ -98,24 +98,24 @@ export function savePositionFeesInfo(eventData: EventData): PositionFeesInfo {
 
   feesInfo.orderKey = orderKey;
   feesInfo.eventName = eventData.eventName;
-  feesInfo.marketAddress = eventData.getAddressItemString("market")!;
-  feesInfo.collateralTokenAddress = eventData.getAddressItemString("collateralToken")!;
+  feesInfo.marketAddress = eventData.getAddressItemStringOrNull("market")!;
+  feesInfo.collateralTokenAddress = eventData.getAddressItemStringOrNull("collateralToken")!;
 
-  feesInfo.trader = eventData.getAddressItemString("trader")!;
-  feesInfo.affiliate = eventData.getAddressItemString("affiliate")!;
+  feesInfo.trader = eventData.getAddressItemStringOrNull("trader")!;
+  feesInfo.affiliate = eventData.getAddressItemStringOrNull("affiliate")!;
 
-  feesInfo.collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
-  feesInfo.collateralTokenPriceMax = eventData.getUintItem("collateralTokenPrice.max")!;
+  feesInfo.collateralTokenPriceMin = eventData.getUintItemOrNull("collateralTokenPrice.min")!;
+  feesInfo.collateralTokenPriceMax = eventData.getUintItemOrNull("collateralTokenPrice.max")!;
 
-  feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
-  feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
-  feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
-  feesInfo.feeUsdForPool = eventData.getUintItem("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
+  feesInfo.positionFeeAmount = eventData.getUintItemOrNull("positionFeeAmount")!;
+  feesInfo.borrowingFeeAmount = eventData.getUintItemOrNull("borrowingFeeAmount")!;
+  feesInfo.fundingFeeAmount = eventData.getUintItemOrNull("fundingFeeAmount")!;
+  feesInfo.feeUsdForPool = eventData.getUintItemOrNull("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
 
-  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
-  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
-  feesInfo.traderDiscountAmount = eventData.getUintItem("traderDiscountAmount")!;
-  feesInfo.affiliateRewardAmount = eventData.getUintItem("affiliateRewardAmount")!;
+  feesInfo.totalRebateAmount = eventData.getUintItemOrNull("totalRebateAmount")!;
+  feesInfo.totalRebateFactor = eventData.getUintItemOrNull("totalRebateFactor")!;
+  feesInfo.traderDiscountAmount = eventData.getUintItemOrNull("traderDiscountAmount")!;
+  feesInfo.affiliateRewardAmount = eventData.getUintItemOrNull("affiliateRewardAmount")!;
 
   feesInfo.transaction = eventData.transaction.id;
 

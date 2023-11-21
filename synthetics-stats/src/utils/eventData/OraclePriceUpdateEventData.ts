@@ -13,22 +13,22 @@ export class OraclePriceUpdateEventData {
   constructor(private eventData: EventData) {}
 
   get token(): string {
-    return this.eventData.getAddressItemStringOrDie("token");
+    return this.eventData.getAddressItemString("token");
   }
 
   get minPrice(): BigInt {
-    return this.eventData.getUintItemOrDie("minPrice");
+    return this.eventData.getUintItem("minPrice");
   }
 
   get maxPrice(): BigInt {
-    return this.eventData.getUintItemOrDie("maxPrice");
+    return this.eventData.getUintItem("maxPrice");
   }
 
   get timestamp(): BigInt {
-    return this.eventData.getUintItemOrDie("timestamp");
+    return this.eventData.getUintItem("timestamp");
   }
 
   get priceSourceType(): BigInt {
-    return this.eventData.getUintItemOrDie("priceSourceType");
+    return this.eventData.getUintItem("priceSourceType");
   }
 }

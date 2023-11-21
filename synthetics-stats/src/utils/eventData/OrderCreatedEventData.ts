@@ -30,86 +30,86 @@ export class OrderCreatedEventData {
   constructor(private eventData: EventData) {}
 
   get account(): string {
-    return this.eventData.getAddressItemStringOrDie("account");
+    return this.eventData.getAddressItemString("account");
   }
 
   get receiver(): string {
-    return this.eventData.getAddressItemStringOrDie("receiver");
+    return this.eventData.getAddressItemString("receiver");
   }
 
   get callbackContract(): string {
-    return this.eventData.getAddressItemStringOrDie("callbackContract");
+    return this.eventData.getAddressItemString("callbackContract");
   }
 
   get uiFeeReceiver(): string {
-    return this.eventData.getAddressItemStringOrDie("uiFeeReceiver");
+    return this.eventData.getAddressItemString("uiFeeReceiver");
   }
 
   get market(): string {
-    return this.eventData.getAddressItemStringOrDie("market");
+    return this.eventData.getAddressItemString("market");
   }
 
   get initialCollateralToken(): string {
-    return this.eventData.getAddressItemStringOrDie("initialCollateralToken");
+    return this.eventData.getAddressItemString("initialCollateralToken");
   }
 
   get swapPath(): Array<string> | null {
-    return this.eventData.getAddressArrayItemString("swapPath");
+    return this.eventData.getAddressArrayItemStringOrNull("swapPath");
   }
 
   get orderType(): BigInt {
-    return this.eventData.getUintItemOrDie("orderType");
+    return this.eventData.getUintItem("orderType");
   }
 
   get decreasePositionSwapType(): BigInt {
-    return this.eventData.getUintItemOrDie("decreasePositionSwapType");
+    return this.eventData.getUintItem("decreasePositionSwapType");
   }
 
   get sizeDeltaUsd(): BigInt {
-    return this.eventData.getUintItemOrDie("sizeDeltaUsd");
+    return this.eventData.getUintItem("sizeDeltaUsd");
   }
 
   get initialCollateralDeltaAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("initialCollateralDeltaAmount");
+    return this.eventData.getUintItem("initialCollateralDeltaAmount");
   }
 
   get triggerPrice(): BigInt {
-    return this.eventData.getUintItemOrDie("triggerPrice");
+    return this.eventData.getUintItem("triggerPrice");
   }
 
   get acceptablePrice(): BigInt {
-    return this.eventData.getUintItemOrDie("acceptablePrice");
+    return this.eventData.getUintItem("acceptablePrice");
   }
 
   get executionFee(): BigInt {
-    return this.eventData.getUintItemOrDie("executionFee");
+    return this.eventData.getUintItem("executionFee");
   }
 
   get callbackGasLimit(): BigInt {
-    return this.eventData.getUintItemOrDie("callbackGasLimit");
+    return this.eventData.getUintItem("callbackGasLimit");
   }
 
   get minOutputAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("minOutputAmount");
+    return this.eventData.getUintItem("minOutputAmount");
   }
 
   get updatedAtBlock(): BigInt {
-    return this.eventData.getUintItemOrDie("updatedAtBlock");
+    return this.eventData.getUintItem("updatedAtBlock");
   }
 
   get isLong(): boolean {
-    return this.eventData.getBoolItemOrDie("isLong");
+    return this.eventData.getBoolItem("isLong");
   }
 
   get shouldUnwrapNativeToken(): boolean {
-    return this.eventData.getBoolItemOrDie("shouldUnwrapNativeToken");
+    return this.eventData.getBoolItem("shouldUnwrapNativeToken");
   }
 
   get isFrozen(): boolean {
-    return this.eventData.getBoolItemOrDie("isFrozen");
+    return this.eventData.getBoolItem("isFrozen");
   }
 
   get key(): string {
-    return this.eventData.getBytes32ItemOrDie("key").toHexString();
+    return this.eventData.getBytes32Item("key").toHexString();
   }
 }

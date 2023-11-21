@@ -129,7 +129,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
-    MarketTokenTemplate.create(eventData.getAddressItem("marketToken")!);
+    MarketTokenTemplate.create(eventData.getAddressItemOrNull("marketToken")!);
     return;
   }
 
@@ -140,7 +140,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "WithdrawalCreated") {
     let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemString("account")!;
+    let account = eventData.getAddressItemStringOrNull("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
     return;
   }
@@ -226,12 +226,12 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
-    let tokenIn = eventData.getAddressItemString("tokenIn")!;
-    let tokenOut = eventData.getAddressItemString("tokenOut")!;
-    let amountIn = eventData.getUintItem("amountIn")!;
-    let tokenInPrice = eventData.getUintItem("tokenInPrice")!;
+    let tokenIn = eventData.getAddressItemStringOrNull("tokenIn")!;
+    let tokenOut = eventData.getAddressItemStringOrNull("tokenOut")!;
+    let amountIn = eventData.getUintItemOrNull("amountIn")!;
+    let tokenInPrice = eventData.getUintItemOrNull("tokenInPrice")!;
     let volumeUsd = amountIn!.times(tokenInPrice!);
-    let receiver = eventData.getAddressItemString("receiver")!;
+    let receiver = eventData.getAddressItemStringOrNull("receiver")!;
 
     saveSwapInfo(eventData, transaction);
     saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
@@ -257,10 +257,10 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralToken = eventData.getAddressItemString("collateralToken")!;
-    let marketToken = eventData.getAddressItemString("market")!;
-    let sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-    let account = eventData.getAddressItemString("account")!;
+    let collateralToken = eventData.getAddressItemStringOrNull("collateralToken")!;
+    let marketToken = eventData.getAddressItemStringOrNull("market")!;
+    let sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
+    let account = eventData.getAddressItemStringOrNull("account")!;
 
     savePositionIncrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
@@ -271,10 +271,10 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralToken = eventData.getAddressItemString("collateralToken")!;
-    let marketToken = eventData.getAddressItemString("market")!;
-    let sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-    let account = eventData.getAddressItemString("account")!;
+    let collateralToken = eventData.getAddressItemStringOrNull("collateralToken")!;
+    let marketToken = eventData.getAddressItemStringOrNull("market")!;
+    let sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
+    let account = eventData.getAddressItemStringOrNull("account")!;
 
     savePositionDecrease(eventData, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
@@ -341,7 +341,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
 
   if (eventName == "WithdrawalCreated") {
     let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemString("account")!;
+    let account = eventData.getAddressItemStringOrNull("account")!;
     saveUserStat("withdrawal", account, transaction.timestamp);
     return;
   }
@@ -402,26 +402,26 @@ function handleEventLog2(event: EventLog2, network: string): void {
 
 function handleDepositCreated(event: EventLog2, eventData: EventData): void {
   let transaction = getOrCreateTransaction(event);
-  let account = eventData.getAddressItemString("account")!;
+  let account = eventData.getAddressItemStringOrNull("account")!;
   saveUserStat("deposit", account, transaction.timestamp);
 
-  let depositRef = new DepositRef(eventData.getBytes32Item("key")!.toHexString());
-  depositRef.marketAddress = eventData.getAddressItemString("market")!;
+  let depositRef = new DepositRef(eventData.getBytes32ItemOrNull("key")!.toHexString());
+  depositRef.marketAddress = eventData.getAddressItemStringOrNull("market")!;
 
   // old DepositCreated event does not contain "account"
-  depositRef.account = eventData.getAddressItemString("account")!;
+  depositRef.account = eventData.getAddressItemStringOrNull("account")!;
   depositRef.save();
 }
 
 function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
   let depositRef = DepositRef.load(key)!;
   let marketInfo = MarketInfo.load(depositRef.marketAddress)!;
 
-  let longTokenAmount = eventData.getUintItem("longTokenAmount")!;
+  let longTokenAmount = eventData.getUintItemOrNull("longTokenAmount")!;
   let longTokenPrice = getTokenPrice(marketInfo.longToken)!;
 
-  let shortTokenAmount = eventData.getUintItem("shortTokenAmount")!;
+  let shortTokenAmount = eventData.getUintItemOrNull("shortTokenAmount")!;
   let shortTokenPrice = getTokenPrice(marketInfo.shortToken)!;
 
   let depositUsd = longTokenAmount.times(longTokenPrice).plus(shortTokenAmount.times(shortTokenPrice));

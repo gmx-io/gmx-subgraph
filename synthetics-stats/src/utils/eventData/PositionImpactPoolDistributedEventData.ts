@@ -11,14 +11,14 @@ export class PositionImpactPoolDistributedEventData {
   constructor(private eventData: EventData) {}
 
   get market(): string {
-    return this.eventData.getAddressItemStringOrDie("market");
+    return this.eventData.getAddressItemString("market");
   }
 
   get distributionAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("distributionAmount");
+    return this.eventData.getUintItem("distributionAmount");
   }
 
   get nextPositionImpactPoolAmount(): BigInt {
-    return this.eventData.getUintItemOrDie("nextPositionImpactPoolAmount");
+    return this.eventData.getUintItem("nextPositionImpactPoolAmount");
   }
 }
