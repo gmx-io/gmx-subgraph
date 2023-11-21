@@ -1,17 +1,17 @@
 import { log, BigInt } from "@graphprotocol/graph-ts";
 import { MarketInfo } from "../../generated/schema";
 import { marketConfigs } from "../config/markets";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 
 let ZERO = BigInt.fromI32(0);
 
-export function saveMarketInfo(eventData: EventData): MarketInfo {
-  let id = eventData.getAddressItemStringOrNull("marketToken")!;
+export function saveMarketInfo(ctx: Ctx): MarketInfo {
+  let id = ctx.getAddressItemString("marketToken");
   let marketInfo = new MarketInfo(id);
   marketInfo.marketToken = id;
-  marketInfo.indexToken = eventData.getAddressItemStringOrNull("indexToken")!;
-  marketInfo.longToken = eventData.getAddressItemStringOrNull("longToken")!;
-  marketInfo.shortToken = eventData.getAddressItemStringOrNull("shortToken")!;
+  marketInfo.indexToken = ctx.getAddressItemString("indexToken");
+  marketInfo.longToken = ctx.getAddressItemString("longToken");
+  marketInfo.shortToken = ctx.getAddressItemString("shortToken");
   marketInfo.marketTokensSupply = BigInt.fromI32(0);
   marketInfo.save();
 

@@ -1,11 +1,11 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 import { OraclePriceUpdateEventData } from "../utils/eventData/OraclePriceUpdateEventData";
 import { TokenPrice } from "../../generated/schema";
 import { ZERO } from "../utils/number";
 
-export function handleOraclePriceUpdate(eventData: EventData): void {
-  let event = new OraclePriceUpdateEventData(eventData);
+export function handleOraclePriceUpdate(ctx: Ctx): void {
+  let event = new OraclePriceUpdateEventData(ctx);
   let tokenPrice = getOrCreateTokenPrice(event.token);
 
   tokenPrice.minPrice = event.minPrice;

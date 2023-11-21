@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { EventData } from "../eventData";
+import { Ctx } from "../eventData";
 /*
 EventLog1: SwapFeesCollected
   Data:
@@ -17,53 +17,53 @@ EventLog1: SwapFeesCollected
 */
 
 export class SwapFeesCollectedEventData {
-  constructor(private eventData: EventData) {}
+  constructor(private ctx: Ctx) {}
 
   get uiFeeReceiver(): string {
-    return this.eventData.getAddressItemString("uiFeeReceiver");
+    return this.ctx.getAddressItemString("uiFeeReceiver");
   }
 
   get market(): string {
-    return this.eventData.getAddressItemString("market");
+    return this.ctx.getAddressItemString("market");
   }
 
   get token(): string {
-    return this.eventData.getAddressItemString("token");
+    return this.ctx.getAddressItemString("token");
   }
 
   get tokenPrice(): BigInt {
-    return this.eventData.getUintItem("tokenPrice");
+    return this.ctx.getUintItem("tokenPrice");
   }
 
   get feeReceiverAmount(): BigInt {
-    return this.eventData.getUintItem("feeReceiverAmount");
+    return this.ctx.getUintItem("feeReceiverAmount");
   }
 
   get feeAmountForPool(): BigInt {
-    return this.eventData.getUintItem("feeAmountForPool");
+    return this.ctx.getUintItem("feeAmountForPool");
   }
 
   get amountAfterFees(): BigInt {
-    return this.eventData.getUintItem("amountAfterFees");
+    return this.ctx.getUintItem("amountAfterFees");
   }
 
   get uiFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItem("uiFeeReceiverFactor");
+    return this.ctx.getUintItem("uiFeeReceiverFactor");
   }
 
   get uiFeeAmount(): BigInt {
-    return this.eventData.getUintItem("uiFeeAmount");
+    return this.ctx.getUintItem("uiFeeAmount");
   }
 
   get tradeKey(): string {
-    return this.eventData.getBytes32Item("tradeKey").toHexString();
+    return this.ctx.getBytes32Item("tradeKey").toHexString();
   }
 
   get action(): string {
-    return this.eventData.getStringItem("action");
+    return this.ctx.getStringItem("action");
   }
 
   get swapFeeType(): Bytes | null {
-    return this.eventData.getBytes32ItemOrNull("swapFeeType");
+    return this.ctx.getBytes32ItemOrNull("swapFeeType");
   }
 }

@@ -1,9 +1,9 @@
 import { SwapInfo, Transaction } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 
-export function handleSwapInfo(eventData: EventData, transaction: Transaction): SwapInfo {
-  let orderKey = eventData.getBytes32ItemOrNull("orderKey")!.toHexString();
-  let marketAddress = eventData.getAddressItemStringOrNull("market")!;
+export function handleSwapInfo(ctx: Ctx, transaction: Transaction): SwapInfo {
+  let orderKey = ctx.getBytes32Item("orderKey").toHexString();
+  let marketAddress = ctx.getAddressItemString("market");
 
   let swapInfoId = getSwapInfoId(orderKey, marketAddress);
 
@@ -13,18 +13,18 @@ export function handleSwapInfo(eventData: EventData, transaction: Transaction): 
   swapInfo.marketAddress = marketAddress;
   swapInfo.transaction = transaction.id;
 
-  swapInfo.receiver = eventData.getAddressItemStringOrNull("receiver")!;
+  swapInfo.receiver = ctx.getAddressItemString("receiver");
 
-  swapInfo.tokenInAddress = eventData.getAddressItemStringOrNull("tokenIn")!;
-  swapInfo.tokenOutAddress = eventData.getAddressItemStringOrNull("tokenOut")!;
+  swapInfo.tokenInAddress = ctx.getAddressItemString("tokenIn");
+  swapInfo.tokenOutAddress = ctx.getAddressItemString("tokenOut");
 
-  swapInfo.tokenInPrice = eventData.getUintItemOrNull("tokenInPrice")!;
-  swapInfo.tokenOutPrice = eventData.getUintItemOrNull("tokenOutPrice")!;
+  swapInfo.tokenInPrice = ctx.getUintItem("tokenInPrice");
+  swapInfo.tokenOutPrice = ctx.getUintItem("tokenOutPrice");
 
-  swapInfo.amountIn = eventData.getUintItemOrNull("amountIn")!;
-  swapInfo.amountInAfterFees = eventData.getUintItemOrNull("amountInAfterFees")!;
-  swapInfo.amountOut = eventData.getUintItemOrNull("amountOut")!;
-  swapInfo.priceImpactUsd = eventData.getUintItemOrNull("priceImpactUsd")!;
+  swapInfo.amountIn = ctx.getUintItem("amountIn");
+  swapInfo.amountInAfterFees = ctx.getUintItem("amountInAfterFees");
+  swapInfo.amountOut = ctx.getUintItem("amountOut");
+  swapInfo.priceImpactUsd = ctx.getUintItem("priceImpactUsd");
 
   swapInfo.save();
 

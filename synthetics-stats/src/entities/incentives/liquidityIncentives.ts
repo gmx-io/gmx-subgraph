@@ -6,7 +6,7 @@ import {
   UserMarketInfo,
   GlpGmMigrationStat
 } from "../../../generated/schema";
-import { EventData } from "../../utils/eventData";
+import { Ctx } from "../../utils/eventData";
 import { periodToSeconds, timestampToPeriodStart } from "../../utils/time";
 import { EventLog1 } from "../../../generated/EventEmitter/EventEmitter";
 import { getMarketInfo } from "../markets";
@@ -75,7 +75,7 @@ export function saveLiquidityProviderIncentivesStat(
   entity.save();
 }
 
-export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1): void {
+export function saveMarketIncentivesStat(ctx: Ctx, event: EventLog1): void {
   if (!_incentivesActive(event.block.timestamp.toI32())) {
     return;
   }
@@ -92,7 +92,7 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
   // cumulative product is increased on each deposit or withdrawal:
   // cumulative product = cumulative product + (previous tokens supply * time since last deposit/withdrawal)
 
-  let data = new MarketPoolValueUpdatedEventData(eventData);
+  let data = new MarketPoolValueUpdatedEventData(ctx);
 
   let marketTokensSupply = data.marketTokensSupply;
   let marketAddress = data.market;

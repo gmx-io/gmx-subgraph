@@ -15,20 +15,20 @@ import {
 import { Transaction as TransactionEntity } from "../../generated/schema";
 import { getIdFromEvent, getOrCreateTransaction } from "../entities/common";
 
-export function createEventDataFromEvent<T extends ethereum.Event>(event: T, network: string): EventData {
+export function createCtxFromEvent<T extends ethereum.Event>(event: T, network: string): Ctx {
   if (event instanceof EventLog) {
-    return new EventData(event, event.params.eventData, event.params.eventName, network);
+    return new Ctx(event, event.params.eventData, event.params.eventName, network);
   } else if (event instanceof EventLog1) {
-    return new EventData(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
+    return new Ctx(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
   } else if (event instanceof EventLog2) {
-    return new EventData(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
+    return new Ctx(event, event.params.eventData as EventLogEventDataStruct, event.params.eventName, network);
   }
 
   log.warning("Unknown event", []);
   throw new Error("unknown event");
 }
 
-export class EventData {
+export class Ctx {
   _cachedTransaction: TransactionEntity | null = null;
   _cachedEventId: string | null = null;
 

@@ -11,7 +11,7 @@ import {
 import { getMarketPoolValueFromContract } from "../contracts/getMarketPoolValueFromContract";
 import { SwapFeesCollectedEventData } from "../utils/eventData/SwapFeesCollectedEventData";
 import { getMarketTokensSupplyFromContract } from "../contracts/getMarketTokensSupplyFromContract";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 import { PositionImpactPoolDistributedEventData } from "../utils/eventData/PositionImpactPoolDistributedEventData";
 import { timestampToPeriodStart } from "../utils/time";
 import { getTokenPrice } from "./prices";
@@ -56,8 +56,8 @@ function updateCollectedFeesFractions(
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 }
 
-export function saveSwapFeesInfo(data: SwapFeesCollectedEventData, eventData: EventData): SwapFeesInfo {
-  let swapFeesInfo = new SwapFeesInfo(eventData.eventId);
+export function saveSwapFeesInfo(data: SwapFeesCollectedEventData, ctx: Ctx): SwapFeesInfo {
+  let swapFeesInfo = new SwapFeesInfo(ctx.eventId);
 
   swapFeesInfo.marketAddress = data.market;
   swapFeesInfo.tokenAddress = data.token;
@@ -82,42 +82,42 @@ export function saveSwapFeesInfo(data: SwapFeesCollectedEventData, eventData: Ev
   swapFeesInfo.feeReceiverAmount = data.feeReceiverAmount;
   swapFeesInfo.feeUsdForPool = data.feeAmountForPool.times(swapFeesInfo.tokenPrice);
 
-  swapFeesInfo.transaction = eventData.transaction.id;
+  swapFeesInfo.transaction = ctx.transaction.id;
 
   swapFeesInfo.save();
 
   return swapFeesInfo;
 }
 
-export function savePositionFeesInfo(eventData: EventData): PositionFeesInfo {
-  let orderKey = eventData.getBytes32ItemOrNull("orderKey")!.toHexString();
+export function savePositionFeesInfo(ctx: Ctx): PositionFeesInfo {
+  let orderKey = ctx.getBytes32Item("orderKey").toHexString();
 
-  let id = orderKey + ":" + eventData.eventName;
+  let id = orderKey + ":" + ctx.eventName;
 
   let feesInfo = new PositionFeesInfo(id);
 
   feesInfo.orderKey = orderKey;
-  feesInfo.eventName = eventData.eventName;
-  feesInfo.marketAddress = eventData.getAddressItemStringOrNull("market")!;
-  feesInfo.collateralTokenAddress = eventData.getAddressItemStringOrNull("collateralToken")!;
+  feesInfo.eventName = ctx.eventName;
+  feesInfo.marketAddress = ctx.getAddressItemString("market");
+  feesInfo.collateralTokenAddress = ctx.getAddressItemString("collateralToken");
 
-  feesInfo.trader = eventData.getAddressItemStringOrNull("trader")!;
-  feesInfo.affiliate = eventData.getAddressItemStringOrNull("affiliate")!;
+  feesInfo.trader = ctx.getAddressItemString("trader");
+  feesInfo.affiliate = ctx.getAddressItemString("affiliate");
 
-  feesInfo.collateralTokenPriceMin = eventData.getUintItemOrNull("collateralTokenPrice.min")!;
-  feesInfo.collateralTokenPriceMax = eventData.getUintItemOrNull("collateralTokenPrice.max")!;
+  feesInfo.collateralTokenPriceMin = ctx.getUintItem("collateralTokenPrice.min");
+  feesInfo.collateralTokenPriceMax = ctx.getUintItem("collateralTokenPrice.max");
 
-  feesInfo.positionFeeAmount = eventData.getUintItemOrNull("positionFeeAmount")!;
-  feesInfo.borrowingFeeAmount = eventData.getUintItemOrNull("borrowingFeeAmount")!;
-  feesInfo.fundingFeeAmount = eventData.getUintItemOrNull("fundingFeeAmount")!;
-  feesInfo.feeUsdForPool = eventData.getUintItemOrNull("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
+  feesInfo.positionFeeAmount = ctx.getUintItem("positionFeeAmount");
+  feesInfo.borrowingFeeAmount = ctx.getUintItem("borrowingFeeAmount");
+  feesInfo.fundingFeeAmount = ctx.getUintItem("fundingFeeAmount");
+  feesInfo.feeUsdForPool = ctx.getUintItem("feeAmountForPool").times(feesInfo.collateralTokenPriceMin);
 
-  feesInfo.totalRebateAmount = eventData.getUintItemOrNull("totalRebateAmount")!;
-  feesInfo.totalRebateFactor = eventData.getUintItemOrNull("totalRebateFactor")!;
-  feesInfo.traderDiscountAmount = eventData.getUintItemOrNull("traderDiscountAmount")!;
-  feesInfo.affiliateRewardAmount = eventData.getUintItemOrNull("affiliateRewardAmount")!;
+  feesInfo.totalRebateAmount = ctx.getUintItem("totalRebateAmount");
+  feesInfo.totalRebateFactor = ctx.getUintItem("totalRebateFactor");
+  feesInfo.traderDiscountAmount = ctx.getUintItem("traderDiscountAmount");
+  feesInfo.affiliateRewardAmount = ctx.getUintItem("affiliateRewardAmount");
 
-  feesInfo.transaction = eventData.transaction.id;
+  feesInfo.transaction = ctx.transaction.id;
 
   feesInfo.save();
 
@@ -268,12 +268,8 @@ export function saveCollectedMarketFees(
   feesForPeriod.save();
 }
 
-export function handlePositionImpactPoolDistributed(
-  eventData: EventData,
-  transaction: Transaction,
-  network: string
-): void {
-  let data = new PositionImpactPoolDistributedEventData(eventData);
+export function handlePositionImpactPoolDistributed(ctx: Ctx, transaction: Transaction, network: string): void {
+  let data = new PositionImpactPoolDistributedEventData(ctx);
   let marketInfo = MarketInfo.load(data.market);
 
   if (!marketInfo) {

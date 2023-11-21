@@ -11,23 +11,23 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction
 } from "../entities/trades";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 import { OrderCreatedEventData } from "../utils/eventData/OrderCreatedEventData";
 
-export function handleOrderExecuted(eventData: EventData): void {
-  let order = saveOrderExecutedState(eventData);
+export function handleOrderExecuted(ctx: Ctx): void {
+  let order = saveOrderExecutedState(ctx);
 
   if (order == null) {
     return;
   }
 
   if (order.orderType == orderTypes.get("MarketSwap") || order.orderType == orderTypes.get("LimitSwap")) {
-    saveSwapExecutedTradeAction(eventData, order as Order);
+    saveSwapExecutedTradeAction(ctx, order as Order);
   } else if (
     order.orderType == orderTypes.get("MarketIncrease") ||
     order.orderType == orderTypes.get("LimitIncrease")
   ) {
-    savePositionIncreaseExecutedTradeAction(eventData, order as Order);
+    savePositionIncreaseExecutedTradeAction(ctx, order as Order);
   } else if (
     order.orderType == orderTypes.get("MarketDecrease") ||
     order.orderType == orderTypes.get("LimitDecrease") ||
@@ -35,20 +35,20 @@ export function handleOrderExecuted(eventData: EventData): void {
     order.orderType == orderTypes.get("Liquidation")
   ) {
     if (ClaimRef.load(order.id)) {
-      saveClaimActionOnOrderExecuted(eventData);
+      saveClaimActionOnOrderExecuted(ctx);
     } else {
-      savePositionDecreaseExecutedTradeAction(eventData, order as Order);
+      savePositionDecreaseExecutedTradeAction(ctx, order as Order);
     }
   }
 }
 
-export function handleOrderCreated(eventData: EventData): void {
-  let data = new OrderCreatedEventData(eventData);
-  let order = saveOrder(data, eventData.transaction);
+export function handleOrderCreated(ctx: Ctx): void {
+  let data = new OrderCreatedEventData(ctx);
+  let order = saveOrder(data, ctx.transaction);
 
   if (isFundingFeeSettleOrder(order)) {
-    saveClaimActionOnOrderCreated(eventData);
+    saveClaimActionOnOrderCreated(ctx);
   } else {
-    saveOrderCreatedTradeAction(eventData, order);
+    saveOrderCreatedTradeAction(ctx, order);
   }
 }

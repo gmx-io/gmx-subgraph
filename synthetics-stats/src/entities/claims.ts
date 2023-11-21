@@ -7,24 +7,24 @@ import {
   Order,
   Transaction
 } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 import { orderTypes } from "./orders";
 
 let ZERO = BigInt.fromI32(0);
 let ONE = BigInt.fromI32(1);
 
-export function saveClaimActionOnOrderCreated(eventData: EventData): void {
-  let orderId = eventData.getBytes32ItemOrNull("key")!.toHexString();
+export function saveClaimActionOnOrderCreated(ctx: Ctx): void {
+  let orderId = ctx.getBytes32Item("key").toHexString();
 
-  let claimAction = getOrCreateClaimAction("SettleFundingFeeCreated", eventData);
+  let claimAction = getOrCreateClaimAction("SettleFundingFeeCreated", ctx);
 
-  let marketAddress = eventData.getAddressItemStringOrNull("market")!;
+  let marketAddress = ctx.getAddressItemString("market");
   let marketAddresses = claimAction.marketAddresses;
   marketAddresses.push(marketAddress);
   claimAction.marketAddresses = marketAddresses;
 
   let isLongOrders = claimAction.isLongOrders;
-  isLongOrders.push(eventData.getBoolItemOrFalse("isLong"));
+  isLongOrders.push(ctx.getBoolItemOrFalse("isLong"));
   claimAction.isLongOrders = isLongOrders;
 
   claimAction.save();
@@ -32,10 +32,10 @@ export function saveClaimActionOnOrderCreated(eventData: EventData): void {
   createClaimRefIfNotExists(orderId);
 }
 
-export function saveClaimActionOnOrderCancelled(eventData: EventData): void {
-  let claimAction = getOrCreateClaimAction("SettleFundingFeeCancelled", eventData);
+export function saveClaimActionOnOrderCancelled(ctx: Ctx): void {
+  let claimAction = getOrCreateClaimAction("SettleFundingFeeCancelled", ctx);
 
-  let orderId = eventData.getBytes32ItemOrNull("key")!.toHexString();
+  let orderId = ctx.getBytes32Item("key").toHexString();
   let order = Order.load(orderId);
 
   if (!order) throw new Error("Order not found");
@@ -51,15 +51,15 @@ export function saveClaimActionOnOrderCancelled(eventData: EventData): void {
   claimAction.save();
 }
 
-export function saveClaimActionOnOrderExecuted(eventData: EventData): void {
-  let claimAction = getOrCreateClaimAction("SettleFundingFeeExecuted", eventData);
-  let orderId = eventData.getBytes32ItemOrNull("key")!.toHexString();
+export function saveClaimActionOnOrderExecuted(ctx: Ctx): void {
+  let claimAction = getOrCreateClaimAction("SettleFundingFeeExecuted", ctx);
+  let orderId = ctx.getBytes32Item("key").toHexString();
   let order = Order.load(orderId);
 
   if (!order) throw new Error("Order not found");
 
-  let account = eventData.getAddressItemStringOrNull("account")!;
-  let claimableFundingFeeInfoId = eventData.transaction.id + ":" + account;
+  let account = ctx.getAddressItemString("account");
+  let claimableFundingFeeInfoId = ctx.transaction.id + ":" + account;
   let claimableFundingFeeInfo = ClaimableFundingFeeInfo.load(claimableFundingFeeInfoId);
 
   // if position has no pending funding fees ClaimableFundingUpdated is not emitted
@@ -101,19 +101,19 @@ export function saveClaimActionOnOrderExecuted(eventData: EventData): void {
   claimAction.save();
 }
 
-export function handleCollateralClaimAction(eventName: string, eventData: EventData, transaction: Transaction): void {
-  let claimCollateralAction = getOrCreateClaimCollateralAction(eventName, eventData, transaction);
-  let claimAction = getOrCreateClaimAction(eventName, eventData);
+export function handleCollateralClaimAction(eventName: string, ctx: Ctx, transaction: Transaction): void {
+  let claimCollateralAction = getOrCreateClaimCollateralAction(eventName, ctx, transaction);
+  let claimAction = getOrCreateClaimAction(eventName, ctx);
 
-  addFieldsToCollateralLikeClaimAction(claimAction, eventData);
-  addFieldsToCollateralLikeClaimAction(claimCollateralAction as ClaimAction, eventData);
+  addFieldsToCollateralLikeClaimAction(claimAction, ctx);
+  addFieldsToCollateralLikeClaimAction(claimCollateralAction as ClaimAction, ctx);
 
   claimCollateralAction.save();
   claimAction.save();
 }
 
-export function saveClaimableFundingFeeInfo(eventData: EventData, transaction: Transaction): ClaimableFundingFeeInfo {
-  let account = eventData.getAddressItemStringOrNull("account")!;
+export function saveClaimableFundingFeeInfo(ctx: Ctx, transaction: Transaction): ClaimableFundingFeeInfo {
+  let account = ctx.getAddressItemString("account");
   let id = transaction.id + ":" + account;
   let entity = ClaimableFundingFeeInfo.load(id);
 
@@ -125,15 +125,15 @@ export function saveClaimableFundingFeeInfo(eventData: EventData, transaction: T
   }
 
   let marketAddresses = entity.marketAddresses;
-  marketAddresses.push(eventData.getAddressItemStringOrNull("market")!);
+  marketAddresses.push(ctx.getAddressItemString("market"));
   entity.marketAddresses = marketAddresses;
 
   let tokenAddresses = entity.tokenAddresses;
-  tokenAddresses.push(eventData.getAddressItemStringOrNull("token")!);
+  tokenAddresses.push(ctx.getAddressItemString("token"));
   entity.tokenAddresses = tokenAddresses;
 
   let amounts = entity.amounts;
-  amounts.push(eventData.getUintItemOrNull("delta")!);
+  amounts.push(ctx.getUintItem("delta"));
   entity.amounts = amounts;
 
   entity.save();
@@ -141,26 +141,26 @@ export function saveClaimableFundingFeeInfo(eventData: EventData, transaction: T
   return entity!;
 }
 
-function addFieldsToCollateralLikeClaimAction(claimAction: ClaimAction, eventData: EventData): void {
+function addFieldsToCollateralLikeClaimAction(claimAction: ClaimAction, ctx: Ctx): void {
   let marketAddresses = claimAction.marketAddresses;
-  marketAddresses.push(eventData.getAddressItemStringOrNull("market")!);
+  marketAddresses.push(ctx.getAddressItemString("market"));
   claimAction.marketAddresses = marketAddresses;
 
   let tokenAddresses = claimAction.tokenAddresses;
-  tokenAddresses.push(eventData.getAddressItemStringOrNull("token")!);
+  tokenAddresses.push(ctx.getAddressItemString("token"));
   claimAction.tokenAddresses = tokenAddresses;
 
   let amounts = claimAction.amounts;
-  amounts.push(eventData.getUintItemOrNull("amount")!);
+  amounts.push(ctx.getUintItem("amount"));
   claimAction.amounts = amounts;
 }
 
 function getOrCreateClaimCollateralAction(
   eventName: string,
-  eventData: EventData,
+  ctx: Ctx,
   transaction: Transaction
 ): ClaimCollateralAction {
-  let account = eventData.getAddressItemStringOrNull("account")!;
+  let account = ctx.getAddressItemString("account");
   let id = transaction.id + ":" + account + ":" + eventName;
   let entity = ClaimCollateralAction.load(id);
 
@@ -179,9 +179,9 @@ function getOrCreateClaimCollateralAction(
   return entity as ClaimCollateralAction;
 }
 
-function getOrCreateClaimAction(eventName: string, eventData: EventData): ClaimAction {
-  let account = eventData.getAddressItemStringOrNull("account")!;
-  let id = eventData.transaction.id + ":" + account + ":" + eventName;
+function getOrCreateClaimAction(eventName: string, ctx: Ctx): ClaimAction {
+  let account = ctx.getAddressItemString("account");
+  let id = ctx.transaction.id + ":" + account + ":" + eventName;
   let entity = ClaimAction.load(id);
 
   if (!entity) {
@@ -193,7 +193,7 @@ function getOrCreateClaimAction(eventName: string, eventData: EventData): ClaimA
 
     entity.eventName = eventName;
     entity.account = account;
-    entity.transaction = eventData.transaction.id;
+    entity.transaction = ctx.transaction.id;
     entity.save();
   }
 

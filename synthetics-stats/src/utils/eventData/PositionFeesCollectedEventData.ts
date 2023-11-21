@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { EventData } from "../eventData";
+import { Ctx } from "../eventData";
 
 /*
 EventLog1: PositionFeesCollected
@@ -44,153 +44,153 @@ EventLog1: PositionFeesCollected
 */
 
 export class PositionFeesCollectedEventData {
-  constructor(private eventData: EventData) {}
+  constructor(private ctx: Ctx) {}
 
   get market(): string {
-    return this.eventData.getAddressItemString("market");
+    return this.ctx.getAddressItemString("market");
   }
 
   get collateralToken(): string {
-    return this.eventData.getAddressItemString("collateralToken");
+    return this.ctx.getAddressItemString("collateralToken");
   }
 
   get affiliate(): string {
-    return this.eventData.getAddressItemString("affiliate");
+    return this.ctx.getAddressItemString("affiliate");
   }
 
   get trader(): string {
-    return this.eventData.getAddressItemString("trader");
+    return this.ctx.getAddressItemString("trader");
   }
 
   get uiFeeReceiver(): string {
-    return this.eventData.getAddressItemString("uiFeeReceiver");
+    return this.ctx.getAddressItemString("uiFeeReceiver");
   }
 
   get collateralTokenPriceMin(): BigInt {
-    return this.eventData.getUintItem("collateralTokenPrice.min");
+    return this.ctx.getUintItem("collateralTokenPrice.min");
   }
 
   get collateralTokenPriceMax(): BigInt {
-    return this.eventData.getUintItem("collateralTokenPrice.max");
+    return this.ctx.getUintItem("collateralTokenPrice.max");
   }
 
   get tradeSizeUsd(): BigInt {
-    return this.eventData.getUintItem("tradeSizeUsd");
+    return this.ctx.getUintItem("tradeSizeUsd");
   }
 
   get totalRebateFactor(): BigInt {
-    return this.eventData.getUintItem("totalRebateFactor");
+    return this.ctx.getUintItem("totalRebateFactor");
   }
 
   get traderDiscountFactor(): BigInt {
-    return this.eventData.getUintItem("traderDiscountFactor");
+    return this.ctx.getUintItem("traderDiscountFactor");
   }
 
   get totalRebateAmount(): BigInt {
-    return this.eventData.getUintItem("totalRebateAmount");
+    return this.ctx.getUintItem("totalRebateAmount");
   }
 
   get traderDiscountAmount(): BigInt {
-    return this.eventData.getUintItem("traderDiscountAmount");
+    return this.ctx.getUintItem("traderDiscountAmount");
   }
 
   get affiliateRewardAmount(): BigInt {
-    return this.eventData.getUintItem("affiliateRewardAmount");
+    return this.ctx.getUintItem("affiliateRewardAmount");
   }
 
   get fundingFeeAmount(): BigInt {
-    return this.eventData.getUintItem("fundingFeeAmount");
+    return this.ctx.getUintItem("fundingFeeAmount");
   }
 
   get claimableLongTokenAmount(): BigInt {
-    return this.eventData.getUintItem("claimableLongTokenAmount");
+    return this.ctx.getUintItem("claimableLongTokenAmount");
   }
 
   get claimableShortTokenAmount(): BigInt {
-    return this.eventData.getUintItem("claimableShortTokenAmount");
+    return this.ctx.getUintItem("claimableShortTokenAmount");
   }
 
   get latestFundingFeeAmountPerSize(): BigInt {
-    return this.eventData.getUintItem("latestFundingFeeAmountPerSize");
+    return this.ctx.getUintItem("latestFundingFeeAmountPerSize");
   }
 
   get latestLongTokenClaimableFundingAmountPerSize(): BigInt {
-    return this.eventData.getUintItem("latestLongTokenClaimableFundingAmountPerSize");
+    return this.ctx.getUintItem("latestLongTokenClaimableFundingAmountPerSize");
   }
 
   get latestShortTokenClaimableFundingAmountPerSize(): BigInt {
-    return this.eventData.getUintItem("latestShortTokenClaimableFundingAmountPerSize");
+    return this.ctx.getUintItem("latestShortTokenClaimableFundingAmountPerSize");
   }
 
   get borrowingFeeUsd(): BigInt {
-    return this.eventData.getUintItem("borrowingFeeUsd");
+    return this.ctx.getUintItem("borrowingFeeUsd");
   }
 
   get borrowingFeeAmount(): BigInt {
-    return this.eventData.getUintItem("borrowingFeeAmount");
+    return this.ctx.getUintItem("borrowingFeeAmount");
   }
 
   get borrowingFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItem("borrowingFeeReceiverFactor");
+    return this.ctx.getUintItem("borrowingFeeReceiverFactor");
   }
 
   get borrowingFeeAmountForFeeReceiver(): BigInt {
-    return this.eventData.getUintItem("borrowingFeeAmountForFeeReceiver");
+    return this.ctx.getUintItem("borrowingFeeAmountForFeeReceiver");
   }
 
   get positionFeeFactor(): BigInt {
-    return this.eventData.getUintItem("positionFeeFactor");
+    return this.ctx.getUintItem("positionFeeFactor");
   }
 
   get protocolFeeAmount(): BigInt {
-    return this.eventData.getUintItem("protocolFeeAmount");
+    return this.ctx.getUintItem("protocolFeeAmount");
   }
 
   get positionFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItem("positionFeeReceiverFactor");
+    return this.ctx.getUintItem("positionFeeReceiverFactor");
   }
 
   get feeReceiverAmount(): BigInt {
-    return this.eventData.getUintItem("feeReceiverAmount");
+    return this.ctx.getUintItem("feeReceiverAmount");
   }
 
   get feeAmountForPool(): BigInt {
-    return this.eventData.getUintItem("feeAmountForPool");
+    return this.ctx.getUintItem("feeAmountForPool");
   }
 
   get positionFeeAmountForPool(): BigInt {
-    return this.eventData.getUintItem("positionFeeAmountForPool");
+    return this.ctx.getUintItem("positionFeeAmountForPool");
   }
 
   get positionFeeAmount(): BigInt {
-    return this.eventData.getUintItem("positionFeeAmount");
+    return this.ctx.getUintItem("positionFeeAmount");
   }
 
   get totalCostAmount(): BigInt {
-    return this.eventData.getUintItem("totalCostAmount");
+    return this.ctx.getUintItem("totalCostAmount");
   }
 
   get uiFeeReceiverFactor(): BigInt {
-    return this.eventData.getUintItem("uiFeeReceiverFactor");
+    return this.ctx.getUintItem("uiFeeReceiverFactor");
   }
 
   get uiFeeAmount(): BigInt {
-    return this.eventData.getUintItem("uiFeeAmount");
+    return this.ctx.getUintItem("uiFeeAmount");
   }
 
   get isIncrease(): boolean {
-    return this.eventData.getBoolItem("isIncrease");
+    return this.ctx.getBoolItem("isIncrease");
   }
 
   get orderKey(): string {
-    return this.eventData.getBytes32Item("orderKey").toHexString();
+    return this.ctx.getBytes32Item("orderKey").toHexString();
   }
 
   get positionKey(): string {
-    return this.eventData.getBytes32Item("positionKey").toHexString();
+    return this.ctx.getBytes32Item("positionKey").toHexString();
   }
 
   get referralCode(): string {
-    return this.eventData.getBytes32Item("referralCode").toHexString();
+    return this.ctx.getBytes32Item("referralCode").toHexString();
   }
 }

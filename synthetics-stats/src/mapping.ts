@@ -48,7 +48,7 @@ import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { handlePositionFeesCollected, handleSwapFeesCollected } from "./handlers/feesHandlers";
 import { handleOrderCreated, handleOrderExecuted } from "./handlers/ordersHandlers";
-import { EventData, createEventDataFromEvent } from "./utils/eventData";
+import { Ctx, createCtxFromEvent } from "./utils/eventData";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -114,65 +114,65 @@ export function handleMarketTokenTransfer(event: Transfer): void {
 }
 
 export function handleEventLog(event: EventLog, network: string): void {
-  let eventData = createEventDataFromEvent<EventLog>(event, network);
+  let ctx = createCtxFromEvent<EventLog>(event, network);
 
-  if (eventData.eventName == "DepositExecuted") {
-    handleDepositExecuted(event as EventLog2, eventData);
+  if (ctx.eventName == "DepositExecuted") {
+    handleDepositExecuted(event as EventLog2, ctx);
     return;
   }
 }
 
 function handleEventLog1(event: EventLog1, network: string): void {
-  let eventData = createEventDataFromEvent<EventLog1>(event, network);
-  let eventName = eventData.eventName;
-  let eventId = eventData.eventId;
+  let ctx = createCtxFromEvent<EventLog1>(event, network);
+  let eventName = ctx.eventName;
+  let eventId = ctx.eventId;
 
   if (eventName == "MarketCreated") {
-    saveMarketInfo(eventData);
-    MarketTokenTemplate.create(eventData.getAddressItemOrNull("marketToken")!);
+    saveMarketInfo(ctx);
+    MarketTokenTemplate.create(ctx.getAddressItem("marketToken"));
     return;
   }
 
   if (eventName == "DepositCreated") {
-    handleDepositCreated(event as EventLog2, eventData);
+    handleDepositCreated(event as EventLog2, ctx);
     return;
   }
 
   if (eventName == "WithdrawalCreated") {
     let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemStringOrNull("account")!;
+    let account = ctx.getAddressItemString("account");
     saveUserStat("withdrawal", account, transaction.timestamp);
     return;
   }
 
   if (eventName == "OrderExecuted") {
-    let order = saveOrderExecutedState(eventData);
+    let order = saveOrderExecutedState(ctx);
 
     if (order == null) {
       return;
     }
 
     if (order.orderType == orderTypes.get("MarketSwap") || order.orderType == orderTypes.get("LimitSwap")) {
-      saveSwapExecutedTradeAction(eventData, order as Order);
+      saveSwapExecutedTradeAction(ctx, order as Order);
     } else if (
       order.orderType == orderTypes.get("MarketIncrease") ||
       order.orderType == orderTypes.get("LimitIncrease")
     ) {
-      savePositionIncreaseExecutedTradeAction(eventData, order as Order);
+      savePositionIncreaseExecutedTradeAction(ctx, order as Order);
     } else if (
       order.orderType == orderTypes.get("MarketDecrease") ||
       order.orderType == orderTypes.get("LimitDecrease") ||
       order.orderType == orderTypes.get("StopLossDecrease") ||
       order.orderType == orderTypes.get("Liquidation")
     ) {
-      savePositionDecreaseExecutedTradeAction(eventData, order as Order);
+      savePositionDecreaseExecutedTradeAction(ctx, order as Order);
     }
     return;
   }
 
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderCancelledState(eventData, transaction);
+    let order = saveOrderCancelledState(ctx, transaction);
     if (order !== null) {
       saveOrderCancelledTradeAction(
         eventId,
@@ -188,7 +188,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderUpdate(eventData);
+    let order = saveOrderUpdate(ctx);
     if (order !== null) {
       saveOrderUpdatedTradeAction(eventId, order as Order, transaction);
     }
@@ -198,7 +198,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderFrozenState(eventData);
+    let order = saveOrderFrozenState(ctx);
 
     if (order == null) {
       return;
@@ -215,54 +215,54 @@ function handleEventLog1(event: EventLog1, network: string): void {
   }
 
   if (eventName == "OrderSizeDeltaAutoUpdated") {
-    saveOrderSizeDeltaAutoUpdate(eventData);
+    saveOrderSizeDeltaAutoUpdate(ctx);
     return;
   }
 
   if (eventName == "OrderCollateralDeltaAmountAutoUpdated") {
-    saveOrderCollateralAutoUpdate(eventData);
+    saveOrderCollateralAutoUpdate(ctx);
     return;
   }
 
   if (eventName == "SwapInfo") {
     let transaction = getOrCreateTransaction(event);
-    let tokenIn = eventData.getAddressItemStringOrNull("tokenIn")!;
-    let tokenOut = eventData.getAddressItemStringOrNull("tokenOut")!;
-    let amountIn = eventData.getUintItemOrNull("amountIn")!;
-    let tokenInPrice = eventData.getUintItemOrNull("tokenInPrice")!;
+    let tokenIn = ctx.getAddressItemString("tokenIn");
+    let tokenOut = ctx.getAddressItemString("tokenOut");
+    let amountIn = ctx.getUintItem("amountIn");
+    let tokenInPrice = ctx.getUintItem("tokenInPrice");
     let volumeUsd = amountIn!.times(tokenInPrice!);
-    let receiver = eventData.getAddressItemStringOrNull("receiver")!;
+    let receiver = ctx.getAddressItemString("receiver");
 
-    saveSwapInfo(eventData, transaction);
+    saveSwapInfo(ctx, transaction);
     saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
     saveUserStat("swap", receiver, transaction.timestamp);
     return;
   }
 
   if (eventName == "SwapFeesCollected") {
-    handleSwapFeesCollected(eventData);
+    handleSwapFeesCollected(ctx);
     return;
   }
 
   // Only for liquidations if remaining collateral is not sufficient to pay the fees
   if (eventName == "PositionFeesInfo") {
-    savePositionFeesInfo(eventData);
+    savePositionFeesInfo(ctx);
     return;
   }
 
   if (eventName == "PositionFeesCollected") {
-    handlePositionFeesCollected(eventData);
+    handlePositionFeesCollected(ctx);
     return;
   }
 
   if (eventName == "PositionIncrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralToken = eventData.getAddressItemStringOrNull("collateralToken")!;
-    let marketToken = eventData.getAddressItemStringOrNull("market")!;
-    let sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
-    let account = eventData.getAddressItemStringOrNull("account")!;
+    let collateralToken = ctx.getAddressItemString("collateralToken");
+    let marketToken = ctx.getAddressItemString("market");
+    let sizeDeltaUsd = ctx.getUintItem("sizeDeltaUsd");
+    let account = ctx.getAddressItemString("account");
 
-    savePositionIncrease(eventData, transaction);
+    savePositionIncrease(ctx, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
     savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeDeltaUsd);
     saveUserStat("margin", account, transaction.timestamp);
@@ -271,12 +271,12 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "PositionDecrease") {
     let transaction = getOrCreateTransaction(event);
-    let collateralToken = eventData.getAddressItemStringOrNull("collateralToken")!;
-    let marketToken = eventData.getAddressItemStringOrNull("market")!;
-    let sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
-    let account = eventData.getAddressItemStringOrNull("account")!;
+    let collateralToken = ctx.getAddressItemString("collateralToken");
+    let marketToken = ctx.getAddressItemString("market");
+    let sizeDeltaUsd = ctx.getUintItem("sizeDeltaUsd");
+    let account = ctx.getAddressItemString("account");
 
-    savePositionDecrease(eventData, transaction);
+    savePositionDecrease(ctx, transaction);
     saveVolumeInfo("margin", transaction.timestamp, sizeDeltaUsd);
     savePositionVolumeInfo(transaction.timestamp, collateralToken, marketToken, sizeDeltaUsd);
     saveUserStat("margin", account, transaction.timestamp);
@@ -285,78 +285,78 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "FundingFeesClaimed") {
     let transaction = getOrCreateTransaction(event);
-    handleCollateralClaimAction("ClaimFunding", eventData, transaction);
+    handleCollateralClaimAction("ClaimFunding", ctx, transaction);
     return;
   }
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    handleCollateralClaimAction("ClaimPriceImpactFee", eventData, transaction);
+    handleCollateralClaimAction("ClaimPriceImpactFee", ctx, transaction);
     return;
   }
 
   if (eventName == "ClaimableFundingUpdated") {
     let transaction = getOrCreateTransaction(event);
-    handleClaimableFundingUpdated(eventData, transaction);
+    handleClaimableFundingUpdated(ctx, transaction);
     return;
   }
 
   if (eventName == "MarketPoolValueUpdated") {
     // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
-    saveMarketIncentivesStat(eventData, event);
+    saveMarketIncentivesStat(ctx, event);
     return;
   }
 
   if (eventName == "PositionImpactPoolDistributed") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionImpactPoolDistributed(eventData, transaction, network);
+    handlePositionImpactPoolDistributed(ctx, transaction, network);
     return;
   }
 
   if (eventName == "OraclePriceUpdate") {
-    handleOraclePriceUpdate(eventData);
+    handleOraclePriceUpdate(ctx);
     return;
   }
 }
 
 function handleEventLog2(event: EventLog2, network: string): void {
   let eventName = event.params.eventName;
-  let eventData = createEventDataFromEvent<EventLog2>(event, network);
+  let ctx = createCtxFromEvent<EventLog2>(event, network);
   let eventId = getIdFromEvent(event);
 
   if (eventName == "OrderCreated") {
-    handleOrderCreated(eventData);
+    handleOrderCreated(ctx);
     return;
   }
 
   if (eventName == "DepositCreated") {
-    handleDepositCreated(event, eventData);
+    handleDepositCreated(event, ctx);
     return;
   }
 
   if (eventName == "DepositExecuted") {
-    handleDepositExecuted(event, eventData);
+    handleDepositExecuted(event, ctx);
     return;
   }
 
   if (eventName == "WithdrawalCreated") {
     let transaction = getOrCreateTransaction(event);
-    let account = eventData.getAddressItemStringOrNull("account")!;
+    let account = ctx.getAddressItemString("account");
     saveUserStat("withdrawal", account, transaction.timestamp);
     return;
   }
 
   if (eventName == "OrderExecuted") {
-    handleOrderExecuted(eventData);
+    handleOrderExecuted(ctx);
     return;
   }
 
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderCancelledState(eventData, transaction);
+    let order = saveOrderCancelledState(ctx, transaction);
     if (order !== null) {
       if (ClaimRef.load(order.id)) {
-        saveClaimActionOnOrderCancelled(eventData);
+        saveClaimActionOnOrderCancelled(ctx);
       } else {
         saveOrderCancelledTradeAction(
           eventId,
@@ -373,7 +373,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
 
   if (eventName == "OrderUpdated") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderUpdate(eventData);
+    let order = saveOrderUpdate(ctx);
     if (order !== null) {
       saveOrderUpdatedTradeAction(eventId, order as Order, transaction);
     }
@@ -383,7 +383,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
 
   if (eventName == "OrderFrozen") {
     let transaction = getOrCreateTransaction(event);
-    let order = saveOrderFrozenState(eventData);
+    let order = saveOrderFrozenState(ctx);
 
     if (order == null) {
       return;
@@ -400,28 +400,28 @@ function handleEventLog2(event: EventLog2, network: string): void {
   }
 }
 
-function handleDepositCreated(event: EventLog2, eventData: EventData): void {
+function handleDepositCreated(event: EventLog2, ctx: Ctx): void {
   let transaction = getOrCreateTransaction(event);
-  let account = eventData.getAddressItemStringOrNull("account")!;
+  let account = ctx.getAddressItemString("account");
   saveUserStat("deposit", account, transaction.timestamp);
 
-  let depositRef = new DepositRef(eventData.getBytes32ItemOrNull("key")!.toHexString());
-  depositRef.marketAddress = eventData.getAddressItemStringOrNull("market")!;
+  let depositRef = new DepositRef(ctx.getBytes32Item("key").toHexString());
+  depositRef.marketAddress = ctx.getAddressItemString("market");
 
   // old DepositCreated event does not contain "account"
-  depositRef.account = eventData.getAddressItemStringOrNull("account")!;
+  depositRef.account = ctx.getAddressItemString("account");
   depositRef.save();
 }
 
-function handleDepositExecuted(event: EventLog2, eventData: EventData): void {
-  let key = eventData.getBytes32ItemOrNull("key")!.toHexString();
+function handleDepositExecuted(event: EventLog2, ctx: Ctx): void {
+  let key = ctx.getBytes32Item("key").toHexString();
   let depositRef = DepositRef.load(key)!;
   let marketInfo = MarketInfo.load(depositRef.marketAddress)!;
 
-  let longTokenAmount = eventData.getUintItemOrNull("longTokenAmount")!;
+  let longTokenAmount = ctx.getUintItem("longTokenAmount");
   let longTokenPrice = getTokenPrice(marketInfo.longToken)!;
 
-  let shortTokenAmount = eventData.getUintItemOrNull("shortTokenAmount")!;
+  let shortTokenAmount = ctx.getUintItem("shortTokenAmount");
   let shortTokenPrice = getTokenPrice(marketInfo.shortToken)!;
 
   let depositUsd = longTokenAmount.times(longTokenPrice).plus(shortTokenAmount.times(shortTokenPrice));

@@ -1,5 +1,5 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { EventData } from "../eventData";
+import { Ctx } from "../eventData";
 
 /*
 token: 0xCcF73F4Dcbbb573296BFA656b754Fe94BB957d62 (address)
@@ -10,25 +10,25 @@ priceSourceType: 2 (uint)
 */
 
 export class OraclePriceUpdateEventData {
-  constructor(private eventData: EventData) {}
+  constructor(private ctx: Ctx) {}
 
   get token(): string {
-    return this.eventData.getAddressItemString("token");
+    return this.ctx.getAddressItemString("token");
   }
 
   get minPrice(): BigInt {
-    return this.eventData.getUintItem("minPrice");
+    return this.ctx.getUintItem("minPrice");
   }
 
   get maxPrice(): BigInt {
-    return this.eventData.getUintItem("maxPrice");
+    return this.ctx.getUintItem("maxPrice");
   }
 
   get timestamp(): BigInt {
-    return this.eventData.getUintItem("timestamp");
+    return this.ctx.getUintItem("timestamp");
   }
 
   get priceSourceType(): BigInt {
-    return this.eventData.getUintItem("priceSourceType");
+    return this.ctx.getUintItem("priceSourceType");
   }
 }

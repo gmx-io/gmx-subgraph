@@ -12,15 +12,15 @@ import {
 import { getMarketInfo } from "./markets";
 import { orderTypes } from "./orders";
 import { getSwapInfoId } from "./swaps";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 
 let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-export function saveOrderCreatedTradeAction(eventData: EventData, order: Order): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventData.eventId, order);
+export function saveOrderCreatedTradeAction(ctx: Ctx, order: Order): TradeAction {
+  let tradeAction = getTradeActionFromOrder(ctx.eventId, order);
 
   tradeAction.eventName = "OrderCreated";
-  tradeAction.transaction = eventData.transaction.id;
+  tradeAction.transaction = ctx.transaction.id;
 
   tradeAction.save();
 
@@ -94,8 +94,8 @@ export function saveOrderFrozenTradeAction(
   return tradeAction;
 }
 
-export function saveSwapExecutedTradeAction(eventData: EventData, order: Order): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventData.eventId, order);
+export function saveSwapExecutedTradeAction(ctx: Ctx, order: Order): TradeAction {
+  let tradeAction = getTradeActionFromOrder(ctx.eventId, order);
 
   let swapPath = order.swapPath!;
 
@@ -115,15 +115,15 @@ export function saveSwapExecutedTradeAction(eventData: EventData, order: Order):
   tradeAction.orderType = order.orderType;
 
   tradeAction.executionAmountOut = swapInfo.amountOut;
-  tradeAction.transaction = eventData.transaction.id;
+  tradeAction.transaction = ctx.transaction.id;
 
   tradeAction.save();
 
   return tradeAction;
 }
 
-export function savePositionIncreaseExecutedTradeAction(eventData: EventData, order: Order): TradeAction {
-  let tradeAction = getTradeActionFromOrder(eventData.eventId, order);
+export function savePositionIncreaseExecutedTradeAction(ctx: Ctx, order: Order): TradeAction {
+  let tradeAction = getTradeActionFromOrder(ctx.eventId, order);
   let positionIncrease = PositionIncrease.load(order.id);
   let marketInfo = getMarketInfo(order.marketAddress);
   let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
@@ -146,15 +146,15 @@ export function savePositionIncreaseExecutedTradeAction(eventData: EventData, or
   tradeAction.executionPrice = positionIncrease.executionPrice;
   tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
 
-  tradeAction.transaction = eventData.transaction.id;
+  tradeAction.transaction = ctx.transaction.id;
 
   tradeAction.save();
 
   return tradeAction;
 }
 
-export function savePositionDecreaseExecutedTradeAction(eventData: EventData, order: Order): void {
-  let tradeAction = getTradeActionFromOrder(eventData.eventId, order);
+export function savePositionDecreaseExecutedTradeAction(ctx: Ctx, order: Order): void {
+  let tradeAction = getTradeActionFromOrder(ctx.eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
   let positionFeesInfo: PositionFeesInfo | null = null;
   let marketInfo = getMarketInfo(order.marketAddress);
@@ -212,7 +212,7 @@ export function savePositionDecreaseExecutedTradeAction(eventData: EventData, or
     )
     .minus(positionDecrease.priceImpactUsd);
 
-  tradeAction.transaction = eventData.transaction.id;
+  tradeAction.transaction = ctx.transaction.id;
 
   tradeAction.save();
 }

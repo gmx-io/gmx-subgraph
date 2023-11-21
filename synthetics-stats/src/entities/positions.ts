@@ -1,41 +1,41 @@
 import { PositionDecrease, PositionIncrease, Transaction } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 
-export function savePositionIncrease(eventData: EventData, transaction: Transaction): PositionIncrease {
-  let orderKey = eventData.getBytes32ItemOrNull("orderKey")!.toHexString();
+export function savePositionIncrease(ctx: Ctx, transaction: Transaction): PositionIncrease {
+  let orderKey = ctx.getBytes32Item("orderKey").toHexString();
   let entity = new PositionIncrease(orderKey);
 
   entity.orderKey = orderKey;
-  entity.positionKey = eventData.getBytes32ItemOrNull("positionKey")!.toHexString();
+  entity.positionKey = ctx.getBytes32Item("positionKey").toHexString();
 
-  entity.account = eventData.getAddressItemStringOrNull("account")!;
-  entity.marketAddress = eventData.getAddressItemStringOrNull("market")!;
-  entity.collateralTokenAddress = eventData.getAddressItemStringOrNull("collateralToken")!;
+  entity.account = ctx.getAddressItemString("account");
+  entity.marketAddress = ctx.getAddressItemString("market");
+  entity.collateralTokenAddress = ctx.getAddressItemString("collateralToken");
 
-  entity.collateralTokenPriceMin = eventData.getUintItemOrNull("collateralTokenPrice.min")!;
+  entity.collateralTokenPriceMin = ctx.getUintItem("collateralTokenPrice.min");
 
-  entity.collateralTokenPriceMax = eventData.getUintItemOrNull("collateralTokenPrice.max")!;
+  entity.collateralTokenPriceMax = ctx.getUintItem("collateralTokenPrice.max");
 
-  entity.sizeInUsd = eventData.getUintItemOrNull("sizeInUsd")!;
-  entity.sizeInTokens = eventData.getUintItemOrNull("sizeInTokens")!;
-  entity.collateralAmount = eventData.getUintItemOrNull("collateralAmount")!;
+  entity.sizeInUsd = ctx.getUintItem("sizeInUsd");
+  entity.sizeInTokens = ctx.getUintItem("sizeInTokens");
+  entity.collateralAmount = ctx.getUintItem("collateralAmount");
 
-  entity.sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
-  entity.sizeDeltaInTokens = eventData.getUintItemOrNull("sizeDeltaInTokens")!;
-  entity.collateralDeltaAmount = eventData.getIntItemOrNull("collateralDeltaAmount")!;
-  entity.borrowingFactor = eventData.getUintItemOrNull("borrowingFactor")!;
-  entity.priceImpactDiffUsd = eventData.getUintItemOrNull("priceImpactDiffUsd")!;
+  entity.sizeDeltaUsd = ctx.getUintItem("sizeDeltaUsd");
+  entity.sizeDeltaInTokens = ctx.getUintItem("sizeDeltaInTokens");
+  entity.collateralDeltaAmount = ctx.getIntItem("collateralDeltaAmount");
+  entity.borrowingFactor = ctx.getUintItem("borrowingFactor");
+  entity.priceImpactDiffUsd = ctx.getUintItem("priceImpactDiffUsd");
 
-  entity.executionPrice = eventData.getUintItemOrNull("executionPrice")!;
+  entity.executionPrice = ctx.getUintItem("executionPrice");
 
-  entity.longTokenFundingAmountPerSize = eventData.getIntItemOrNull("longTokenFundingAmountPerSize")!;
-  entity.shortTokenFundingAmountPerSize = eventData.getIntItemOrNull("shortTokenFundingAmountPerSize")!;
-  entity.priceImpactAmount = eventData.getIntItemOrNull("priceImpactAmount")!;
-  entity.priceImpactUsd = eventData.getIntItemOrNull("priceImpactUsd")!;
-  entity.basePnlUsd = eventData.getIntItemOrNull("basePnlUsd")!;
+  entity.longTokenFundingAmountPerSize = ctx.getIntItem("longTokenFundingAmountPerSize");
+  entity.shortTokenFundingAmountPerSize = ctx.getIntItem("shortTokenFundingAmountPerSize");
+  entity.priceImpactAmount = ctx.getIntItem("priceImpactAmount");
+  entity.priceImpactUsd = ctx.getIntItem("priceImpactUsd");
+  entity.basePnlUsd = ctx.getIntItem("basePnlUsd");
 
-  entity.orderType = eventData.getUintItemOrNull("orderType")!;
-  entity.isLong = eventData.getBoolItemOrFalse("isLong");
+  entity.orderType = ctx.getUintItem("orderType");
+  entity.isLong = ctx.getBoolItem("isLong");
 
   entity.transaction = transaction.id;
 
@@ -44,42 +44,42 @@ export function savePositionIncrease(eventData: EventData, transaction: Transact
   return entity;
 }
 
-export function savePositionDecrease(eventData: EventData, transaction: Transaction): PositionDecrease {
-  let orderKey = eventData.getBytes32ItemOrNull("orderKey")!.toHexString();
+export function savePositionDecrease(ctx: Ctx, transaction: Transaction): PositionDecrease {
+  let orderKey = ctx.getBytes32Item("orderKey").toHexString();
 
   let entity = new PositionDecrease(orderKey);
 
   entity.orderKey = orderKey;
-  entity.positionKey = eventData.getBytes32ItemOrNull("positionKey")!.toHexString();
+  entity.positionKey = ctx.getBytes32Item("positionKey").toHexString();
 
-  entity.account = eventData.getAddressItemStringOrNull("account")!;
-  entity.marketAddress = eventData.getAddressItemStringOrNull("market")!;
-  entity.collateralTokenAddress = eventData.getAddressItemStringOrNull("collateralToken")!;
+  entity.account = ctx.getAddressItemString("account");
+  entity.marketAddress = ctx.getAddressItemString("market");
+  entity.collateralTokenAddress = ctx.getAddressItemString("collateralToken");
 
-  entity.collateralTokenPriceMin = eventData.getUintItemOrNull("collateralTokenPrice.min")!;
+  entity.collateralTokenPriceMin = ctx.getUintItem("collateralTokenPrice.min");
 
-  entity.collateralTokenPriceMax = eventData.getUintItemOrNull("collateralTokenPrice.max")!;
+  entity.collateralTokenPriceMax = ctx.getUintItem("collateralTokenPrice.max");
 
-  entity.sizeInUsd = eventData.getUintItemOrNull("sizeInUsd")!;
-  entity.sizeInTokens = eventData.getUintItemOrNull("sizeInTokens")!;
-  entity.collateralAmount = eventData.getUintItemOrNull("collateralAmount")!;
+  entity.sizeInUsd = ctx.getUintItem("sizeInUsd");
+  entity.sizeInTokens = ctx.getUintItem("sizeInTokens");
+  entity.collateralAmount = ctx.getUintItem("collateralAmount");
 
-  entity.sizeDeltaUsd = eventData.getUintItemOrNull("sizeDeltaUsd")!;
-  entity.sizeDeltaInTokens = eventData.getUintItemOrNull("sizeDeltaInTokens")!;
-  entity.collateralDeltaAmount = eventData.getUintItemOrNull("collateralDeltaAmount")!;
-  entity.borrowingFactor = eventData.getUintItemOrNull("borrowingFactor")!;
-  entity.priceImpactDiffUsd = eventData.getUintItemOrNull("priceImpactDiffUsd")!;
-  entity.priceImpactUsd = eventData.getIntItemOrNull("priceImpactUsd")!;
+  entity.sizeDeltaUsd = ctx.getUintItem("sizeDeltaUsd");
+  entity.sizeDeltaInTokens = ctx.getUintItem("sizeDeltaInTokens");
+  entity.collateralDeltaAmount = ctx.getUintItem("collateralDeltaAmount");
+  entity.borrowingFactor = ctx.getUintItem("borrowingFactor");
+  entity.priceImpactDiffUsd = ctx.getUintItem("priceImpactDiffUsd");
+  entity.priceImpactUsd = ctx.getIntItem("priceImpactUsd");
 
-  entity.executionPrice = eventData.getUintItemOrNull("executionPrice")!;
+  entity.executionPrice = ctx.getUintItem("executionPrice");
 
-  entity.longTokenFundingAmountPerSize = eventData.getIntItemOrNull("longTokenFundingAmountPerSize")!;
-  entity.shortTokenFundingAmountPerSize = eventData.getIntItemOrNull("shortTokenFundingAmountPerSize")!;
-  entity.priceImpactAmount = eventData.getIntItemOrNull("priceImpactAmount")!;
-  entity.basePnlUsd = eventData.getIntItemOrNull("basePnlUsd")!;
+  entity.longTokenFundingAmountPerSize = ctx.getIntItem("longTokenFundingAmountPerSize");
+  entity.shortTokenFundingAmountPerSize = ctx.getIntItem("shortTokenFundingAmountPerSize");
+  entity.priceImpactAmount = ctx.getIntItem("priceImpactAmount");
+  entity.basePnlUsd = ctx.getIntItem("basePnlUsd");
 
-  entity.orderType = eventData.getUintItemOrNull("orderType")!;
-  entity.isLong = eventData.getBoolItemOrFalse("isLong");
+  entity.orderType = ctx.getUintItem("orderType");
+  entity.isLong = ctx.getBoolItem("isLong");
 
   entity.transaction = transaction.id;
 
