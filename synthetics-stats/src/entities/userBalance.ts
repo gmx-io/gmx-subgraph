@@ -14,10 +14,11 @@ export function saveUserGmTokensBalanceChange(
   marketAddress: string,
   value: BigInt,
   transaction: Transaction,
-  transactionLogIndex: BigInt
+  transactionLogIndex: BigInt,
+  postfix: string
 ): void {
   let prevEntity = getLatestUserGmTokensBalanceChange(account, marketAddress);
-  let entity = _createUserGmTokensBalanceChange(account, marketAddress, transaction, transactionLogIndex);
+  let entity = _createUserGmTokensBalanceChange(account, marketAddress, transaction, transactionLogIndex, postfix);
   let totalFees = CollectedMarketFeesInfo.load(marketAddress + ":total");
   let prevBalance = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
@@ -85,19 +86,19 @@ function _createUserGmTokensBalanceChange(
   account: string,
   marketAddress: string,
   transaction: Transaction,
-  transactionLogIndex: BigInt
+  transactionLogIndex: BigInt,
+  postfix: string
 ): UserGmTokensBalanceChange {
-  let entity = UserGmTokensBalanceChange.load(
-    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString()
-  );
+  let id =
+    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString() + ":" + postfix;
+  let entity = UserGmTokensBalanceChange.load(id);
+
   if (entity) {
     log.warning("UserGmTokensBalanceChange already exists: {}", [entity.id]);
     throw new Error("UserGmTokensBalanceChange already exists");
   }
 
-  let newEntity = new UserGmTokensBalanceChange(
-    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString()
-  );
+  let newEntity = new UserGmTokensBalanceChange(id);
 
   newEntity.account = account;
   newEntity.marketAddress = marketAddress;
