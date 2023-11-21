@@ -23,15 +23,22 @@ export function saveUserGmTokensBalanceChange(
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
   let income = prevEntity ? calcIncomeForEntity(prevEntity) : ZERO;
 
-  entity.income = income;
   entity.tokensBalance = prevBalance.plus(value);
   entity.tokensDelta = value;
   entity.cumulativeIncome = prevCumulativeIncome.plus(income);
   entity.prevCumulativeFeeUsdPerGmToken = totalFees ? totalFees.prevCumulativeFeeUsdPerGmToken : ZERO;
   entity.cumulativeFeeUsdPerGmToken = totalFees ? totalFees.cumulativeFeeUsdPerGmToken : ZERO;
+  entity.index = getBalanceChangeNextIndex(account, marketAddress);
   entity.save();
 
   saveLatestUserGmTokensBalanceChange(entity);
+}
+
+function getBalanceChangeNextIndex(account: string, marketAddress: string): BigInt {
+  let id = account + ":" + marketAddress;
+  let latestRef = LatestUserGmTokensBalanceChangeRef.load(id);
+
+  return latestRef ? latestRef.nextIndex : BigInt.fromI32(0);
 }
 
 function getLatestUserGmTokensBalanceChange(account: string, marketAddress: string): UserGmTokensBalanceChange | null {
@@ -55,8 +62,10 @@ function saveLatestUserGmTokensBalanceChange(change: UserGmTokensBalanceChange):
     latestRef = new LatestUserGmTokensBalanceChangeRef(id);
     latestRef.account = change.account;
     latestRef.marketAddress = change.marketAddress;
+    latestRef.nextIndex = BigInt.fromI32(0);
   }
 
+  latestRef.nextIndex = latestRef.nextIndex.plus(BigInt.fromI32(1));
   latestRef.latestUserGmTokensBalanceChange = change.id;
 
   latestRef.save();
@@ -92,10 +101,11 @@ function _createUserGmTokensBalanceChange(
 
   newEntity.account = account;
   newEntity.marketAddress = marketAddress;
+
+  newEntity.index = ZERO;
   newEntity.tokensDelta = ZERO;
   newEntity.tokensBalance = ZERO;
   newEntity.timestamp = transaction.timestamp;
-  newEntity.income = ZERO;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
   newEntity.prevCumulativeFeeUsdPerGmToken = ZERO;

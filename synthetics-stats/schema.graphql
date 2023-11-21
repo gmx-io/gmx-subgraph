@@ -213,10 +213,10 @@ type UserGmTokensBalanceChange @entity(immutable: true) {
   tokensDelta: BigInt!
   tokensBalance: BigInt!
   timestamp: Int!
-  income: BigInt!
   cumulativeIncome: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
   prevCumulativeFeeUsdPerGmToken: BigInt!
+  index: BigInt!
 }
 
 type LatestUserGmTokensBalanceChangeRef @entity {
@@ -225,6 +225,7 @@ type LatestUserGmTokensBalanceChangeRef @entity {
   account: String!
   marketAddress: String!
   latestUserGmTokensBalanceChange: UserGmTokensBalanceChange
+  nextIndex: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {
