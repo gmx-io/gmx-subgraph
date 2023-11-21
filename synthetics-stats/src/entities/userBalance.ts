@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
   CollectedMarketFeesInfo,
   LatestUserGmTokensBalanceChangeRef,
@@ -82,6 +82,7 @@ function _createUserGmTokensBalanceChange(
     account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString()
   );
   if (entity) {
+    log.warning("UserGmTokensBalanceChange already exists: {}", [entity.id]);
     throw new Error("UserGmTokensBalanceChange already exists");
   }
 
