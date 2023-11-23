@@ -6,6 +6,7 @@ import {
   UserGmTokensBalanceChange
 } from "../../generated/schema";
 import { getOrCreateCollectedMarketFees } from "./fees";
+import { formatUsd } from "../utils/number";
 
 let ZERO = BigInt.fromI32(0);
 
@@ -23,13 +24,19 @@ export function saveUserGmTokensBalanceChange(
   let prevBalance = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
   let income = prevEntity ? calcIncomeForEntity(prevEntity) : ZERO;
+  let isDeposit = value.gt(ZERO);
 
   entity.tokensBalance = prevBalance.plus(value);
   entity.tokensDelta = value;
   entity.cumulativeIncome = prevCumulativeIncome.plus(income);
-  entity.prevCumulativeFeeUsdPerGmToken = totalFees ? totalFees.prevCumulativeFeeUsdPerGmToken : ZERO;
-  entity.cumulativeFeeUsdPerGmToken = totalFees ? totalFees.cumulativeFeeUsdPerGmToken : ZERO;
+
+  if (totalFees) {
+    entity.cumulativeFeeUsdPerGmToken = isDeposit
+      ? totalFees.prevCumulativeFeeUsdPerGmToken
+      : totalFees.cumulativeFeeUsdPerGmToken;
+  }
   entity.index = getBalanceChangeNextIndex(account, marketAddress);
+
   entity.save();
 
   saveLatestUserGmTokensBalanceChange(entity);
@@ -77,7 +84,7 @@ function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null): BigInt {
   if (entity.tokensBalance.equals(ZERO)) return ZERO;
 
   let currentFees = getOrCreateCollectedMarketFees(entity.marketAddress, 0, "total");
-  let feeUsdPerGmToken = currentFees.cumulativeFeeUsdPerGmToken.minus(entity.prevCumulativeFeeUsdPerGmToken);
+  let feeUsdPerGmToken = currentFees.cumulativeFeeUsdPerGmToken.minus(entity.cumulativeFeeUsdPerGmToken);
 
   return feeUsdPerGmToken.times(entity.tokensBalance).div(BigInt.fromI32(10).pow(18));
 }
@@ -109,7 +116,6 @@ function _createUserGmTokensBalanceChange(
   newEntity.timestamp = transaction.timestamp;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
-  newEntity.prevCumulativeFeeUsdPerGmToken = ZERO;
 
   return newEntity;
 }

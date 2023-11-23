@@ -215,7 +215,6 @@ type UserGmTokensBalanceChange @entity(immutable: true) {
   timestamp: Int!
   cumulativeIncome: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
-  prevCumulativeFeeUsdPerGmToken: BigInt!
   index: BigInt!
 }
 
