@@ -6,7 +6,6 @@ import {
   UserGmTokensBalanceChange
 } from "../../generated/schema";
 import { getOrCreateCollectedMarketFees } from "./fees";
-import { formatUsd } from "../utils/number";
 
 let ZERO = BigInt.fromI32(0);
 
@@ -27,13 +26,20 @@ export function saveUserGmTokensBalanceChange(
   let isDeposit = value.gt(ZERO);
 
   entity.tokensBalance = prevBalance.plus(value);
-  entity.tokensDelta = value;
   entity.cumulativeIncome = prevCumulativeIncome.plus(income);
 
   if (totalFees) {
     entity.cumulativeFeeUsdPerGmToken = isDeposit
-      ? totalFees.prevCumulativeFeeUsdPerGmToken
+      ? // These transfers happen during DepositExecuted and WithdrawalCreated transactions (different stages)
+        // That's why GM transfer goes After fee is received.
+        // And withdrawal GM balance changes Before fee is received.
+        // so for deposits we are storing extra (prev) fee, and act normally for withdrawals
+        totalFees.prevCumulativeFeeUsdPerGmToken
       : totalFees.cumulativeFeeUsdPerGmToken;
+
+    // we need this on UI side to properly restore income per balance change
+    // (regardless of comment above, just always actual fee by that moment)
+    entity.actualCumulativeFeeUsdPerGmToken = totalFees.cumulativeFeeUsdPerGmToken;
   }
   entity.index = getBalanceChangeNextIndex(account, marketAddress);
 
@@ -111,11 +117,11 @@ function _createUserGmTokensBalanceChange(
   newEntity.marketAddress = marketAddress;
 
   newEntity.index = ZERO;
-  newEntity.tokensDelta = ZERO;
   newEntity.tokensBalance = ZERO;
   newEntity.timestamp = transaction.timestamp;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
+  newEntity.actualCumulativeFeeUsdPerGmToken = ZERO;
 
   return newEntity;
 }

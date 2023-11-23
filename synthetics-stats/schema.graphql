@@ -210,11 +210,11 @@ type UserGmTokensBalanceChange @entity(immutable: true) {
   id: ID!
   account: String!
   marketAddress: String!
-  tokensDelta: BigInt!
   tokensBalance: BigInt!
   timestamp: Int!
   cumulativeIncome: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
+  actualCumulativeFeeUsdPerGmToken: BigInt!
   index: BigInt!
 }
 
