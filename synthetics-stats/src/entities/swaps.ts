@@ -1,12 +1,9 @@
 import { SwapInfo, Transaction } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 
-export function handleSwapInfo(
-  eventData: EventData,
-  transaction: Transaction
-): SwapInfo {
-  let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
-  let marketAddress = eventData.getAddressItemString("market")!;
+export function handleSwapInfo(ctx: Ctx, transaction: Transaction): SwapInfo {
+  let orderKey = ctx.getBytes32Item("orderKey").toHexString();
+  let marketAddress = ctx.getAddressItemString("market");
 
   let swapInfoId = getSwapInfoId(orderKey, marketAddress);
 
@@ -16,18 +13,18 @@ export function handleSwapInfo(
   swapInfo.marketAddress = marketAddress;
   swapInfo.transaction = transaction.id;
 
-  swapInfo.receiver = eventData.getAddressItemString("receiver")!;
+  swapInfo.receiver = ctx.getAddressItemString("receiver");
 
-  swapInfo.tokenInAddress = eventData.getAddressItemString("tokenIn")!;
-  swapInfo.tokenOutAddress = eventData.getAddressItemString("tokenOut")!;
+  swapInfo.tokenInAddress = ctx.getAddressItemString("tokenIn");
+  swapInfo.tokenOutAddress = ctx.getAddressItemString("tokenOut");
 
-  swapInfo.tokenInPrice = eventData.getUintItem("tokenInPrice")!;
-  swapInfo.tokenOutPrice = eventData.getUintItem("tokenOutPrice")!;
+  swapInfo.tokenInPrice = ctx.getUintItem("tokenInPrice");
+  swapInfo.tokenOutPrice = ctx.getUintItem("tokenOutPrice");
 
-  swapInfo.amountIn = eventData.getUintItem("amountIn")!;
-  swapInfo.amountInAfterFees = eventData.getUintItem("amountInAfterFees")!;
-  swapInfo.amountOut = eventData.getUintItem("amountOut")!;
-  swapInfo.priceImpactUsd = eventData.getUintItem("priceImpactUsd")!;
+  swapInfo.amountIn = ctx.getUintItem("amountIn");
+  swapInfo.amountInAfterFees = ctx.getUintItem("amountInAfterFees");
+  swapInfo.amountOut = ctx.getUintItem("amountOut");
+  swapInfo.priceImpactUsd = ctx.getUintItem("priceImpactUsd");
 
   swapInfo.save();
 

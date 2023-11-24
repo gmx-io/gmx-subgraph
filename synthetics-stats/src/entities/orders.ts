@@ -1,6 +1,7 @@
 import { Order, Transaction } from "../../generated/schema";
-import { EventData } from "../utils/eventData";
+import { Ctx } from "../utils/eventData";
 import { BigInt } from "@graphprotocol/graph-ts";
+import { OrderCreatedEventData } from "../utils/eventData/OrderCreatedEventData";
 
 export let orderTypes = new Map<string, BigInt>();
 
@@ -13,41 +14,30 @@ orderTypes.set("LimitDecrease", BigInt.fromI32(5));
 orderTypes.set("StopLossDecrease", BigInt.fromI32(6));
 orderTypes.set("Liquidation", BigInt.fromI32(7));
 
-export function saveOrder(
-  eventData: EventData,
-  transaction: Transaction
-): Order {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrder(ctx: OrderCreatedEventData, transaction: Transaction): Order {
+  let key = ctx.key;
 
   let order = new Order(key);
 
-  order.account = eventData.getAddressItemString("account")!;
-  order.receiver = eventData.getAddressItemString("receiver")!;
-  order.callbackContract = eventData.getAddressItemString("callbackContract")!;
-  order.marketAddress = eventData.getAddressItemString("market")!;
-  order.swapPath = eventData.getAddressArrayItemString("swapPath")! || [];
-  order.initialCollateralTokenAddress = eventData.getAddressItemString(
-    "initialCollateralToken"
-  )!;
-  order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-  order.initialCollateralDeltaAmount = eventData.getUintItem(
-    "initialCollateralDeltaAmount"
-  )!;
-  order.triggerPrice = eventData.getUintItem("triggerPrice")!;
-  order.acceptablePrice = eventData.getUintItem("acceptablePrice")!;
-  order.callbackGasLimit = eventData.getUintItem("callbakGasLimit")!;
-  order.minOutputAmount = eventData.getUintItem("minOutputAmount")!;
-  order.executionFee = eventData.getUintItem("executionFee")!;
-  order.updatedAtBlock = eventData.getUintItem("updatedAtBlock")!;
-  order.orderType = eventData.getUintItem("orderType")!;
-  order.isLong = eventData.getBoolItem("isLong")!;
-  order.shouldUnwrapNativeToken = eventData.getBoolItem(
-    "shouldUnwrapNativeToken"
-  )!;
+  order.account = ctx.account;
+  order.receiver = ctx.receiver;
+  order.callbackContract = ctx.callbackContract;
+  order.marketAddress = ctx.market;
+  order.swapPath = ctx.swapPath || [];
+  order.initialCollateralTokenAddress = ctx.initialCollateralToken;
+  order.sizeDeltaUsd = ctx.sizeDeltaUsd;
+  order.initialCollateralDeltaAmount = ctx.initialCollateralDeltaAmount;
+  order.triggerPrice = ctx.triggerPrice;
+  order.acceptablePrice = ctx.acceptablePrice;
+  order.callbackGasLimit = ctx.callbackGasLimit;
+  order.minOutputAmount = ctx.minOutputAmount;
+  order.executionFee = ctx.executionFee;
+  order.updatedAtBlock = ctx.updatedAtBlock;
+  order.orderType = ctx.orderType;
+  order.isLong = ctx.isLong;
+  order.shouldUnwrapNativeToken = ctx.shouldUnwrapNativeToken;
 
-  let isFrozen = eventData.getBoolItem("isFrozen")!;
-
-  if (isFrozen) {
+  if (ctx.isFrozen) {
     order.status = "Frozen";
   } else {
     order.status = "Created";
@@ -59,11 +49,8 @@ export function saveOrder(
   return order;
 }
 
-export function saveOrderCancelledState(
-  eventData: EventData,
-  transaction: Transaction
-): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderCancelledState(ctx: Ctx, transaction: Transaction): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -72,8 +59,8 @@ export function saveOrderCancelledState(
   }
 
   order.status = "Cancelled";
-  order.cancelledReason = eventData.getStringItem("reason")!;
-  order.cancelledReasonBytes = eventData.getBytesItem("reasonBytes")!;
+  order.cancelledReason = ctx.getStringItem("reason");
+  order.cancelledReasonBytes = ctx.getBytesItem("reasonBytes");
 
   order.cancelledTxn = transaction.id;
 
@@ -82,11 +69,8 @@ export function saveOrderCancelledState(
   return order as Order;
 }
 
-export function saveOrderExecutedState(
-  eventData: EventData,
-  transaction: Transaction
-): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderExecutedState(ctx: Ctx): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -95,15 +79,15 @@ export function saveOrderExecutedState(
   }
 
   order.status = "Executed";
-  order.executedTxn = transaction.id;
+  order.executedTxn = ctx.transaction.id;
 
   order.save();
 
   return order as Order;
 }
 
-export function saveOrderFrozenState(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderFrozenState(ctx: Ctx): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -112,16 +96,16 @@ export function saveOrderFrozenState(eventData: EventData): Order | null {
   }
 
   order.status = "Frozen";
-  order.frozenReason = eventData.getStringItem("reason")!;
-  order.frozenReasonBytes = eventData.getBytesItem("reasonBytes")!;
+  order.frozenReason = ctx.getStringItem("reason");
+  order.frozenReasonBytes = ctx.getBytesItem("reasonBytes");
 
   order.save();
 
   return order as Order;
 }
 
-export function saveOrderUpdate(eventData: EventData): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderUpdate(ctx: Ctx): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -129,20 +113,18 @@ export function saveOrderUpdate(eventData: EventData): Order | null {
     return null;
   }
 
-  order.sizeDeltaUsd = eventData.getUintItem("sizeDeltaUsd")!;
-  order.triggerPrice = eventData.getUintItem("triggerPrice")!;
-  order.acceptablePrice = eventData.getUintItem("acceptablePrice")!;
-  order.minOutputAmount = eventData.getUintItem("minOutputAmount")!;
+  order.sizeDeltaUsd = ctx.getUintItem("sizeDeltaUsd");
+  order.triggerPrice = ctx.getUintItem("triggerPrice");
+  order.acceptablePrice = ctx.getUintItem("acceptablePrice");
+  order.minOutputAmount = ctx.getUintItem("minOutputAmount");
 
   order.save();
 
   return order as Order;
 }
 
-export function saveOrderSizeDeltaAutoUpdate(
-  eventData: EventData
-): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderSizeDeltaAutoUpdate(ctx: Ctx): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -150,17 +132,15 @@ export function saveOrderSizeDeltaAutoUpdate(
     return null;
   }
 
-  order.sizeDeltaUsd = eventData.getUintItem("nextSizeDeltaUsd")!;
+  order.sizeDeltaUsd = ctx.getUintItem("nextSizeDeltaUsd");
 
   order.save();
 
   return order as Order;
 }
 
-export function saveOrderCollateralAutoUpdate(
-  eventData: EventData
-): Order | null {
-  let key = eventData.getBytes32Item("key")!.toHexString();
+export function saveOrderCollateralAutoUpdate(ctx: Ctx): Order | null {
+  let key = ctx.getBytes32Item("key").toHexString();
 
   let order = Order.load(key);
 
@@ -168,9 +148,7 @@ export function saveOrderCollateralAutoUpdate(
     return null;
   }
 
-  order.initialCollateralDeltaAmount = eventData.getUintItem(
-    "nextCollateralDeltaAmount"
-  )!;
+  order.initialCollateralDeltaAmount = ctx.getUintItem("nextCollateralDeltaAmount");
 
   order.save();
 
