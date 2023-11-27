@@ -106,7 +106,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
     saveUserMarketInfo(from, marketAddress, value.neg());
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex, "out");
+    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.transactionLogIndex);
   }
 
   // `to` user receives GM tokens
@@ -115,7 +115,7 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
     saveUserMarketInfo(to, marketAddress, value);
     let transaction = getOrCreateTransaction(event);
-    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex, "in");
+    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.transactionLogIndex);
   }
 
   if (from == ADDRESS_ZERO) {
@@ -266,6 +266,8 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
     let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, network, transaction);
+    // only deposits and withdrawals affect marketTokensSupply, for others we may use cached value
+    // be aware: getMarketTokensSupplyFromContract returns value by block number, i.e. latest value in block
     let marketTokensSupply = isDepositOrWithdrawalAction(action)
       ? getMarketTokensSupplyFromContract(swapFeesInfo.marketAddress)
       : getMarketInfo(swapFeesInfo.marketAddress).marketTokensSupply;

@@ -8,51 +8,46 @@ import {
 import { getOrCreateCollectedMarketFees } from "./fees";
 
 let ZERO = BigInt.fromI32(0);
+let ONE = BigInt.fromI32(1);
 
 export function saveUserGmTokensBalanceChange(
   account: string,
   marketAddress: string,
   value: BigInt,
   transaction: Transaction,
-  transactionLogIndex: BigInt,
-  postfix: string
+  transactionLogIndex: BigInt
 ): void {
   let prevEntity = getLatestUserGmTokensBalanceChange(account, marketAddress);
-  let entity = _createUserGmTokensBalanceChange(account, marketAddress, transaction, transactionLogIndex, postfix);
+  let isDeposit = value.gt(ZERO);
+  let entity = _createUserGmTokensBalanceChange(
+    account,
+    marketAddress,
+    transaction,
+    transactionLogIndex,
+    isDeposit ? "in" : "out"
+  );
   let totalFees = CollectedMarketFeesInfo.load(marketAddress + ":total");
   let prevBalance = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
-  let income = prevEntity ? calcIncomeForEntity(prevEntity) : ZERO;
-  let isDeposit = value.gt(ZERO);
+
+  let income = calcIncomeForEntity(prevEntity, isDeposit);
 
   entity.tokensBalance = prevBalance.plus(value);
   entity.cumulativeIncome = prevCumulativeIncome.plus(income);
+  entity.index = prevEntity ? prevEntity.index.plus(ONE) : ZERO;
 
   if (totalFees) {
     entity.cumulativeFeeUsdPerGmToken = isDeposit
-      ? // These transfers happen during DepositExecuted and WithdrawalCreated transactions (different stages)
-        // That's why GM transfer goes After fee is received.
-        // And withdrawal GM balance changes Before fee is received.
-        // so for deposits we are storing extra (prev) fee, and act normally for withdrawals
+      ? // We need to get `cumulativeFeeUsdPerGmToken` value at the time before a deposit or withdrawal occured.
+        // In case of deposits `Transfer` event is emitted inside *execution* transaction *after* `SwapFeesInfo` event.
+        // And in case of withdrawals `Transfer` event is emitted inside *creation* transaction *before* `SwapFeesInfo` is emitted inside subsequent *execution* transaction
         totalFees.prevCumulativeFeeUsdPerGmToken
       : totalFees.cumulativeFeeUsdPerGmToken;
-
-    // we need this on UI side to properly restore income per balance change
-    // (regardless of comment above, just always actual fee by that moment)
-    entity.actualCumulativeFeeUsdPerGmToken = totalFees.cumulativeFeeUsdPerGmToken;
   }
-  entity.index = getBalanceChangeNextIndex(account, marketAddress);
 
   entity.save();
 
   saveLatestUserGmTokensBalanceChange(entity);
-}
-
-function getBalanceChangeNextIndex(account: string, marketAddress: string): BigInt {
-  let id = account + ":" + marketAddress;
-  let latestRef = LatestUserGmTokensBalanceChangeRef.load(id);
-
-  return latestRef ? latestRef.nextIndex : BigInt.fromI32(0);
 }
 
 function getLatestUserGmTokensBalanceChange(account: string, marketAddress: string): UserGmTokensBalanceChange | null {
@@ -63,7 +58,12 @@ function getLatestUserGmTokensBalanceChange(account: string, marketAddress: stri
 
   let latestId = latestRef.latestUserGmTokensBalanceChange;
 
-  if (latestId) return UserGmTokensBalanceChange.load(latestId);
+  if (!latestId) {
+    log.warning("LatestUserGmTokensBalanceChangeRef.latestUserGmTokensBalanceChange is null: {}", [id]);
+    throw new Error("LatestUserGmTokensBalanceChangeRef.latestUserGmTokensBalanceChange is null");
+  }
+
+  return UserGmTokensBalanceChange.load(latestId);
 
   return null;
 }
@@ -74,23 +74,22 @@ function saveLatestUserGmTokensBalanceChange(change: UserGmTokensBalanceChange):
 
   if (!latestRef) {
     latestRef = new LatestUserGmTokensBalanceChangeRef(id);
-    latestRef.account = change.account;
-    latestRef.marketAddress = change.marketAddress;
-    latestRef.nextIndex = BigInt.fromI32(0);
   }
 
-  latestRef.nextIndex = latestRef.nextIndex.plus(BigInt.fromI32(1));
   latestRef.latestUserGmTokensBalanceChange = change.id;
 
   latestRef.save();
 }
 
-function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null): BigInt {
+function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null, isDeposit: boolean): BigInt {
   if (!entity) return ZERO;
   if (entity.tokensBalance.equals(ZERO)) return ZERO;
 
   let currentFees = getOrCreateCollectedMarketFees(entity.marketAddress, 0, "total");
-  let feeUsdPerGmToken = currentFees.cumulativeFeeUsdPerGmToken.minus(entity.cumulativeFeeUsdPerGmToken);
+  let latestCumulativeFeePerGm = isDeposit
+    ? currentFees.prevCumulativeFeeUsdPerGmToken
+    : currentFees.cumulativeFeeUsdPerGmToken;
+  let feeUsdPerGmToken = latestCumulativeFeePerGm.minus(entity.cumulativeFeeUsdPerGmToken);
 
   return feeUsdPerGmToken.times(entity.tokensBalance).div(BigInt.fromI32(10).pow(18));
 }
@@ -121,7 +120,6 @@ function _createUserGmTokensBalanceChange(
   newEntity.timestamp = transaction.timestamp;
   newEntity.cumulativeIncome = ZERO;
   newEntity.cumulativeFeeUsdPerGmToken = ZERO;
-  newEntity.actualCumulativeFeeUsdPerGmToken = ZERO;
 
   return newEntity;
 }

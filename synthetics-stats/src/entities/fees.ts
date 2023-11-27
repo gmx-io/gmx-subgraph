@@ -45,13 +45,14 @@ function updateCollectedFeesFractions(
   feesEntity: CollectedMarketFeesInfo,
   totalFeesEntity: CollectedMarketFeesInfo,
   feeUsdForPool: BigInt,
-  marketTokensSupply: BigInt
+  marketTokensSupply: BigInt,
+  prevCumulativeFeeUsdPerGmToken: BigInt
 ): void {
   feesEntity.feeUsdPerPoolValue = getUpdatedFeeUsdPerPoolValue(feesEntity, feeUsdForPool, poolValue);
   feesEntity.cumulativeFeeUsdPerPoolValue = totalFeesEntity.feeUsdPerPoolValue;
 
   feesEntity.feeUsdPerGmToken = getUpdatedFeeUsdPerGmToken(feesEntity, feeUsdForPool, marketTokensSupply);
-  feesEntity.prevCumulativeFeeUsdPerGmToken = feesEntity.cumulativeFeeUsdPerGmToken;
+  feesEntity.prevCumulativeFeeUsdPerGmToken = prevCumulativeFeeUsdPerGmToken;
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 }
 
@@ -257,14 +258,30 @@ export function saveCollectedMarketFees(
   let totalFees = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "total");
   totalFees.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool.plus(feeUsdForPool);
 
-  updateCollectedFeesFractions(poolValue, totalFees, totalFees, feeUsdForPool, marketTokensSupply);
+  let prevCumulativeFeeUsdPerGmToken = totalFees.cumulativeFeeUsdPerGmToken;
+
+  updateCollectedFeesFractions(
+    poolValue,
+    totalFees,
+    totalFees,
+    feeUsdForPool,
+    marketTokensSupply,
+    prevCumulativeFeeUsdPerGmToken
+  );
 
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
   totalFees.save();
 
   let feesForPeriod = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "1h");
 
-  updateCollectedFeesFractions(poolValue, feesForPeriod, totalFees, feeUsdForPool, marketTokensSupply);
+  updateCollectedFeesFractions(
+    poolValue,
+    feesForPeriod,
+    totalFees,
+    feeUsdForPool,
+    marketTokensSupply,
+    prevCumulativeFeeUsdPerGmToken
+  );
 
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);

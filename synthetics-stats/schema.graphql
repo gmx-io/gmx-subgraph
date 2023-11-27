@@ -214,17 +214,13 @@ type UserGmTokensBalanceChange @entity(immutable: true) {
   timestamp: Int!
   cumulativeIncome: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
-  actualCumulativeFeeUsdPerGmToken: BigInt!
   index: BigInt!
 }
 
 type LatestUserGmTokensBalanceChangeRef @entity {
   # account:marketAddress
   id: ID!
-  account: String!
-  marketAddress: String!
   latestUserGmTokensBalanceChange: UserGmTokensBalanceChange
-  nextIndex: BigInt!
 }
 
 type TradeAction @entity(immutable: true) {
