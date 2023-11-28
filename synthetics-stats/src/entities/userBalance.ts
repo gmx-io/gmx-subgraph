@@ -15,17 +15,11 @@ export function saveUserGmTokensBalanceChange(
   marketAddress: string,
   value: BigInt,
   transaction: Transaction,
-  transactionLogIndex: BigInt
+  logIndex: BigInt
 ): void {
   let prevEntity = getLatestUserGmTokensBalanceChange(account, marketAddress);
   let isDeposit = value.gt(ZERO);
-  let entity = _createUserGmTokensBalanceChange(
-    account,
-    marketAddress,
-    transaction,
-    transactionLogIndex,
-    isDeposit ? "in" : "out"
-  );
+  let entity = _createUserGmTokensBalanceChange(account, marketAddress, transaction, logIndex);
   let totalFees = CollectedMarketFeesInfo.load(marketAddress + ":total");
   let prevBalance = prevEntity ? prevEntity.tokensBalance : ZERO;
   let prevCumulativeIncome = prevEntity ? prevEntity.cumulativeIncome : ZERO;
@@ -98,11 +92,9 @@ function _createUserGmTokensBalanceChange(
   account: string,
   marketAddress: string,
   transaction: Transaction,
-  transactionLogIndex: BigInt,
-  postfix: string
+  logIndex: BigInt
 ): UserGmTokensBalanceChange {
-  let id =
-    account + ":" + marketAddress + ":" + transaction.hash + ":" + transactionLogIndex.toString() + ":" + postfix;
+  let id = account + ":" + marketAddress + ":" + transaction.hash + ":" + logIndex.toString();
   let entity = UserGmTokensBalanceChange.load(id);
 
   if (entity) {
