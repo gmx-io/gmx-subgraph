@@ -190,24 +190,37 @@ type SwapFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
-type PoolValue @entity {
-  # marketAddress
-  id: ID!
-  poolValue: BigInt!
-  pendingFeeUsds: [BigInt!]!
-  pendingCollectedMarketFeesInfoIds: [String!]!
-}
-
 type CollectedMarketFeesInfo @entity {
   # marketAddress:period:timestampGroup
   id: ID!
   period: String!
   marketAddress: String!
   feeUsdForPool: BigInt!
+  cummulativeFeeUsdForPool: BigInt!
   feeUsdPerPoolValue: BigInt!
   cumulativeFeeUsdPerPoolValue: BigInt!
-  cummulativeFeeUsdForPool: BigInt!
+  feeUsdPerGmToken: BigInt!
+  cumulativeFeeUsdPerGmToken: BigInt!
+  prevCumulativeFeeUsdPerGmToken: BigInt!
   timestampGroup: Int!
+}
+
+type UserGmTokensBalanceChange @entity(immutable: true) {
+  # account:marketAddress:timestamp
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokensBalance: BigInt!
+  timestamp: Int!
+  cumulativeIncome: BigInt!
+  cumulativeFeeUsdPerGmToken: BigInt!
+  index: BigInt!
+}
+
+type LatestUserGmTokensBalanceChangeRef @entity {
+  # account:marketAddress
+  id: ID!
+  latestUserGmTokensBalanceChange: UserGmTokensBalanceChange
 }
 
 type TradeAction @entity(immutable: true) {

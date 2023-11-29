@@ -3,11 +3,7 @@ import { Address, log } from "@graphprotocol/graph-ts";
 class ReaderContractConfig {
   public readerContractAddress: Address;
   public dataStoreAddress: Address;
-  constructor(
-    readerContractAddress: string,
-    dataStoreAddress: string,
-    public blockNumber: i32
-  ) {
+  constructor(readerContractAddress: string, dataStoreAddress: string, public blockNumber: i32) {
     this.readerContractAddress = Address.fromString(readerContractAddress);
     this.dataStoreAddress = Address.fromString(dataStoreAddress);
   }
@@ -45,14 +41,12 @@ readerContractByNetwork.set(
   "avalanche",
   new ReaderContractConfig(
     "0xd868eF2fa279b510F64F44C66F08a0AEeBcBdB6b",
-    "0x73BA021ACF4Bb6741E82690DdB821e7936050f8C",
-    35500794 + 1
+    "0x2F0b22339414ADeD7D5F06f9D604c7fF5b2fe3f6",
+    32500437 + 1
   )
 );
 
-export function getReaderContractConfigByNetwork(
-  network: string
-): ReaderContractConfig {
+export function getReaderContractConfigByNetwork(network: string): ReaderContractConfig {
   let contract = readerContractByNetwork.get(network);
   if (!contract) {
     log.warning("Contract address not found for network {}", [network]);

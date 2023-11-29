@@ -1,6 +1,5 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { EventData } from "../../../gmx-referrals/src/utils/eventData";
-import { Distribution, TokenPrice } from "../../generated/schema";
+import { Distribution } from "../../generated/schema";
 import { getTokenPrice } from "./prices";
 
 export function saveDistribution(

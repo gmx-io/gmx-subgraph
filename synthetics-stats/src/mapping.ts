@@ -3,7 +3,7 @@ import { Bytes, BigInt, log } from "@graphprotocol/graph-ts";
 import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
 import { MarketTokenTemplate } from "../generated/templates";
-import { ClaimRef, DepositRef, MarketInfo, Order, TokenPrice } from "../generated/schema";
+import { ClaimRef, DepositRef, MarketInfo, Order } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { SellUSDG } from "../generated/Vault/Vault";
 
@@ -18,7 +18,6 @@ import {
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
 import {
   getSwapActionByFeeType,
-  handleMarketPoolValueUpdated,
   handlePositionImpactPoolDistributed,
   saveCollectedMarketFees,
   savePositionFeesInfo,
@@ -26,7 +25,7 @@ import {
   saveSwapFeesInfo,
   saveSwapFeesInfoWithPeriod
 } from "./entities/fees";
-import { saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
+import { getMarketInfo, saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
 import {
   orderTypes,
   saveOrder,
@@ -60,7 +59,11 @@ import {
   saveUserMarketInfo
 } from "./entities/incentives/liquidityIncentives";
 import { saveDistribution } from "./entities/distributions";
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
+import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
+import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
 import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentives";
+
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export function handleSellUSDG(event: SellUSDG): void {
@@ -102,6 +105,8 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
     saveUserMarketInfo(from, marketAddress, value.neg());
+    let transaction = getOrCreateTransaction(event);
+    saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.logIndex);
   }
 
   // `to` user receives GM tokens
@@ -109,6 +114,16 @@ export function handleMarketTokenTransfer(event: Transfer): void {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
     saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
     saveUserMarketInfo(to, marketAddress, value);
+    let transaction = getOrCreateTransaction(event);
+    saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.logIndex);
+  }
+
+  if (from == ADDRESS_ZERO) {
+    saveMarketInfoTokensSupply(marketAddress, value);
+  }
+
+  if (to == ADDRESS_ZERO) {
+    saveMarketInfoTokensSupply(marketAddress, value.neg());
   }
 }
 
@@ -243,7 +258,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "SwapFeesCollected") {
     let transaction = getOrCreateTransaction(event);
     let swapFeesInfo = saveSwapFeesInfo(eventData, eventId, transaction);
-
     let tokenPrice = eventData.getUintItem("tokenPrice")!;
     let feeReceiverAmount = eventData.getUintItem("feeReceiverAmount")!;
     let feeAmountForPool = eventData.getUintItem("feeAmountForPool")!;
@@ -251,7 +265,20 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let action = getSwapActionByFeeType(swapFeesInfo.swapFeeType);
     let totalAmountIn = amountAfterFees.plus(feeAmountForPool).plus(feeReceiverAmount);
     let volumeUsd = totalAmountIn.times(tokenPrice);
-    saveCollectedMarketFees(action, transaction, swapFeesInfo.marketAddress, swapFeesInfo.feeUsdForPool);
+    let poolValue = getMarketPoolValueFromContract(swapFeesInfo.marketAddress, network, transaction);
+    // only deposits and withdrawals affect marketTokensSupply, for others we may use cached value
+    // be aware: getMarketTokensSupplyFromContract returns value by block number, i.e. latest value in block
+    let marketTokensSupply = isDepositOrWithdrawalAction(action)
+      ? getMarketTokensSupplyFromContract(swapFeesInfo.marketAddress)
+      : getMarketInfo(swapFeesInfo.marketAddress).marketTokensSupply;
+
+    saveCollectedMarketFees(
+      transaction,
+      swapFeesInfo.marketAddress,
+      poolValue,
+      swapFeesInfo.feeUsdForPool,
+      marketTokensSupply
+    );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
     return;
@@ -271,11 +298,17 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let positionFeeAmountForPool = eventData.getUintItem("positionFeeAmountForPool")!;
     let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
     let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
-
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
+    let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
+    let marketInfo = getMarketInfo(positionFeesInfo.marketAddress);
 
-    let action = eventData.getStringItem("action")!;
-    saveCollectedMarketFees(action, transaction, positionFeesInfo.marketAddress, positionFeesInfo.feeUsdForPool);
+    saveCollectedMarketFees(
+      transaction,
+      positionFeesInfo.marketAddress,
+      poolValue,
+      positionFeesInfo.feeUsdForPool,
+      marketInfo.marketTokensSupply
+    );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
@@ -342,16 +375,12 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "MarketPoolValueUpdated") {
     // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
     saveMarketIncentivesStat(eventData, event);
-
-    saveMarketInfoTokensSupply(eventData);
-
-    handleMarketPoolValueUpdated(eventData);
     return;
   }
 
   if (eventName == "PositionImpactPoolDistributed") {
     let transaction = getOrCreateTransaction(event);
-    handlePositionImpactPoolDistributed(eventData, transaction);
+    handlePositionImpactPoolDistributed(eventData, transaction, network);
     return;
   }
 
@@ -471,6 +500,10 @@ function handleEventLog2(event: EventLog2, network: string): void {
     );
     return;
   }
+}
+
+function isDepositOrWithdrawalAction(action: string): boolean {
+  return action == "deposit" || action == "withdrawal";
 }
 
 function handleDepositCreated(event: EventLog2, eventData: EventData): void {
