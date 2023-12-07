@@ -346,6 +346,7 @@ type DepositRef @entity {
 }
 
 type VolumeInfo @entity {
+  # collateralToken:indexToken:period:timestamp
   id: ID!
   period: String!
   volumeUsd: BigInt!
@@ -356,7 +357,7 @@ type VolumeInfo @entity {
 }
 
 type SwapVolumeInfo @entity {
-  # tokenIn:tokenOut:timestamp
+  # tokenIn:tokenOut:period:timestamp
   id: ID!
   period: String!
   tokenIn: String!
