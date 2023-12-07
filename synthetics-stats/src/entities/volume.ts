@@ -43,7 +43,10 @@ export function saveVolumeInfo(type: string, timestamp: i32, volume: BigInt): vo
 
 function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
   let timestampGroup = timestampToPeriodStart(timestamp, period);
-  let volumeId = period === "total" ? "total" : timestampGroup.toString();
+  let volumeId = period;
+  if (period != "total") {
+    volumeId = volumeId + ":" + timestampGroup.toString();
+  }
   let volumeInfo = VolumeInfo.load(volumeId);
 
   if (volumeInfo === null) {
