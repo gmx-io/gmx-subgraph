@@ -395,7 +395,7 @@ type UserStat @entity {
   totalPositionCount: Int!
   totalDepositCount: Int!
   totalWithdrawalCount: Int!
-
+  timestamp: Int!
   period: String!
   uniqueUsers: Int!
 }
