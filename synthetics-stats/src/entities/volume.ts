@@ -57,6 +57,7 @@ function getOrCreateVolumeInfo(timestamp: i32, period: string): VolumeInfo {
     volumeInfo.marginVolumeUsd = BigInt.fromI32(0);
     volumeInfo.depositVolumeUsd = BigInt.fromI32(0);
     volumeInfo.withdrawalVolumeUsd = BigInt.fromI32(0);
+    volumeInfo.timestamp = timestampGroup;
   }
   return volumeInfo as VolumeInfo;
 }

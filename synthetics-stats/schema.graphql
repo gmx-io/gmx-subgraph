@@ -354,6 +354,7 @@ type VolumeInfo @entity {
   swapVolumeUsd: BigInt!
   depositVolumeUsd: BigInt!
   withdrawalVolumeUsd: BigInt!
+  timestamp: Int!
 }
 
 type SwapVolumeInfo @entity {
