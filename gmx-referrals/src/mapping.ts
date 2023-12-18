@@ -1,4 +1,4 @@
-import { BigInt, Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, Address, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import {
   GovSetCodeOwner,
   RegisterCode,
@@ -242,18 +242,18 @@ function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
   dailyAffiliateStat.save();
 
   let totalGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "total", null);
-  totalGlobalStatEntity.referralCodesCount += ONE;
+  totalGlobalStatEntity.referralCodesCount = totalGlobalStatEntity.referralCodesCount.plus(ONE);
   totalGlobalStatEntity.referralCodesCountCumulative = totalGlobalStatEntity.referralCodesCount;
   if (affiliateCreated) {
-    totalGlobalStatEntity.affiliatesCount += ONE;
+    totalGlobalStatEntity.affiliatesCount = totalGlobalStatEntity.affiliatesCount.plus(ONE);
     totalGlobalStatEntity.affiliatesCountCumulative = totalGlobalStatEntity.affiliatesCount;
   }
   totalGlobalStatEntity.save();
 
   let dailyGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "daily", totalGlobalStatEntity);
-  dailyGlobalStatEntity.referralCodesCount += ONE;
+  dailyGlobalStatEntity.referralCodesCount = dailyGlobalStatEntity.referralCodesCount.plus(ONE);
   if (affiliateCreated) {
-    dailyGlobalStatEntity.affiliatesCount += ONE;
+    dailyGlobalStatEntity.affiliatesCount = dailyGlobalStatEntity.affiliatesCount.plus(ONE);
   }
   dailyGlobalStatEntity.save();
 }
@@ -335,8 +335,6 @@ export function handleSetTraderReferralCode(event: SetTraderReferralCode): void 
   if (_createRegisteredReferralIfNotExist(dailyAffiliateStatEntity.id, event.params.account)) {
     dailyAffiliateStatEntity.registeredReferralsCount = dailyAffiliateStatEntity.registeredReferralsCount.plus(ONE);
   }
-  dailyAffiliateStatEntity.registeredReferralsCountCumulative =
-    totalAffiliateStatEntity.registeredReferralsCountCumulative;
   dailyAffiliateStatEntity.save();
 }
 
@@ -509,21 +507,17 @@ function _getOrCreateAffiliateStat(
   let id = _getAffiliateStatId(periodTimestamp, period, affiliate, referralCode);
 
   let entity = AffiliateStat.load(id);
+
   if (entity === null) {
     entity = new AffiliateStat(id);
     entity.volume = ZERO;
     entity.volumeCumulative = ZERO;
     entity.trades = ZERO;
-    entity.tradesCumulative = ZERO;
     entity.tradedReferralsCount = ZERO;
-    entity.tradedReferralsCountCumulative = ZERO;
     entity.registeredReferralsCount = ZERO;
-    entity.registeredReferralsCountCumulative = ZERO;
 
     entity.totalRebateUsd = ZERO;
-    entity.totalRebateUsdCumulative = ZERO;
     entity.discountUsd = ZERO;
-    entity.discountUsdCumulative = ZERO;
 
     entity.timestamp = periodTimestamp;
     entity.affiliate = affiliate.toHexString();
@@ -535,7 +529,31 @@ function _getOrCreateAffiliateStat(
 
     let v2Data = _createAffiliateStatData(id, "v2");
     entity.v2Data = v2Data.id;
+
+    if (period == "total") {
+      entity.totalRebateUsdCumulative = ZERO;
+      entity.tradedReferralsCountCumulative = ZERO;
+      entity.registeredReferralsCountCumulative = ZERO;
+      entity.discountUsdCumulative = ZERO;
+      entity.tradesCumulative = ZERO;
+    } else {
+      let totalPeriodTimestamp = timestampToPeriod(timestamp, "total");
+      let totalId = _getAffiliateStatId(totalPeriodTimestamp, "total", affiliate, referralCode);
+      let totalEntity = AffiliateStat.load(totalId);
+
+      if (totalEntity == null) {
+        throw new Error("AffiliateStat total entity is not found");
+      }
+
+      entity.tradedReferralsCountCumulative = totalEntity.tradedReferralsCountCumulative;
+      entity.registeredReferralsCountCumulative = totalEntity.registeredReferralsCountCumulative;
+      entity.totalRebateUsdCumulative = totalEntity.totalRebateUsdCumulative;
+      entity.discountUsdCumulative = totalEntity.discountUsdCumulative;
+      entity.tradesCumulative = totalEntity.tradesCumulative;
+      entity.volumeCumulative = totalEntity.volumeCumulative;
+    }
   }
+
   return entity as AffiliateStat;
 }
 
@@ -624,6 +642,7 @@ function _storeAffiliateStats(
     entity.volumeCumulative = totalEntity!.volumeCumulative;
     entity.tradesCumulative = totalEntity!.tradesCumulative;
     entity.totalRebateUsdCumulative = totalEntity!.totalRebateUsdCumulative;
+    entity.volumeCumulative = totalEntity!.volumeCumulative;
     entity.discountUsdCumulative = totalEntity!.discountUsdCumulative;
     entity.tradedReferralsCountCumulative = totalEntity!.tradedReferralsCount;
     entity.registeredReferralsCountCumulative = totalEntity!.registeredReferralsCount;
