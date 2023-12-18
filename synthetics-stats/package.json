@@ -2,12 +2,13 @@
   "name": "gmx",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen ./subgraph-fuji.yaml",
-    "build": "graph build ./subgraph-fuji.yaml",
-    "deploy-satsuma:fuji": "graph deploy synthetics-fuji-stats ./subgraph-fuji.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:goerli": "graph deploy synthetics-goerli-stats ./subgraph-goerli.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:arbitrum": "graph deploy synthetics-arbitrum-stats ./subgraph-arbitrum.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:avalanche": "graph deploy synthetics-avalanche-stats ./subgraph-avalanche.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://app.satsuma.xyz/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)"
+    "codegen": "graph codegen ./subgraph-arbitrum.yaml",
+    "build": "graph build ./subgraph-arbitrum.yaml",
+    "deploy-satsuma:fuji": "graph deploy synthetics-fuji-stats ./subgraph-fuji.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
+    "deploy-satsuma:goerli": "graph deploy synthetics-goerli-stats ./subgraph-goerli.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
+    "deploy-satsuma:arbitrum": "graph deploy synthetics-arbitrum-stats ./subgraph-arbitrum.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
+    "deploy-satsuma:avalanche": "graph deploy synthetics-avalanche-stats ./subgraph-avalanche.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
+    "deploy-satsuma:all": "yarn deploy-satsuma:fuji && yarn deploy-satsuma:goerli && yarn deploy-satsuma:arbitrum && yarn deploy-satsuma:avalanche"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",

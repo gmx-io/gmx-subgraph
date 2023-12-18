@@ -1,21 +1,21 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
   PositionFeesInfo,
   PositionIncrease,
   SwapInfo,
+  TokenPrice,
   TradeAction,
-  Transaction,
+  Transaction
 } from "../../generated/schema";
-import { getSwapInfoId } from "./swaps";
+import { getMarketInfo } from "./markets";
 import { orderTypes } from "./orders";
+import { getSwapInfoId } from "./swaps";
 
-export function saveOrderCreatedTradeAction(
-  eventId: string,
-  order: Order,
-  transaction: Transaction
-): TradeAction {
+let ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+export function saveOrderCreatedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderCreated";
@@ -45,11 +45,7 @@ export function saveOrderCancelledTradeAction(
   return tradeAction;
 }
 
-export function saveOrderExecutedTradeAction(
-  eventId: string,
-  order: Order,
-  transaction: Transaction
-): TradeAction {
+export function saveOrderExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderExecuted";
@@ -60,11 +56,7 @@ export function saveOrderExecutedTradeAction(
   return tradeAction;
 }
 
-export function saveOrderUpdatedTradeAction(
-  eventId: string,
-  order: Order,
-  transaction: Transaction
-): TradeAction {
+export function saveOrderUpdatedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   tradeAction.eventName = "OrderUpdated";
@@ -84,6 +76,13 @@ export function saveOrderFrozenTradeAction(
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
+  if (order.marketAddress != ZERO_ADDRESS) {
+    let marketInfo = getMarketInfo(order.marketAddress);
+    let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+    tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+    tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
+  }
+
   tradeAction.eventName = "OrderFrozen";
   tradeAction.reason = reason;
   tradeAction.reasonBytes = reasonBytes;
@@ -94,11 +93,7 @@ export function saveOrderFrozenTradeAction(
   return tradeAction;
 }
 
-export function saveSwapExecutedTradeAction(
-  eventId: string,
-  order: Order,
-  transaction: Transaction
-): TradeAction {
+export function saveSwapExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   let swapPath = order.swapPath!;
@@ -133,6 +128,11 @@ export function savePositionIncreaseExecutedTradeAction(
 ): TradeAction {
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionIncrease = PositionIncrease.load(order.id);
+  let marketInfo = getMarketInfo(order.marketAddress);
+  let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+
+  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
 
   if (positionIncrease == null) {
     throw new Error("PositionIncrease not found " + order.id);
@@ -143,11 +143,11 @@ export function savePositionIncreaseExecutedTradeAction(
   tradeAction.orderKey = order.id;
   tradeAction.orderType = order.orderType;
 
-  tradeAction.initialCollateralDeltaAmount =
-    positionIncrease.collateralDeltaAmount;
+  tradeAction.initialCollateralDeltaAmount = positionIncrease.collateralDeltaAmount;
   tradeAction.sizeDeltaUsd = positionIncrease.sizeDeltaUsd;
 
   tradeAction.executionPrice = positionIncrease.executionPrice;
+  tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
 
   tradeAction.transaction = transaction.id;
 
@@ -156,14 +156,15 @@ export function savePositionIncreaseExecutedTradeAction(
   return tradeAction;
 }
 
-export function savePositionDecreaseExecutedTradeAction(
-  eventId: string,
-  order: Order,
-  transaction: Transaction
-): TradeAction {
+export function savePositionDecreaseExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): void {
   let tradeAction = getTradeActionFromOrder(eventId, order);
   let positionDecrease = PositionDecrease.load(order.id);
   let positionFeesInfo: PositionFeesInfo | null = null;
+  let marketInfo = getMarketInfo(order.marketAddress);
+  let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
+
+  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
 
   if (positionDecrease == null) {
     throw new Error("PositionDecrease not found " + order.id);
@@ -172,18 +173,15 @@ export function savePositionDecreaseExecutedTradeAction(
   let isLiquidation = order.orderType == orderTypes.get("Liquidation");
 
   if (isLiquidation) {
-    positionFeesInfo = PositionFeesInfo.load(
-      order.id + ":" + "PositionFeesInfo"
-    );
+    positionFeesInfo = PositionFeesInfo.load(order.id + ":" + "PositionFeesInfo");
   }
 
   if (positionFeesInfo == null) {
-    positionFeesInfo = PositionFeesInfo.load(
-      order.id + ":" + "PositionFeesCollected"
-    );
+    positionFeesInfo = PositionFeesInfo.load(order.id + ":" + "PositionFeesCollected");
   }
 
   if (positionFeesInfo == null) {
+    log.warning("PositionFeesInfo not found {}", [order.id]);
     throw new Error("PositionFeesInfo not found " + order.id);
   }
 
@@ -194,35 +192,35 @@ export function savePositionDecreaseExecutedTradeAction(
 
   tradeAction.executionPrice = positionDecrease.executionPrice;
 
-  tradeAction.initialCollateralDeltaAmount =
-    positionDecrease.collateralDeltaAmount;
+  tradeAction.initialCollateralDeltaAmount = positionDecrease.collateralDeltaAmount;
   tradeAction.sizeDeltaUsd = positionDecrease.sizeDeltaUsd;
 
-  tradeAction.collateralTokenPriceMin =
-    positionFeesInfo.collateralTokenPriceMin;
-  tradeAction.collateralTokenPriceMax =
-    positionFeesInfo.collateralTokenPriceMax;
+  tradeAction.collateralTokenPriceMin = positionFeesInfo.collateralTokenPriceMin;
+  tradeAction.collateralTokenPriceMax = positionFeesInfo.collateralTokenPriceMax;
 
   tradeAction.priceImpactDiffUsd = positionDecrease.priceImpactDiffUsd;
   tradeAction.priceImpactAmount = positionDecrease.priceImpactAmount;
+  tradeAction.priceImpactUsd = positionDecrease.priceImpactUsd;
 
   tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
   tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
   tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
-  tradeAction.pnlUsd = positionDecrease.pnlUsd;
+  tradeAction.pnlUsd = positionDecrease.basePnlUsd
+    .minus(
+      positionFeesInfo.positionFeeAmount
+        .plus(positionFeesInfo.borrowingFeeAmount)
+        .plus(positionFeesInfo.fundingFeeAmount)
+        .times(positionFeesInfo.collateralTokenPriceMax)
+    )
+    .minus(positionDecrease.priceImpactUsd);
 
   tradeAction.transaction = transaction.id;
 
   tradeAction.save();
-
-  return tradeAction;
 }
 
-export function getTradeActionFromOrder(
-  eventId: string,
-  order: Order
-): TradeAction {
+export function getTradeActionFromOrder(eventId: string, order: Order): TradeAction {
   let tradeAction = new TradeAction(eventId);
 
   tradeAction.orderKey = order.id;
@@ -230,8 +228,7 @@ export function getTradeActionFromOrder(
   tradeAction.account = order.account;
   tradeAction.marketAddress = order.marketAddress;
   tradeAction.swapPath = order.swapPath;
-  tradeAction.initialCollateralTokenAddress =
-    order.initialCollateralTokenAddress;
+  tradeAction.initialCollateralTokenAddress = order.initialCollateralTokenAddress;
 
   tradeAction.initialCollateralDeltaAmount = order.initialCollateralDeltaAmount;
   tradeAction.sizeDeltaUsd = order.sizeDeltaUsd;
