@@ -354,6 +354,7 @@ type VolumeInfo @entity {
   swapVolumeUsd: BigInt!
   depositVolumeUsd: BigInt!
   withdrawalVolumeUsd: BigInt!
+  timestamp: Int!
 }
 
 type SwapVolumeInfo @entity {
@@ -394,7 +395,7 @@ type UserStat @entity {
   totalPositionCount: Int!
   totalDepositCount: Int!
   totalWithdrawalCount: Int!
-
+  timestamp: Int!
   period: String!
   uniqueUsers: Int!
 }

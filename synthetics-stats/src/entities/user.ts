@@ -15,7 +15,7 @@ export function saveUserStat(type: string, account: string, timestamp: i32): voi
     userData.totalWithdrawalCount = 0;
     userData.account = account;
 
-    if(account){
+    if (account) {
       totalUserStats.uniqueUsers += 1;
       dailyUserStats.uniqueUsers += 1;
     }
@@ -63,6 +63,7 @@ function getOrCreateUserStat(timestamp: i32, period: string): UserStat {
     user.totalDepositCount = 0;
     user.totalWithdrawalCount = 0;
     user.uniqueUsers = 0;
+    user.timestamp = timestampGroup;
   }
   return user as UserStat;
 }
