@@ -10,7 +10,16 @@
     "deploy-satsuma:arbitrum": "graph deploy gmx-arbitrum-referrals ./subgraph-arbitrum.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.0"
+    "@babel/preset-env": "^7.23.6",
+    "@graphprotocol/graph-cli": "^0.21.1",
+    "@graphprotocol/graph-ts": "^0.20.0",
+    "@types/jest": "^29.5.11",
+    "axios": "^1.6.2",
+    "jest": "^29.7.0"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.23.3",
+    "@jest/globals": "^29.7.0",
+    "ts-jest": "^29.1.1"
   }
 }
