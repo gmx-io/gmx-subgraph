@@ -9,6 +9,7 @@ import {
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { orderTypes } from "./orders";
+import { CollateralClaimedEventData } from "../utils/eventData/CollateralClaimedEventData";
 
 let ZERO = BigInt.fromI32(0);
 let ONE = BigInt.fromI32(1);
@@ -102,11 +103,12 @@ export function saveClaimActionOnOrderExecuted(transaction: Transaction, eventDa
 }
 
 export function handleCollateralClaimAction(eventName: string, eventData: EventData, transaction: Transaction): void {
+  let data = new CollateralClaimedEventData(eventData);
   let claimCollateralAction = getOrCreateClaimCollateralAction(eventName, eventData, transaction);
   let claimAction = getOrCreateClaimAction(eventName, eventData, transaction);
 
-  addFieldsToCollateralLikeClaimAction(claimAction, eventData);
-  addFieldsToCollateralLikeClaimAction(claimCollateralAction as ClaimAction, eventData);
+  addFieldsToCollateralLikeClaimAction(claimAction, data);
+  addFieldsToCollateralLikeClaimAction(claimCollateralAction as ClaimAction, data);
 
   claimCollateralAction.save();
   claimAction.save();
@@ -141,17 +143,17 @@ export function saveClaimableFundingFeeInfo(eventData: EventData, transaction: T
   return entity!;
 }
 
-function addFieldsToCollateralLikeClaimAction(claimAction: ClaimAction, eventData: EventData): void {
+function addFieldsToCollateralLikeClaimAction(claimAction: ClaimAction, eventData: CollateralClaimedEventData): void {
   let marketAddresses = claimAction.marketAddresses;
-  marketAddresses.push(eventData.getAddressItemString("market")!);
+  marketAddresses.push(eventData.market);
   claimAction.marketAddresses = marketAddresses;
 
   let tokenAddresses = claimAction.tokenAddresses;
-  tokenAddresses.push(eventData.getAddressItemString("token")!);
+  tokenAddresses.push(eventData.token);
   claimAction.tokenAddresses = tokenAddresses;
 
   let amounts = claimAction.amounts;
-  amounts.push(eventData.getUintItem("amount")!);
+  amounts.push(eventData.amount);
   claimAction.amounts = amounts;
 }
 
