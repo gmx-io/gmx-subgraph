@@ -367,7 +367,8 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
-    handleCollateralClaimAction("ClaimPriceImpactFee", eventData, transaction);
+    handleCollateralClaimAction("ClaimPriceImpact", eventData, transaction);
+    handleCollateralClaimed(eventData);
     return;
   }
 
@@ -401,11 +402,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "SetClaimableCollateralFactorForTime") {
     handleSetClaimableCollateralFactorForTime(eventData);
-    return;
-  }
-
-  if (eventName == "CollateralClaimed") {
-    handleCollateralClaimed(eventData);
     return;
   }
 }
