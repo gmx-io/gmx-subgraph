@@ -1,3 +1,4 @@
+import { BigInt } from "@graphprotocol/graph-ts";
 import { PriceImpactRebateByUser, PriceImpactRebateFactorByTime } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { ClaimableCollateralUpdatedEventData } from "../utils/eventData/ClaimableCollateralUpdatedEventData";
@@ -56,6 +57,7 @@ function getOrCreatePriceImpactRebateByUser(
     entity.tokenAddress = token;
     entity.timeKey = timeKey;
     entity.claimed = false;
+    entity.factor = BigInt.fromI32(0);
   }
 
   return entity!;
@@ -74,6 +76,7 @@ function getOrCreatePriceImpactRebateFactorByTime(
     entity.marketAddress = market;
     entity.tokenAddress = token;
     entity.timeKey = timeKey;
+    entity.factor = BigInt.fromI32(0);
   }
 
   return entity!;
