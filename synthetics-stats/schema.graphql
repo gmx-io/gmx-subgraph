@@ -157,6 +157,27 @@ type PositionFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
+type PriceImpactRebateByUser @entity {
+  # account:market:token:timeKey
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokenAddress: String!
+  timeKey: String!
+  value: BigInt!
+  claimed: Boolean!
+  factor: BigInt!
+}
+
+type PriceImpactRebateFactorByTime @entity {
+  # market:token:timeKey
+  id: ID!
+  marketAddress: String!
+  tokenAddress: String!
+  timeKey: String!
+  factor: BigInt!
+}
+
 type SwapInfo @entity(immutable: true) {
   # orderKey:marketAddress
   id: ID!

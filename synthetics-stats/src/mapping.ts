@@ -63,6 +63,11 @@ import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFr
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
 import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentives";
+import {
+  handleClaimableCollateralUpdated,
+  handleCollateralClaimed,
+  handleSetClaimableCollateralFactorForTime
+} from "./entities/priceImpactRebate";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -386,6 +391,21 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "OraclePriceUpdate") {
     handleOraclePriceUpdate(eventData);
+    return;
+  }
+
+  if (eventName == "ClaimableCollateralUpdated") {
+    handleClaimableCollateralUpdated(eventData);
+    return;
+  }
+
+  if (eventName == "SetClaimableCollateralFactorForTime") {
+    handleSetClaimableCollateralFactorForTime(eventData);
+    return;
+  }
+
+  if (eventName == "CollateralClaimed") {
+    handleCollateralClaimed(eventData);
     return;
   }
 }
