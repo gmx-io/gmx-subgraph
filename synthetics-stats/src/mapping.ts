@@ -399,11 +399,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
     handleClaimableCollateralUpdated(eventData);
     return;
   }
-
-  if (eventName == "SetClaimableCollateralFactorForTime") {
-    handleSetClaimableCollateralFactorForTime(eventData);
-    return;
-  }
 }
 
 function handleEventLog2(event: EventLog2, network: string): void {
@@ -419,6 +414,11 @@ function handleEventLog2(event: EventLog2, network: string): void {
     } else {
       saveOrderCreatedTradeAction(eventId, order, transaction);
     }
+    return;
+  }
+
+  if (eventName == "SetClaimableCollateralFactorForTime") {
+    handleSetClaimableCollateralFactorForTime(eventData);
     return;
   }
 
