@@ -66,6 +66,7 @@ import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentiv
 import {
   handleClaimableCollateralUpdated,
   handleCollateralClaimed,
+  handleSetClaimableCollateralFactorForAccount,
   handleSetClaimableCollateralFactorForTime
 } from "./entities/priceImpactRebate";
 
@@ -419,6 +420,11 @@ function handleEventLog2(event: EventLog2, network: string): void {
 
   if (eventName == "SetClaimableCollateralFactorForTime") {
     handleSetClaimableCollateralFactorForTime(eventData);
+    return;
+  }
+
+  if (eventName == "SetClaimableCollateralFactorForAccount") {
+    handleSetClaimableCollateralFactorForAccount(eventData);
     return;
   }
 

@@ -4,16 +4,17 @@ import { EventData } from "../eventData";
 /*
 EventLog2: ClaimableCollateralUpdated
 
-eventData.addressItems.initItems(2);
-eventData.addressItems.setItem(0, "market", market);
-eventData.addressItems.setItem(1, "token", token);
+addressItems.initItems(3);
+addressItems.setItem(0, "market", market);
+addressItems.setItem(1, "token", token);
+addressItems.setItem(2, "account", account);
 
-eventData.uintItems.initItems(2);
-eventData.uintItems.setItem(0, "timeKey", timeKey);
-eventData.uintItems.setItem(1, "factor", factor);
+uintItems.initItems(2);
+uintItems.setItem(0, "timeKey", timeKey);
+uintItems.setItem(1, "factor", factor);
 */
 
-export class SetClaimableCollateralFactorForTimeEventData {
+export class SetClaimableCollateralFactorForAccountEventData {
   constructor(private eventData: EventData) {}
 
   get market(): string {
@@ -22,6 +23,10 @@ export class SetClaimableCollateralFactorForTimeEventData {
 
   get token(): string {
     return this.eventData.getAddressItemString("token")!;
+  }
+
+  get account(): string {
+    return this.eventData.getAddressItemString("account")!;
   }
 
   get timeKey(): string {
