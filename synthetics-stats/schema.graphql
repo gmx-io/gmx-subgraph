@@ -463,6 +463,14 @@ type UserMarketInfo @entity {
   marketAddress: String!
 }
 
+type SellUSDG @entity {
+  # it is used as a temporary storage for RemoveLiquidity event
+  id: ID!
+  txHash: String!
+  logIndex: Int!
+  feeBasisPoints: BigInt!
+}
+
 type UserGlpGmMigrationStat @entity {
   # account:period:timestamp
   id: ID!
