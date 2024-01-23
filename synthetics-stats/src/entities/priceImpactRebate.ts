@@ -1,5 +1,5 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { PriceImpactRebate, PriceImpactRebateGroup } from "../../generated/schema";
+import { ClaimableCollateral, ClaimableCollateralGroup } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { ClaimableCollateralUpdatedEventData } from "../utils/eventData/ClaimableCollateralUpdatedEventData";
 import { CollateralClaimedEventData } from "../utils/eventData/CollateralClaimedEventData";
@@ -8,15 +8,15 @@ import { SetClaimableCollateralFactorForAccountEventData } from "../utils/eventD
 
 export function handleClaimableCollateralUpdated(eventData: EventData): void {
   let data = new ClaimableCollateralUpdatedEventData(eventData);
-  let entity = getOrCreatePriceImpactRebate(data.account, data.market, data.token, data.timeKey);
-  let groupEntity = getOrCreatePriceImpactRebateGroup(data.market, data.token, data.timeKey);
+  let entity = getOrCreateClaimableCollateral(data.account, data.market, data.token, data.timeKey);
+  let groupEntity = getOrCreateClaimableCollateralGroup(data.market, data.token, data.timeKey);
 
   entity.value = data.nextValue;
   entity.factorByTime = groupEntity.factor;
 
-  let rebates = groupEntity.rebates;
-  rebates.push(entity.id);
-  groupEntity.rebates = rebates;
+  let claimables = groupEntity.claimables;
+  claimables.push(entity.id);
+  groupEntity.claimables = claimables;
 
   entity.save();
   groupEntity.save();
@@ -25,29 +25,29 @@ export function handleClaimableCollateralUpdated(eventData: EventData): void {
 export function handleSetClaimableCollateralFactorForTime(eventData: EventData): void {
   let data = new SetClaimableCollateralFactorForTimeEventData(eventData);
 
-  let entity = getOrCreatePriceImpactRebateGroup(data.market, data.token, data.timeKey);
+  let entity = getOrCreateClaimableCollateralGroup(data.market, data.token, data.timeKey);
 
   entity.factor = data.factor;
 
-  let rebates = entity.rebates;
+  let claimables = entity.claimables;
 
-  for (let i = 0; i < rebates.length; i++) {
-    let rebateId = rebates[i];
+  for (let i = 0; i < claimables.length; i++) {
+    let id = claimables[i];
 
-    if (!rebateId) {
-      log.warning("Rebate id is undefined {}", [i.toString()]);
-      throw new Error("Rebate id is undefined");
+    if (!id) {
+      log.warning("ClaimableCollateral id is undefined {}", [i.toString()]);
+      throw new Error("ClaimableCollateral id is undefined");
     }
 
-    let rebate = PriceImpactRebate.load(rebateId.toString());
+    let claimable = ClaimableCollateral.load(id.toString());
 
-    if (rebate == null) {
-      log.warning("Rebate not found {}", [rebateId]);
-      throw new Error("Rebate not found");
+    if (claimable == null) {
+      log.warning("ClaimableCollateral not found {}", [id]);
+      throw new Error("ClaimableCollateral not found");
     }
 
-    rebate.factorByTime = data.factor;
-    rebate.save();
+    claimable.factorByTime = data.factor;
+    claimable.save();
   }
 
   entity.save();
@@ -56,7 +56,7 @@ export function handleSetClaimableCollateralFactorForTime(eventData: EventData):
 export function handleSetClaimableCollateralFactorForAccount(eventData: EventData): void {
   let data = new SetClaimableCollateralFactorForAccountEventData(eventData);
 
-  let entity = getOrCreatePriceImpactRebate(data.account, data.market, data.token, data.timeKey);
+  let entity = getOrCreateClaimableCollateral(data.account, data.market, data.token, data.timeKey);
 
   entity.factor = data.factor;
 
@@ -66,23 +66,23 @@ export function handleSetClaimableCollateralFactorForAccount(eventData: EventDat
 export function handleCollateralClaimed(eventData: EventData): void {
   let data = new CollateralClaimedEventData(eventData);
 
-  let entity = getOrCreatePriceImpactRebate(data.account, data.market, data.token, data.timeKey);
+  let entity = getOrCreateClaimableCollateral(data.account, data.market, data.token, data.timeKey);
   entity.claimed = true;
   entity.save();
 }
 
-function getOrCreatePriceImpactRebate(
+function getOrCreateClaimableCollateral(
   account: string,
   market: string,
   token: string,
   timeKey: string
-): PriceImpactRebate {
+): ClaimableCollateral {
   let id = account + ":" + market + ":" + token + ":" + timeKey;
 
-  let entity = PriceImpactRebate.load(id);
+  let entity = ClaimableCollateral.load(id);
 
   if (entity == null) {
-    entity = new PriceImpactRebate(id);
+    entity = new ClaimableCollateral(id);
     entity.account = account;
     entity.marketAddress = market;
     entity.tokenAddress = token;
@@ -94,16 +94,16 @@ function getOrCreatePriceImpactRebate(
   return entity!;
 }
 
-function getOrCreatePriceImpactRebateGroup(market: string, token: string, timeKey: string): PriceImpactRebateGroup {
+function getOrCreateClaimableCollateralGroup(market: string, token: string, timeKey: string): ClaimableCollateralGroup {
   let id = market + ":" + token + ":" + timeKey.toString();
-  let entity = PriceImpactRebateGroup.load(id);
+  let entity = ClaimableCollateralGroup.load(id);
 
   if (entity == null) {
-    entity = new PriceImpactRebateGroup(id);
+    entity = new ClaimableCollateralGroup(id);
     entity.marketAddress = market;
     entity.tokenAddress = token;
     entity.timeKey = timeKey;
-    entity.rebates = new Array<string>(0);
+    entity.claimables = new Array<string>(0);
     entity.factor = BigInt.fromI32(0);
   }
 

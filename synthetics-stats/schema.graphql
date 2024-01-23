@@ -157,7 +157,7 @@ type PositionFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
-type PriceImpactRebate @entity {
+type ClaimableCollateral @entity {
   # account:market:token:timeKey
   id: ID!
   account: String!
@@ -170,14 +170,14 @@ type PriceImpactRebate @entity {
   factorByTime: BigInt!
 }
 
-type PriceImpactRebateGroup @entity {
+type ClaimableCollateralGroup @entity {
   # market:token:timeKey
   id: ID!
   timeKey: String!
   marketAddress: String!
   tokenAddress: String!
   factor: BigInt!
-  rebates: [PriceImpactRebate!]!
+  claimables: [ClaimableCollateral!]!
 }
 
 type SwapInfo @entity(immutable: true) {
