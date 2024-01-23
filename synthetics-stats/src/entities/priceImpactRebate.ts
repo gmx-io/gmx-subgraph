@@ -15,7 +15,11 @@ export function handleClaimableCollateralUpdated(eventData: EventData): void {
   entity.factorByTime = groupEntity.factor;
 
   let claimables = groupEntity.claimables;
-  claimables.push(entity.id);
+
+  if (!claimables.includes(entity.id)) {
+    claimables.push(entity.id);
+  }
+
   groupEntity.claimables = claimables;
 
   entity.save();
