@@ -1,11 +1,12 @@
-import { Bytes, BigInt, log } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 
 import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
 import { MarketTokenTemplate } from "../generated/templates";
-import { ClaimRef, DepositRef, MarketInfo, Order } from "../generated/schema";
+import { ClaimRef, DepositRef, MarketInfo, Order, SellUSDG } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
-import { SellUSDG } from "../generated/Vault/Vault";
+import { SellUSDG as SellUSDGEvent } from "../generated/Vault/Vault";
+import { RemoveLiquidity } from "../generated/GlpManager/GlpManager";
 
 import {
   saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
@@ -71,13 +72,46 @@ import {
 } from "./entities/priceImpactRebate";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+let SELL_USDG_ID = "last";
 
-export function handleSellUSDG(event: SellUSDG): void {
+export function handleSellUSDG(event: SellUSDGEvent): void {
+  let sellUsdgEntity = new SellUSDG(SELL_USDG_ID);
+  sellUsdgEntity.txHash = event.transaction.hash.toHexString();
+  sellUsdgEntity.logIndex = event.logIndex.toI32();
+  sellUsdgEntity.feeBasisPoints = event.params.feeBasisPoints;
+  sellUsdgEntity.save();
+}
+
+export function handleRemoveLiquidity(event: RemoveLiquidity): void {
+  let sellUsdgEntity = SellUSDG.load(SELL_USDG_ID);
+
+  if (sellUsdgEntity == null) {
+    log.error("No SellUSDG entity tx: {}", [event.transaction.hash.toHexString()]);
+    throw new Error("No SellUSDG entity");
+  }
+
+  if (sellUsdgEntity.txHash != event.transaction.hash.toHexString()) {
+    log.error("SellUSDG entity tx hashes don't match: expected {} actual {}", [
+      event.transaction.hash.toHexString(),
+      sellUsdgEntity.txHash
+    ]);
+    throw new Error("SellUSDG entity tx hashes don't match");
+  }
+
+  let expectedLogIndex = event.logIndex.toI32() - 1;
+  if (sellUsdgEntity.logIndex != expectedLogIndex) {
+    log.error("SellUSDG entity incorrect log index: expected {} got {}", [
+      expectedLogIndex.toString(),
+      (sellUsdgEntity.logIndex as number).toString()
+    ]);
+    throw new Error("SellUSDG entity tx hashes don't match");
+  }
+
   saveUserGlpGmMigrationStatGlpData(
     event.params.account.toHexString(),
     event.block.timestamp.toI32(),
     event.params.usdgAmount,
-    event.params.feeBasisPoints
+    sellUsdgEntity.feeBasisPoints
   );
 }
 
