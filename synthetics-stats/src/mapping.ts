@@ -64,6 +64,12 @@ import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFr
 import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
 import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentives";
+import {
+  handleClaimableCollateralUpdated,
+  handleCollateralClaimed,
+  handleSetClaimableCollateralFactorForAccount,
+  handleSetClaimableCollateralFactorForTime
+} from "./entities/priceImpactRebate";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 let SELL_USDG_ID = "last";
@@ -397,6 +403,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "CollateralClaimed") {
     let transaction = getOrCreateTransaction(event);
     handleCollateralClaimAction("ClaimPriceImpact", eventData, transaction);
+    handleCollateralClaimed(eventData);
     return;
   }
 
@@ -422,6 +429,11 @@ function handleEventLog1(event: EventLog1, network: string): void {
     handleOraclePriceUpdate(eventData);
     return;
   }
+
+  if (eventName == "ClaimableCollateralUpdated") {
+    handleClaimableCollateralUpdated(eventData);
+    return;
+  }
 }
 
 function handleEventLog2(event: EventLog2, network: string): void {
@@ -437,6 +449,16 @@ function handleEventLog2(event: EventLog2, network: string): void {
     } else {
       saveOrderCreatedTradeAction(eventId, order, transaction);
     }
+    return;
+  }
+
+  if (eventName == "SetClaimableCollateralFactorForTime") {
+    handleSetClaimableCollateralFactorForTime(eventData);
+    return;
+  }
+
+  if (eventName == "SetClaimableCollateralFactorForAccount") {
+    handleSetClaimableCollateralFactorForAccount(eventData);
     return;
   }
 

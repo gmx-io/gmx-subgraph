@@ -157,6 +157,29 @@ type PositionFeesInfo @entity(immutable: true) {
   transaction: Transaction!
 }
 
+type ClaimableCollateral @entity {
+  # account:market:token:timeKey
+  id: ID!
+  account: String!
+  marketAddress: String!
+  tokenAddress: String!
+  timeKey: String!
+  value: BigInt!
+  claimed: Boolean!
+  factor: BigInt!
+  factorByTime: BigInt!
+}
+
+type ClaimableCollateralGroup @entity {
+  # market:token:timeKey
+  id: ID!
+  timeKey: String!
+  marketAddress: String!
+  tokenAddress: String!
+  factor: BigInt!
+  claimables: [ClaimableCollateral!]!
+}
+
 type SwapInfo @entity(immutable: true) {
   # orderKey:marketAddress
   id: ID!
