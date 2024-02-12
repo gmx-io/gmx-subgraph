@@ -207,13 +207,13 @@ export function savePositionDecreaseExecutedTradeAction(eventId: string, order: 
   tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
   tradeAction.pnlUsd = positionDecrease.basePnlUsd
-    .minus(
+    .plus(
       positionFeesInfo.positionFeeAmount
         .plus(positionFeesInfo.borrowingFeeAmount)
         .plus(positionFeesInfo.fundingFeeAmount)
         .times(positionFeesInfo.collateralTokenPriceMax)
     )
-    .minus(positionDecrease.priceImpactUsd);
+    .plus(positionDecrease.priceImpactUsd);
 
   tradeAction.transaction = transaction.id;
 
