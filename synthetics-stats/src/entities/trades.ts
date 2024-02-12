@@ -207,7 +207,7 @@ export function savePositionDecreaseExecutedTradeAction(eventId: string, order: 
   tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
   tradeAction.pnlUsd = positionDecrease.basePnlUsd
-    .plus(
+    .minus(
       positionFeesInfo.positionFeeAmount
         .plus(positionFeesInfo.borrowingFeeAmount)
         .plus(positionFeesInfo.fundingFeeAmount)
