@@ -275,6 +275,7 @@ type TradeAction @entity(immutable: true) {
   borrowingFeeAmount: BigInt
   fundingFeeAmount: BigInt
   pnlUsd: BigInt
+  basePnlUsd: BigInt
   isLong: Boolean
 
   # swaps
