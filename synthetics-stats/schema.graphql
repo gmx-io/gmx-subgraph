@@ -286,6 +286,7 @@ type TradeAction @entity(immutable: true) {
   reason: String
   reasonBytes: Bytes
 
+  timestamp: Int!
   transaction: Transaction!
 }
 

@@ -217,6 +217,7 @@ export function savePositionDecreaseExecutedTradeAction(eventId: string, order: 
     .plus(positionDecrease.priceImpactUsd);
 
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 }
