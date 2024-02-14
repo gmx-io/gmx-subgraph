@@ -20,6 +20,7 @@ export function saveOrderCreatedTradeAction(eventId: string, order: Order, trans
 
   tradeAction.eventName = "OrderCreated";
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
@@ -39,6 +40,7 @@ export function saveOrderCancelledTradeAction(
   tradeAction.reason = reason;
   tradeAction.reasonBytes = reasonBytes;
   tradeAction.transaction = tranaction.id;
+  tradeAction.timestamp = tranaction.timestamp;
 
   tradeAction.save();
 
@@ -50,6 +52,7 @@ export function saveOrderExecutedTradeAction(eventId: string, order: Order, tran
 
   tradeAction.eventName = "OrderExecuted";
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
@@ -61,6 +64,7 @@ export function saveOrderUpdatedTradeAction(eventId: string, order: Order, trans
 
   tradeAction.eventName = "OrderUpdated";
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
@@ -87,6 +91,7 @@ export function saveOrderFrozenTradeAction(
   tradeAction.reason = reason;
   tradeAction.reasonBytes = reasonBytes;
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
@@ -115,6 +120,7 @@ export function saveSwapExecutedTradeAction(eventId: string, order: Order, trans
 
   tradeAction.executionAmountOut = swapInfo.amountOut;
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
@@ -150,6 +156,7 @@ export function savePositionIncreaseExecutedTradeAction(
   tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
 
   tradeAction.transaction = transaction.id;
+  tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
 
