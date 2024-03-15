@@ -1,0 +1,25 @@
+{
+  "name": "leaders",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen ./subgraph-avalanche.yaml",
+    "build": "graph build ./subgraph-avalanche.yaml",
+    "deploy": "graph deploy --product hosted-service ullin-oi/leaderboards ./subgraph-$NETWORK.yaml",
+    "deploy:arbitrum": "NETWORK=arbitrum yarn deploy",
+    "deploy:avalanche": "NETWORK=avalanche yarn deploy",
+    "deploy:fuji": "NETWORK=fuji yarn deploy",
+    "deploy:goerli": "NETWORK=goerli yarn deploy",
+    "deploy-studio": "graph deploy --node https://api.studio.thegraph.com/deploy/ leaders",
+    "create-local": "graph create --node http://localhost:8020/ leaders",
+    "remove-local": "graph remove --node http://localhost:8020/ leaders",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 leaders",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.51.2",
+    "@graphprotocol/graph-ts": "0.30.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "^0.5.2"
+  }
+}

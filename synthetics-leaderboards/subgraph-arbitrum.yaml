@@ -1,0 +1,28 @@
+specVersion: 0.0.5
+description: GMX
+repository: https://github.com/gmx-io/gmx-subgraph
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum/contract
+    name: EventEmitter
+    network: arbitrum-one
+    source:
+      address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb"
+      abi: EventEmitter
+      startBlock: 107737756
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AccountPerf
+        - AccountOpenPosition
+      abis:
+        - name: EventEmitter
+          file: ./abis/EventEmitter.json
+      eventHandlers:
+        - event: EventLog1(address,string,indexed string,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
+          handler: handleEventLog1
+      file: ./src/mapping.ts
