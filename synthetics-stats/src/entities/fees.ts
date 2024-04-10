@@ -47,13 +47,13 @@ function updateCollectedFeesFractions(
   feeUsdForPool: BigInt,
   feeUsdForPoolExcludingBorrowing: BigInt,
   marketTokensSupply: BigInt,
-  prevCumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt
+  prevCumulativeFeeUsdPerGmToken: BigInt
 ): void {
   feesEntity.feeUsdPerPoolValue = getUpdatedFeeUsdPerPoolValue(feesEntity, feeUsdForPool, poolValue);
   feesEntity.cumulativeFeeUsdPerPoolValue = totalFeesEntity.feeUsdPerPoolValue;
 
   feesEntity.feeUsdPerGmToken = getUpdatedFeeUsdPerGmToken(feesEntity, feeUsdForPool, marketTokensSupply);
-  feesEntity.prevCumulativeFeeUsdExcludingBorrowingPerGmToken = prevCumulativeFeeUsdExcludingBorrowingPerGmToken;
+  feesEntity.prevCumulativeFeeUsdPerGmToken = prevCumulativeFeeUsdPerGmToken;
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 
   feesEntity.feeUsdExcludingBorrowingPerGmToken = getUpdatedFeeUsdExcludingBorrowingPerGmToken(
@@ -284,7 +284,7 @@ export function saveCollectedMarketFees(
     feeUsdForPoolExcludingBorrowing
   );
 
-  let prev = totalFees.cumulativeFeeUsdExcludingBorrowingPerGmToken;
+  let prevCumulativeFeeUsdPerGmToken = totalFees.cumulativeFeeUsdPerGmToken;
 
   updateCollectedFeesFractions(
     poolValue,
@@ -293,7 +293,7 @@ export function saveCollectedMarketFees(
     feeUsdForPool,
     feeUsdForPoolExcludingBorrowing,
     marketTokensSupply,
-    prev
+    prevCumulativeFeeUsdPerGmToken
   );
 
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
@@ -311,7 +311,7 @@ export function saveCollectedMarketFees(
     feeUsdForPool,
     feeUsdForPoolExcludingBorrowing,
     marketTokensSupply,
-    prev
+    prevCumulativeFeeUsdPerGmToken
   );
 
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;

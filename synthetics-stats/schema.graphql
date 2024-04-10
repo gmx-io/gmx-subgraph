@@ -230,10 +230,10 @@ type CollectedMarketFeesInfo @entity {
 
   feeUsdExcludingBorrowingPerGmToken: BigInt!
   cumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt!
-  prevCumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt!
 
   feeUsdPerGmToken: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
+  prevCumulativeFeeUsdPerGmToken: BigInt!
 
   timestampGroup: Int!
 }
