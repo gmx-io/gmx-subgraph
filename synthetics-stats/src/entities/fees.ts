@@ -162,7 +162,7 @@ export function getOrCreateCollectedMarketFees(
     collectedFees.cumulativeFeeUsdPerPoolValue = ZERO;
     collectedFees.feeUsdPerGmToken = ZERO;
     collectedFees.cumulativeFeeUsdPerGmToken = ZERO;
-    collectedFees.prevCumulativeFeeUsdExcludingBorrowingPerGmToken = ZERO;
+    collectedFees.prevCumulativeFeeUsdPerGmToken = ZERO;
 
     collectedFees.feeUsdExcludingBorrowingPerGmToken = ZERO;
     collectedFees.cumulativeFeeUsdExcludingBorrowingPerGmToken = ZERO;
