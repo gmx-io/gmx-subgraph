@@ -218,13 +218,23 @@ type CollectedMarketFeesInfo @entity {
   id: ID!
   period: String!
   marketAddress: String!
+
   feeUsdForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
+
   feeUsdPerPoolValue: BigInt!
   cumulativeFeeUsdPerPoolValue: BigInt!
+
+  feeUsdForPoolExcludingBorrowing: BigInt!
+  cumulativeFeeUsdForPoolExcludingBorrowing: BigInt!
+
+  feeUsdExcludingBorrowingPerGmToken: BigInt!
+  cumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt!
+  prevCumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt!
+
   feeUsdPerGmToken: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
-  prevCumulativeFeeUsdPerGmToken: BigInt!
+
   timestampGroup: Int!
 }
 

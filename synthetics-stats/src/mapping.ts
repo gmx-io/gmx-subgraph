@@ -70,6 +70,7 @@ import {
   handleSetClaimableCollateralFactorForAccount,
   handleSetClaimableCollateralFactorForTime
 } from "./entities/priceImpactRebate";
+import { ZERO } from "./utils/number";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 let SELL_USDG_ID = "last";
@@ -317,7 +318,9 @@ function handleEventLog1(event: EventLog1, network: string): void {
       swapFeesInfo.marketAddress,
       poolValue,
       swapFeesInfo.feeUsdForPool,
-      marketTokensSupply
+      marketTokensSupply,
+      ZERO,
+      false
     );
     saveVolumeInfo(action, transaction.timestamp, volumeUsd);
     saveSwapFeesInfoWithPeriod(feeAmountForPool, feeReceiverAmount, tokenPrice, transaction.timestamp);
@@ -347,7 +350,9 @@ function handleEventLog1(event: EventLog1, network: string): void {
       positionFeesInfo.marketAddress,
       poolValue,
       positionFeesInfo.feeUsdForPool,
-      marketInfo.marketTokensSupply
+      marketInfo.marketTokensSupply,
+      borrowingFeeUsd,
+      false
     );
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,

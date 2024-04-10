@@ -38,11 +38,11 @@ export function saveUserGmTokensBalanceChange(
 
   if (totalFees) {
     entity.cumulativeFeeUsdPerGmToken = isDeposit
-      ? // We need to get `cumulativeFeeUsdPerGmToken` value at the time before a deposit or withdrawal occured.
+      ? // We need to get `cumulativeFeeUsdExcludingBorrowingPerGmToken` value at the time before a deposit or withdrawal occured.
         // In case of deposits `Transfer` event is emitted inside *execution* transaction *after* `SwapFeesInfo` event.
         // And in case of withdrawals `Transfer` event is emitted inside *creation* transaction *before* `SwapFeesInfo` is emitted inside subsequent *execution* transaction
-        totalFees.prevCumulativeFeeUsdPerGmToken
-      : totalFees.cumulativeFeeUsdPerGmToken;
+        totalFees.prevCumulativeFeeUsdExcludingBorrowingPerGmToken
+      : totalFees.cumulativeFeeUsdExcludingBorrowingPerGmToken;
   }
 
   entity.save();
@@ -87,8 +87,8 @@ function calcIncomeForEntity(entity: UserGmTokensBalanceChange | null, isDeposit
 
   let currentFees = getOrCreateCollectedMarketFees(entity.marketAddress, 0, "total");
   let latestCumulativeFeePerGm = isDeposit
-    ? currentFees.prevCumulativeFeeUsdPerGmToken
-    : currentFees.cumulativeFeeUsdPerGmToken;
+    ? currentFees.prevCumulativeFeeUsdExcludingBorrowingPerGmToken
+    : currentFees.cumulativeFeeUsdExcludingBorrowingPerGmToken;
   let feeUsdPerGmToken = latestCumulativeFeePerGm.minus(entity.cumulativeFeeUsdPerGmToken);
 
   return feeUsdPerGmToken.times(entity.tokensBalance).div(BigInt.fromI32(10).pow(18));
