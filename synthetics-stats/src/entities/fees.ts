@@ -56,12 +56,12 @@ function updateCollectedFeesFractions(
   feesEntity.prevCumulativeFeeUsdPerGmToken = prevCumulativeFeeUsdPerGmToken;
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
 
-  feesEntity.feeUsdExcludingBorrowingPerGmToken = getUpdatedFeeUsdExcludingBorrowingPerGmToken(
+  feesEntity.feeUsdExcludingBorrowingPerPoolValue = getUpdatedFeeUsdExcludingBorrowingPerPoolValue(
     feesEntity,
     feeUsdForPoolExcludingBorrowing,
     marketTokensSupply
   );
-  feesEntity.cumulativeFeeUsdExcludingBorrowingPerGmToken = totalFeesEntity.feeUsdExcludingBorrowingPerGmToken;
+  feesEntity.cumulativeFeeUsdExcludingBorrowingPerPoolValue = totalFeesEntity.feeUsdExcludingBorrowingPerPoolValue;
 }
 
 export function saveSwapFeesInfo(eventData: EventData, eventId: string, transaction: Transaction): SwapFeesInfo {
@@ -164,8 +164,8 @@ export function getOrCreateCollectedMarketFees(
     collectedFees.cumulativeFeeUsdPerGmToken = ZERO;
     collectedFees.prevCumulativeFeeUsdPerGmToken = ZERO;
 
-    collectedFees.feeUsdExcludingBorrowingPerGmToken = ZERO;
-    collectedFees.cumulativeFeeUsdExcludingBorrowingPerGmToken = ZERO;
+    collectedFees.feeUsdExcludingBorrowingPerPoolValue = ZERO;
+    collectedFees.cumulativeFeeUsdExcludingBorrowingPerPoolValue = ZERO;
 
     collectedFees.feeUsdForPoolExcludingBorrowing = ZERO;
     collectedFees.cumulativeFeeUsdForPoolExcludingBorrowing = ZERO;
@@ -363,16 +363,16 @@ function getUpdatedFeeUsdPerGmToken(feeInfo: CollectedMarketFeesInfo, fee: BigIn
   return feeInfo.feeUsdPerGmToken.plus(fee.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply));
 }
 
-function getUpdatedFeeUsdExcludingBorrowingPerGmToken(
+function getUpdatedFeeUsdExcludingBorrowingPerPoolValue(
   feeInfo: CollectedMarketFeesInfo,
   fee: BigInt,
-  marketTokensSupply: BigInt
+  poolValue: BigInt
 ): BigInt {
-  if (marketTokensSupply.equals(ZERO)) {
+  if (poolValue.equals(ZERO)) {
     return ZERO;
   }
 
-  return feeInfo.feeUsdExcludingBorrowingPerGmToken.plus(fee.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply));
+  return feeInfo.feeUsdExcludingBorrowingPerPoolValue.plus(fee.times(BigInt.fromI32(10).pow(18)).div(poolValue));
 }
 
 let i63 = BigInt.fromI32(63);

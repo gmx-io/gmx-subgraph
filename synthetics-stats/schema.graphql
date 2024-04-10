@@ -222,14 +222,14 @@ type CollectedMarketFeesInfo @entity {
   feeUsdForPool: BigInt!
   cummulativeFeeUsdForPool: BigInt!
 
-  feeUsdPerPoolValue: BigInt!
-  cumulativeFeeUsdPerPoolValue: BigInt!
-
   feeUsdForPoolExcludingBorrowing: BigInt!
   cumulativeFeeUsdForPoolExcludingBorrowing: BigInt!
 
-  feeUsdExcludingBorrowingPerGmToken: BigInt!
-  cumulativeFeeUsdExcludingBorrowingPerGmToken: BigInt!
+  feeUsdPerPoolValue: BigInt!
+  cumulativeFeeUsdPerPoolValue: BigInt!
+
+  feeUsdExcludingBorrowingPerPoolValue: BigInt!
+  cumulativeFeeUsdExcludingBorrowingPerPoolValue: BigInt!
 
   feeUsdPerGmToken: BigInt!
   cumulativeFeeUsdPerGmToken: BigInt!
