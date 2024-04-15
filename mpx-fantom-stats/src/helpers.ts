@@ -14,10 +14,11 @@ export let WETH = "0xfe7eda5f2c56160d406869a8aa4b2f365d544c7b"
 export let LZBTC = "0xf1648c50d2863f780c57849d812b4b7686031a3d"
 export let BTC = "0x448d59b4302ab5d2dadf9611bed9457491926c8e"
 export let WFTM = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
+export let USDCE = "0x2f733095b80a04b38b0d10cc884524a3d09b836a"
+export let AXLUSDC = "0x1b6382dbdea11d97f24495c9a90b7c88469134a4"
 export let LZUSDC = "0x28a92dde19d9989f39a49905d7c9c2fac7799bdf"
-export let USDC = "0x1b6382dbdea11d97f24495c9a90b7c88469134a4"
+export let AXLUSDT = "0xd226392c23fb3476274ed6759d4a478db3197d82"
 export let LZUSDT = "0xcc1b99ddac1a33c201a742a1851662e87bc7f22c"
-export let USDT = "0xd226392c23fb3476274ed6759d4a478db3197d82"
 export let MPX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
 
 
@@ -48,9 +49,10 @@ export function getTokenDecimals(token: String): u8 {
   tokenDecimals.set(BTC, 8)
   tokenDecimals.set(LZBTC, 8)
   tokenDecimals.set(WFTM, 18)
-  tokenDecimals.set(USDC, 6)
+  tokenDecimals.set(USDCE, 6)
+  tokenDecimals.set(AXLUSDC, 6)
   tokenDecimals.set(LZUSDC, 6)
-  tokenDecimals.set(USDT, 6)
+  tokenDecimals.set(AXLUSDT, 6)
   tokenDecimals.set(LZUSDT, 6)
   tokenDecimals.set(MPX, 18)
 
@@ -96,9 +98,10 @@ export function getTokenPrice(token: String): BigInt {
   prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
   prices.set(LZBTC, BigInt.fromI32(22000) * PRECISION)
   prices.set(WFTM, PRECISION)
-  prices.set(USDC, PRECISION)
+  prices.set(USDCE, PRECISION)
+  prices.set(AXLUSDC, PRECISION)
   prices.set(LZUSDC, PRECISION)
-  prices.set(USDT, PRECISION)
+  prices.set(AXLUSDT, PRECISION)
   prices.set(LZUSDT, PRECISION)
   prices.set(MPX, PRECISION)
 
