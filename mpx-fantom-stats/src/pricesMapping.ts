@@ -12,9 +12,10 @@ import {
   LZWETH,
   WFTM,
   timestampToPeriod,
-  USDC,
+  USDCE,
+  AXLUSDC,
   LZUSDC,
-  USDT,
+  AXLUSDT,
   LZUSDT
 } from "./helpers"
 
@@ -60,12 +61,13 @@ export function handleAnswerUpdatedAVAX(event: AnswerUpdatedEvent): void {
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(USDCE, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(AXLUSDC, event.params.current, event.block.timestamp, event.block.number)
   _storeChainlinkPrice(LZUSDC, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDT(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(USDT, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(AXLUSDT, event.params.current, event.block.timestamp, event.block.number)
   _storeChainlinkPrice(LZUSDT, event.params.current, event.block.timestamp, event.block.number)
 }
 
