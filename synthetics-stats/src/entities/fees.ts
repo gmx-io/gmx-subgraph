@@ -45,6 +45,7 @@ function updateCollectedFeesFractions(
   feesEntity: CollectedMarketFeesInfo,
   totalFeesEntity: CollectedMarketFeesInfo,
   feeUsdForPool: BigInt,
+  feeUsdForPoolExcludingBorrowing: BigInt,
   marketTokensSupply: BigInt,
   prevCumulativeFeeUsdPerGmToken: BigInt
 ): void {
@@ -54,6 +55,13 @@ function updateCollectedFeesFractions(
   feesEntity.feeUsdPerGmToken = getUpdatedFeeUsdPerGmToken(feesEntity, feeUsdForPool, marketTokensSupply);
   feesEntity.prevCumulativeFeeUsdPerGmToken = prevCumulativeFeeUsdPerGmToken;
   feesEntity.cumulativeFeeUsdPerGmToken = totalFeesEntity.feeUsdPerGmToken;
+
+  feesEntity.feeUsdExcludingBorrowingPerPoolValue = getUpdatedFeeUsdExcludingBorrowingPerPoolValue(
+    feesEntity,
+    feeUsdForPoolExcludingBorrowing,
+    marketTokensSupply
+  );
+  feesEntity.cumulativeFeeUsdExcludingBorrowingPerPoolValue = totalFeesEntity.feeUsdExcludingBorrowingPerPoolValue;
 }
 
 export function saveSwapFeesInfo(eventData: EventData, eventId: string, transaction: Transaction): SwapFeesInfo {
@@ -155,6 +163,12 @@ export function getOrCreateCollectedMarketFees(
     collectedFees.feeUsdPerGmToken = ZERO;
     collectedFees.cumulativeFeeUsdPerGmToken = ZERO;
     collectedFees.prevCumulativeFeeUsdPerGmToken = ZERO;
+
+    collectedFees.feeUsdExcludingBorrowingPerPoolValue = ZERO;
+    collectedFees.cumulativeFeeUsdExcludingBorrowingPerPoolValue = ZERO;
+
+    collectedFees.feeUsdForPoolExcludingBorrowing = ZERO;
+    collectedFees.cumulativeFeeUsdForPoolExcludingBorrowing = ZERO;
   }
 
   return collectedFees as CollectedMarketFeesInfo;
@@ -252,11 +266,23 @@ export function saveCollectedMarketFees(
   marketAddress: string,
   poolValue: BigInt,
   feeUsdForPool: BigInt,
-  marketTokensSupply: BigInt
+  marketTokensSupply: BigInt,
+  borrowingFeeUsd: BigInt,
+  distributedToPoolOnly: boolean
 ): void {
   // total should always come first, as its cumulativeFeeUsdPerPoolValue is used in pending fees iteration
   let totalFees = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "total");
+
+  let feeUsdForPoolExcludingBorrowing = feeUsdForPool.minus(
+    getAdjustedBorrowingFeeUsd(borrowingFeeUsd, distributedToPoolOnly)
+  );
+  log.warning("borrowingFees: {}", [borrowingFeeUsd.toString()]);
+  log.warning("feeUsdForPoolExcludingBorrowing: {}", [feeUsdForPoolExcludingBorrowing.toString()]);
+
   totalFees.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool.plus(feeUsdForPool);
+  totalFees.cumulativeFeeUsdForPoolExcludingBorrowing = totalFees.cumulativeFeeUsdForPoolExcludingBorrowing.plus(
+    feeUsdForPoolExcludingBorrowing
+  );
 
   let prevCumulativeFeeUsdPerGmToken = totalFees.cumulativeFeeUsdPerGmToken;
 
@@ -265,11 +291,15 @@ export function saveCollectedMarketFees(
     totalFees,
     totalFees,
     feeUsdForPool,
+    feeUsdForPoolExcludingBorrowing,
     marketTokensSupply,
     prevCumulativeFeeUsdPerGmToken
   );
 
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
+  totalFees.feeUsdForPoolExcludingBorrowing = totalFees.feeUsdForPoolExcludingBorrowing.plus(
+    feeUsdForPoolExcludingBorrowing
+  );
   totalFees.save();
 
   let feesForPeriod = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "1h");
@@ -279,12 +309,19 @@ export function saveCollectedMarketFees(
     feesForPeriod,
     totalFees,
     feeUsdForPool,
+    feeUsdForPoolExcludingBorrowing,
     marketTokensSupply,
     prevCumulativeFeeUsdPerGmToken
   );
 
   feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
   feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
+
+  feesForPeriod.cumulativeFeeUsdForPoolExcludingBorrowing = totalFees.cumulativeFeeUsdForPoolExcludingBorrowing;
+  feesForPeriod.feeUsdForPoolExcludingBorrowing = feesForPeriod.feeUsdForPoolExcludingBorrowing.plus(
+    feeUsdForPoolExcludingBorrowing
+  );
+
   feesForPeriod.save();
 }
 
@@ -307,7 +344,7 @@ export function handlePositionImpactPoolDistributed(
   let poolValue = getMarketPoolValueFromContract(data.market, network, transaction);
   let marketTokensSupply = getMarketTokensSupplyFromContract(data.market);
 
-  saveCollectedMarketFees(transaction, data.market, poolValue, amountUsd, marketTokensSupply);
+  saveCollectedMarketFees(transaction, data.market, poolValue, amountUsd, marketTokensSupply, ZERO, true);
 }
 
 function getUpdatedFeeUsdPerPoolValue(feeInfo: CollectedMarketFeesInfo, fee: BigInt, poolValue: BigInt): BigInt {
@@ -324,4 +361,26 @@ function getUpdatedFeeUsdPerGmToken(feeInfo: CollectedMarketFeesInfo, fee: BigIn
   }
 
   return feeInfo.feeUsdPerGmToken.plus(fee.times(BigInt.fromI32(10).pow(18)).div(marketTokensSupply));
+}
+
+function getUpdatedFeeUsdExcludingBorrowingPerPoolValue(
+  feeInfo: CollectedMarketFeesInfo,
+  fee: BigInt,
+  poolValue: BigInt
+): BigInt {
+  if (poolValue.equals(ZERO)) {
+    return ZERO;
+  }
+
+  return feeInfo.feeUsdExcludingBorrowingPerPoolValue.plus(fee.times(BigInt.fromI32(10).pow(18)).div(poolValue));
+}
+
+let i63 = BigInt.fromI32(63);
+let i100 = BigInt.fromI32(100);
+
+function getAdjustedBorrowingFeeUsd(borrowingFeeUsd: BigInt, distributedToPoolOnly: boolean): BigInt {
+  if (distributedToPoolOnly) {
+    return borrowingFeeUsd;
+  }
+  return borrowingFeeUsd.times(i63).div(i100);
 }
