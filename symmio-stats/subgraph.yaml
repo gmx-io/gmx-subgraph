@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
       abi: v3
-      startBlock: 8616095
+      startBlock: 13000000  # set to recent block, so it syncs faster; should start at 8443806
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

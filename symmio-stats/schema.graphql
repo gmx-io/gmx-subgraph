@@ -70,6 +70,13 @@ type DailyGeneratedVolume @entity {
   day: BigInt!
 }
 
+type UserTotalVolume @entity {
+  id: ID! # user
+  user: Bytes!
+  volume: BigInt!
+  lastUpdate: BigInt!
+}
+
 type Pair @entity {
   id: ID! # pair address
   token0: Bytes!
