@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
       abi: v3
-      startBlock: 13000000  # set to recent block, so it syncs faster; should start at 8443806
+      startBlock: 8443806
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -36,3 +36,25 @@ dataSources:
         - event: LiquidatePositionsPartyB(address,address,address,uint256[])
           handler: handleLiquidatePositionsPartyB
       file: ./src/symm/main.ts
+
+# uncomment and update address/network when we launch the contract
+#  - kind: ethereum/contract
+#    name: DibsRewarder
+#    network: bsc
+#    source:
+#      address: "0x6E298908514c77c2DC1dc8faA150eeF46aD7F03b"
+#      abi: DibsRewarder
+#      startBlock: 37565601
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Claim
+#      abis:
+#        - name: DibsRewarder
+#          file: ./abis/DibsRewarder.json
+#      eventHandlers:
+#        - event: Claim(address,address,uint256,uint256)
+#          handler: handleClaim
+#      file: ./src/dibsRewarder.ts

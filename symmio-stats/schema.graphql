@@ -77,6 +77,21 @@ type UserTotalVolume @entity {
   lastUpdate: BigInt!
 }
 
+type UserDailyClaims @entity {
+  id: ID! # user-token-day
+  user: Bytes!
+  token: BigInt!
+  day: BigInt!
+  amount: BigInt!
+}
+
+type UserTotalClaims @entity {
+  id: ID! # user
+  user: Bytes!
+  token: BigInt!
+  amount: BigInt!
+}
+
 type Pair @entity {
   id: ID! # pair address
   token0: Bytes!
