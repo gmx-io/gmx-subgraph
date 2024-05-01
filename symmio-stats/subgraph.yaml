@@ -8,6 +8,7 @@ dataSources:
     source:
       address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
       abi: v3
+      # using the latest deployment of MultiAcc under proxy due to differences in implementation of earlier versions
       startBlock: 10782819
     mapping:
       kind: ethereum/events
@@ -37,24 +38,24 @@ dataSources:
           handler: handleLiquidatePositionsPartyB
       file: ./src/symm/main.ts
 
-# uncomment and update address/network when we launch the contract
-#  - kind: ethereum/contract
-#    name: DibsRewarder
-#    network: bsc
-#    source:
-#      address: "0x6E298908514c77c2DC1dc8faA150eeF46aD7F03b"
-#      abi: DibsRewarder
-#      startBlock: 37565601
-#    mapping:
-#      kind: ethereum/events
-#      apiVersion: 0.0.6
-#      language: wasm/assemblyscript
-#      entities:
-#        - Claim
-#      abis:
-#        - name: DibsRewarder
-#          file: ./abis/DibsRewarder.json
-#      eventHandlers:
-#        - event: Claim(address,address,uint256,uint256)
-#          handler: handleClaim
-#      file: ./src/dibsRewarder.ts
+  - kind: ethereum/contract
+    name: DibsRewarder
+    network: base
+    source:
+      address: "0x21baa217e34a5a819A6D3afc4Bdb7DED57ca225b"
+      abi: DibsRewarder
+      # using more recent starting block, so it doesn't take a long time to sync, otherwise should be 5546276
+      startBlock: 10782819
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Claim
+      abis:
+        - name: DibsRewarder
+          file: ./abis/DibsRewarder.json
+      eventHandlers:
+        - event: Claim(indexed address,uint256,uint256)
+          handler: handleClaim
+      file: ./src/symm/main.ts

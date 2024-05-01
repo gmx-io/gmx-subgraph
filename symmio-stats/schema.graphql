@@ -78,9 +78,8 @@ type UserTotalVolume @entity {
 }
 
 type UserDailyClaim @entity {
-  id: ID! # user-token-day
+  id: ID! # user-day
   user: Bytes!
-  token: BigInt!
   day: BigInt!
   amount: BigInt!
 }
@@ -88,7 +87,6 @@ type UserDailyClaim @entity {
 type UserTotalClaim @entity {
   id: ID! # user
   user: Bytes!
-  token: BigInt!
   amount: BigInt!
 }
 

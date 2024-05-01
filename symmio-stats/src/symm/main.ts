@@ -8,10 +8,42 @@ import {
   OpenPosition,
   SendQuote,
 } from "../../generated/SymmDataSource/v3"
-import { Quote } from "../../generated/schema"
+import { Claim } from "../../generated/DibsRewarder/DibsRewarder"
+import { Quote, UserDailyClaim, UserTotalClaim } from "../../generated/schema"
 import { CloseRequestHandler } from "./SymmCloseRequestHandler"
 import { LiquidatePositionsHandler } from "./SymmLiquidatePositionsHandler"
 import { OpenPositionHandler } from "./SymmOpenPositionHandler"
+
+export function handleClaim(event: Claim): void {
+  const user = event.params.user
+  const day = event.params.day
+  const amount = event.params.amount
+
+  const daily_key = user.toHex()+"-"+day.toString()
+  let daily = UserDailyClaim.load(daily_key)
+  if (daily == null) {
+    daily = new UserDailyClaim(daily_key)
+    daily.user = user
+    daily.day = day
+    daily.amount = amount
+    daily.save()
+  } else {
+    daily.amount = daily.amount.plus(amount)
+    daily.save()
+  }
+
+  const total_key = user.toHex()
+  let total = UserTotalClaim.load(total_key)
+  if (total == null) {
+    total = new UserTotalClaim(total_key)
+    total.user = user
+    total.amount = amount
+    total.save()
+  } else {
+    total.amount = total.amount.plus(amount)
+    total.save()
+  }
+}
 
 export function handleOpenPosition(event: OpenPosition): void {
   const handler = new OpenPositionHandler(event)

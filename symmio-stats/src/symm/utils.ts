@@ -10,15 +10,8 @@ export function updateVolume(
   timestamp: BigInt,
 ): void {
   // user daily
-  const userVolumeId =
-    user.toHex() +
-    "-" +
-    day.toString() +
-    "-" +
-    "0x0000000000000000000000000000000000000000"
-
+  const userVolumeId = user.toHex() + "-" + day.toString() + "-" + "0x0000000000000000000000000000000000000000"
   let acc = DailyGeneratedVolume.load(userVolumeId)
-
   if (acc == null) {
     const acc = new DailyGeneratedVolume(userVolumeId)
     acc.user = user
@@ -29,14 +22,13 @@ export function updateVolume(
     acc.lastUpdate = timestamp
     acc.pair = zero_address
     acc.save()
-    return
+  } else {
+    acc.amountAsUser = acc.amountAsUser.plus(amount)
+    acc.amountAsReferrer = acc.amountAsReferrer.plus(amount)
+    acc.amountAsGrandparent = acc.amountAsGrandparent.plus(amount)
+    acc.lastUpdate = timestamp
+    acc.save()
   }
-
-  acc.amountAsUser = acc.amountAsUser.plus(amount)
-  acc.amountAsReferrer = acc.amountAsReferrer.plus(amount)
-  acc.amountAsGrandparent = acc.amountAsGrandparent.plus(amount)
-  acc.lastUpdate = timestamp
-  acc.save()
 
   // user total
   let userTotal = UserTotalVolume.load(user.toHex())
@@ -46,10 +38,9 @@ export function updateVolume(
     userTotal.volume = amount
     userTotal.lastUpdate = timestamp
     userTotal.save()
-    return
+  } else {
+    userTotal.volume = userTotal.volume.plus(amount)
+    userTotal.lastUpdate = timestamp
+    userTotal.save()
   }
-
-  userTotal.volume = userTotal.volume.plus(amount)
-  userTotal.lastUpdate = timestamp
-  userTotal.save()
 }
