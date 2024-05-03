@@ -12,6 +12,7 @@ export let ETH = "0x4200000000000000000000000000000000000006"
 export let BTC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
 export let cbETH = "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22"
 export let YFI = "0x9eaf8c1e34f05a589eda6bafdf391cf6ad3cb239"
+export let AERO = "0x940181a94a35a4569e4529a3cdfb74e38fd98631"
 export let USDbC = "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
 export let USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
 export let BMX = "0x548f93779fbc992010c07467cbaf329dd5f059b7"
@@ -47,6 +48,7 @@ export function getTokenDecimals(token: String): u8 {
   tokenDecimals.set(BTC, 8)
   tokenDecimals.set(cbETH, 18)
   tokenDecimals.set(YFI, 18)
+  tokenDecimals.set(AERO, 18)
   tokenDecimals.set(USDC, 6)
   tokenDecimals.set(DAI, 18)
   tokenDecimals.set(BMX, 18)
@@ -88,6 +90,7 @@ export function getTokenPrice(token: String): BigInt {
   prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
   prices.set(cbETH, BigInt.fromI32(1600) * PRECISION)
   prices.set(YFI, BigInt.fromI32(5500) * PRECISION)
+  prices.set(AERO, BigInt.fromI32(1) * PRECISION)
   prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
   prices.set(BMX, PRECISION)
