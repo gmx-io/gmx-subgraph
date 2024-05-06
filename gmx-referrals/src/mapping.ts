@@ -53,7 +53,7 @@ let ONE = BigInt.fromI32(1);
 let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000);
 let FLOAT = BigInt.fromI32(10).pow(30);
 
-// margin fee has 4 decimals, position fee factor has 30 decimals
+// v1 margin fee has 4 decimals, v2 position fee factor has 30 decimals
 let POSITION_FEE_FACTOR_V1 = BigInt.fromI32(10)
   .times(FLOAT)
   .div(BASIS_POINTS_DIVISOR);
@@ -230,9 +230,14 @@ function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
   let affiliateResult = _getOrCreateAffiliateWithCreatedFlag(owner.toHexString());
   let affiliateCreated = affiliateResult.created;
 
-  let referralCodeEntity = new ReferralCode(code.toHexString());
+  let referralCodeEntity = ReferralCode.load(code.toHexString());
+  let referralCodeCreated = false;
+  if (!referralCodeEntity) {
+    referralCodeEntity = new ReferralCode(code.toHexString());
+    referralCodeEntity.code = code.toHex();
+    referralCodeCreated = true;
+  }
   referralCodeEntity.owner = owner.toHexString();
-  referralCodeEntity.code = code.toHex();
   referralCodeEntity.save();
 
   let totalAffiliateStat = _getOrCreateAffiliateStat(timestamp, "total", owner, code.toHex());
@@ -240,6 +245,10 @@ function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
 
   let dailyAffiliateStat = _getOrCreateAffiliateStat(timestamp, "daily", owner, code.toHex());
   dailyAffiliateStat.save();
+
+  if (!referralCodeCreated) {
+    return;
+  }
 
   let totalGlobalStatEntity = _getOrCreateGlobalStat(timestamp, "total", null);
   totalGlobalStatEntity.referralCodesCount = totalGlobalStatEntity.referralCodesCount.plus(ONE);
@@ -259,23 +268,11 @@ function _registerCode(timestamp: BigInt, code: Bytes, owner: Address): void {
 }
 
 export function handleSetCodeOwner(event: SetCodeOwner): void {
-  let referralCodeEntity = ReferralCode.load(event.params.code.toHexString());
-  if (referralCodeEntity == null) {
-    _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
-  } else {
-    referralCodeEntity.owner = event.params.newAccount.toHexString();
-    referralCodeEntity.save();
-  }
+  _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
 }
 
 export function handleGovSetCodeOwner(event: GovSetCodeOwner): void {
-  let referralCodeEntity = ReferralCode.load(event.params.code.toHexString());
-  if (referralCodeEntity == null) {
-    _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
-  } else {
-    referralCodeEntity.owner = event.params.newAccount.toHexString();
-    referralCodeEntity.save();
-  }
+  _registerCode(event.block.timestamp, event.params.code, event.params.newAccount);
 }
 
 export function handleSetReferrerDiscountShare(event: SetReferrerDiscountShare): void {
