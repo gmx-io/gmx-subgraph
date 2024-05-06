@@ -567,6 +567,9 @@ type Distribution @entity {
   # 1001 v2, STIP GM incentives airdrop
   # 1002 v2, STIP GLP -> GM migration rebates airdrop
   # 1003 v2, STIP trading incentives airdrop
+
+  # 2001 EIP4844 #1 competition
+  # 2002 EIP4844 #2 competition
   typeId: Int!
 
   transactionHash: String!
