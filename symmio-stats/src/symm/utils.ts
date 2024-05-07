@@ -1,33 +1,55 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts"
-import { DailyGeneratedVolume, UserTotalVolume } from "../../generated/schema"
+import { DailyGeneratedVolume, WeeklyGeneratedVolume, UserTotalVolume } from "../../generated/schema"
 import { zero_address } from "../solidly/utils"
 import { SendQuote } from "../../generated/SymmDataSource/v3"
 
 export function updateVolume(
   user: Address,
   day: BigInt,
+  week: BigInt,
   amount: BigInt,
   timestamp: BigInt,
 ): void {
   // user daily
-  const userVolumeId = user.toHex() + "-" + day.toString() + "-" + "0x0000000000000000000000000000000000000000"
-  let acc = DailyGeneratedVolume.load(userVolumeId)
-  if (acc == null) {
-    const acc = new DailyGeneratedVolume(userVolumeId)
-    acc.user = user
-    acc.day = day
-    acc.amountAsUser = amount
-    acc.amountAsReferrer = amount
-    acc.amountAsGrandparent = amount
-    acc.lastUpdate = timestamp
-    acc.pair = zero_address
-    acc.save()
+  const userDailyId = user.toHex() + "-" + day.toString() + "-" + "0x0000000000000000000000000000000000000000"
+  let userDaily = DailyGeneratedVolume.load(userDailyId)
+  if (userDaily == null) {
+    const userDaily = new DailyGeneratedVolume(userDailyId)
+    userDaily.user = user
+    userDaily.day = day
+    userDaily.amountAsUser = amount
+    userDaily.amountAsReferrer = amount
+    userDaily.amountAsGrandparent = amount
+    userDaily.lastUpdate = timestamp
+    userDaily.pair = zero_address
+    userDaily.save()
   } else {
-    acc.amountAsUser = acc.amountAsUser.plus(amount)
-    acc.amountAsReferrer = acc.amountAsReferrer.plus(amount)
-    acc.amountAsGrandparent = acc.amountAsGrandparent.plus(amount)
-    acc.lastUpdate = timestamp
-    acc.save()
+    userDaily.amountAsUser = userDaily.amountAsUser.plus(amount)
+    userDaily.amountAsReferrer = userDaily.amountAsReferrer.plus(amount)
+    userDaily.amountAsGrandparent = userDaily.amountAsGrandparent.plus(amount)
+    userDaily.lastUpdate = timestamp
+    userDaily.save()
+  }
+
+  // user weekly
+  const userWeeklyId = user.toHex() + "-" + week.toString() + "-" + "0x0000000000000000000000000000000000000000"
+  let userWeekly = WeeklyGeneratedVolume.load(userWeeklyId)
+  if (userWeekly == null) {
+    const userWeekly = new WeeklyGeneratedVolume(userWeeklyId)
+    userWeekly.user = user
+    userWeekly.epoch = week
+    userWeekly.amountAsUser = amount
+    userWeekly.amountAsReferrer = amount
+    userWeekly.amountAsGrandparent = amount
+    userWeekly.lastUpdate = timestamp
+    userWeekly.pair = zero_address
+    userWeekly.save()
+  } else {
+    userWeekly.amountAsUser = userWeekly.amountAsUser.plus(amount)
+    userWeekly.amountAsReferrer = userWeekly.amountAsReferrer.plus(amount)
+    userWeekly.amountAsGrandparent = userWeekly.amountAsGrandparent.plus(amount)
+    userWeekly.lastUpdate = timestamp
+    userWeekly.save()
   }
 
   // user total
