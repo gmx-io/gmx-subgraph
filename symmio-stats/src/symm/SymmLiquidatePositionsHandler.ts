@@ -28,10 +28,11 @@ export class LiquidatePositionsHandler extends Handler {
   private _handle(quoteId: BigInt): void {
     if (this.user == zero_address) return
     const volumeInDollars = this.getVolume(quoteId)
-    updateVolume(this.user, this.day, volumeInDollars, this.timestamp) // user volume tracker
+    updateVolume(this.user, this.day, this.week, volumeInDollars, this.timestamp) // user volume tracker
     updateVolume(
       Address.fromBytes(zero_address),
       this.day,
+      this.week,
       volumeInDollars,
       this.timestamp,
     ) // total volume tracker
