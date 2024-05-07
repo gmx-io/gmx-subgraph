@@ -10,6 +10,7 @@ export class Handler {
   isValid: boolean
   timestamp: BigInt
   day: BigInt
+  week: BigInt
 
   constructor(event: ethereum.Event) {
     this.timestamp = event.block.timestamp
@@ -20,6 +21,7 @@ export class Handler {
 
     this.isValid = delta.ge(BigInt.fromI32(0))
     this.day = delta.div(BigInt.fromI32(86400))
+    this.week = delta.div(BigInt.fromI32(604800))
   }
 
   public handle(): void {
