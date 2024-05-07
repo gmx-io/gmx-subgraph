@@ -9,7 +9,7 @@
     "prepare:chronos": "mustache config/chronos.json subgraph.solidly.template.yaml > subgraph.yaml; mustache config/chronos.json config/config.template.ts > config/config.ts",
     "prepare:ramses": "mustache config/ramses.json subgraph.solidly.template.yaml > subgraph.yaml; mustache config/ramses.json config/config.template.ts > config/config.ts",
     "prepare:based": "mustache config/based.json subgraph.based.yaml > subgraph.yaml; mustache config/based.json config/config.symm.ts > config/config.ts",
-    "deploy-prod": "graph deploy --product hosted-service morphex-labs/symmio-stats"
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-referrals"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.64.1",
