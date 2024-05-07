@@ -26,10 +26,11 @@ export class CloseRequestHandler extends Handler {
   private _handle(): void {
     if (this.user == zero_address) return
     const volumeInDollars = this.getVolume()
-    updateVolume(this.user, this.day, volumeInDollars, this.timestamp) // user volume tracker
+    updateVolume(this.user, this.day, this.week, volumeInDollars, this.timestamp) // user volume tracker
     updateVolume(
       Address.fromBytes(zero_address),
       this.day,
+      this.week,
       volumeInDollars,
       this.timestamp,
     ) // total volume tracker
