@@ -1,12 +1,47 @@
 [
   {
     "inputs": [],
-    "name": "DayNotFinished",
+    "name": "EpochExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EpochNotFinished",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidGateway",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "InvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "LengthMismatchClaim",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "LengthMismatchFill",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RewarderInitialized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RewarderNotInitialized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TokenNotAllowed",
     "type": "error"
   },
   {
@@ -19,9 +54,15 @@
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint256",
-        "name": "day",
+        "name": "epoch",
         "type": "uint256"
       },
       {
@@ -52,9 +93,9 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "bytes",
+        "internalType": "bytes32",
         "name": "reqId",
-        "type": "bytes"
+        "type": "bytes32"
       },
       {
         "components": [
@@ -83,8 +124,27 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "RemoveRewardToken",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "day",
+        "name": "epoch",
         "type": "uint256"
       },
       {
@@ -178,11 +238,11 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "based",
+        "name": "token",
         "type": "address"
       }
     ],
-    "name": "SetBased",
+    "name": "SetRewardToken",
     "type": "event"
   },
   {
@@ -212,6 +272,41 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_validMuonGateway",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_muonAppId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "x",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "parity",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct MuonClientBase.PublicKey",
+        "name": "_muonPublicKey",
+        "type": "tuple"
+      }
+    ],
+    "name": "InitMuon",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "PROJECT_ID",
     "outputs": [
@@ -238,71 +333,65 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "based",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_day",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_userVolume",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_totalVolume",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_sigTimestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_reqId",
-        "type": "bytes"
-      },
       {
         "components": [
           {
             "internalType": "uint256",
-            "name": "signature",
+            "name": "_epoch",
             "type": "uint256"
           },
           {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
+            "internalType": "uint256",
+            "name": "_userVolume",
+            "type": "uint256"
           },
           {
-            "internalType": "address",
-            "name": "nonce",
-            "type": "address"
+            "internalType": "uint256",
+            "name": "_totalVolume",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_sigTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "_reqId",
+            "type": "bytes32"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "signature",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "nonce",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct MuonClientBase.SchnorrSign",
+            "name": "_sign",
+            "type": "tuple"
+          },
+          {
+            "internalType": "bytes",
+            "name": "_gatewaySignature",
+            "type": "bytes"
           }
         ],
-        "internalType": "struct MuonClientBase.SchnorrSign",
-        "name": "_sign",
+        "internalType": "struct DibsRewarder.ClaimData",
+        "name": "claimData",
         "type": "tuple"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_gatewaySignature",
-        "type": "bytes"
       }
     ],
     "name": "claim",
@@ -312,6 +401,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
       {
         "internalType": "address",
         "name": "",
@@ -335,16 +429,34 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "currentEpoch",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_day",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint256[]",
+        "name": "_epoch",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
         "name": "_amount",
-        "type": "uint256"
+        "type": "uint256[]"
       }
     ],
     "name": "fill",
@@ -414,11 +526,37 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "init",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_based",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_startTimestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "initStartTimestamp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "_tokens",
+        "type": "address[]"
       },
       {
         "internalType": "address",
@@ -459,6 +597,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isRewardToken",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "muonAppId",
     "outputs": [
@@ -492,9 +649,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes",
+        "internalType": "bytes32",
         "name": "reqId",
-        "type": "bytes"
+        "type": "bytes32"
       },
       {
         "internalType": "uint256",
@@ -555,6 +712,19 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "_tokens",
+        "type": "address[]"
+      }
+    ],
+    "name": "removeRewardToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -591,14 +761,72 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "rewardToken",
+    "outputs": [
+      {
         "internalType": "address",
-        "name": "_based",
+        "name": "",
         "type": "address"
       }
     ],
-    "name": "setBased",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rewardTokenLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rewardTokenList",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "_tokens",
+        "type": "address[]"
+      }
+    ],
+    "name": "setRewardToken",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "startTimestamp",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -622,6 +850,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
       {
         "internalType": "uint256",
         "name": "",
@@ -650,6 +883,58 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "signingPubKeyX",
+        "type": "uint256"
+      }
+    ],
+    "name": "validatePubKey",
+    "outputs": [],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "signingPubKeyX",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "pubKeyYParity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "signature",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "msgHash",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "nonceTimesGeneratorAddress",
+        "type": "address"
+      }
+    ],
+    "name": "verifySignature",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   }
 ]

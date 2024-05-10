@@ -68,16 +68,18 @@ type UserTotalVolume @entity {
   lastUpdate: BigInt!
 }
 
-type UserDailyClaim @entity {
-  id: ID! # user-day
+type UserWeeklyClaim @entity {
+  id: ID! # user-token-epoch
   user: Bytes!
-  day: BigInt!
+  token: Bytes!
+  epoch: BigInt!
   amount: BigInt!
 }
 
 type UserTotalClaim @entity {
-  id: ID! # user
+  id: ID! # user-token
   user: Bytes!
+  token: Bytes!
   amount: BigInt!
 }
 

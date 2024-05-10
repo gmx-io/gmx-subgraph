@@ -6,10 +6,9 @@ dataSources:
     name: SymmDataSource
     network: base
     source:
-      address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
+      address: "0x6D63921D8203044f6AbaD8F346d3AEa9A2719dDD"
       abi: v3
-      # using the latest deployment of MultiAcc under proxy due to differences in implementation of earlier versions
-      startBlock: 10782819
+      startBlock: 13927535
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -42,10 +41,9 @@ dataSources:
     name: DibsRewarder
     network: base
     source:
-      address: "0x21baa217e34a5a819A6D3afc4Bdb7DED57ca225b"
+      address: "0xa541c48b681AD0d5F4647621e324c46EFC78e28a"
       abi: DibsRewarder
-      # using more recent starting block, so it doesn't take a long time to sync, otherwise should be 5546276
-      startBlock: 10782819
+      startBlock: 14285055
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -56,6 +54,6 @@ dataSources:
         - name: DibsRewarder
           file: ./abis/DibsRewarder.json
       eventHandlers:
-        - event: Claim(indexed address,uint256,uint256)
+        - event: Claim(indexed address,indexed address,uint256,uint256)
           handler: handleClaim
       file: ./src/symm/main.ts
