@@ -6,7 +6,7 @@ dataSources:
     name: SymmDataSource
     network: base
     source:
-      address: "0x6D63921D8203044f6AbaD8F346d3AEa9A2719dDD"
+      address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
       abi: v3
       startBlock: 13927535
     mapping:
