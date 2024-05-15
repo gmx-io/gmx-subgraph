@@ -305,6 +305,7 @@ type ClaimCollateralAction @entity(immutable: true) {
   account: String!
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
+  tokenPrices: [BigInt!]!
   amounts: [BigInt!]!
 
   transaction: Transaction!
@@ -317,6 +318,7 @@ type ClaimAction @entity {
   account: String!
   marketAddresses: [String!]!
   tokenAddresses: [String!]!
+  tokenPrices: [BigInt!]!
   amounts: [BigInt!]!
   isLongOrders: [Boolean!]!
   transaction: Transaction!
