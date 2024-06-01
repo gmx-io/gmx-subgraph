@@ -21,6 +21,7 @@ export class LiquidatePositionsHandler extends Handler {
 
     const ids = this.event.params.quoteIds
     for (let i = 0; i < ids.length; i++) {
+      if (super.getSymbolId(ids[i]) == BigInt.fromI32(163)) return
       this._handle(ids[i])
     }
   }

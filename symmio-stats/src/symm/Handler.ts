@@ -1,9 +1,11 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
   EPOCH_START_TIMESTAMP,
-  MULTI_ACCOUNT_ADDRESS
+  MULTI_ACCOUNT_ADDRESS,
+  DIAMOND_ADDRESS
 } from "../../config/config"
 import { MultiAccount } from "../../generated/SymmDataSource/MultiAccount"
+import { v3 } from "../../generated/SymmDataSource/v3"
 
 export class Handler {
   private _event: ethereum.Event
@@ -26,7 +28,6 @@ export class Handler {
 
   public handle(): void {
     if (!this.isValid) return
-
     throw new Error("Not implemented")
   }
 
@@ -35,9 +36,12 @@ export class Handler {
   }
 
   public getOwner(account: Address): Address {
-    const multiAccount = MultiAccount.bind(
-      Address.fromString(MULTI_ACCOUNT_ADDRESS),
-    )
+    const multiAccount = MultiAccount.bind(Address.fromString(MULTI_ACCOUNT_ADDRESS))
     return multiAccount.owners(account)
+  }
+
+  public getSymbolId(quoteId: BigInt): BigInt {
+    const diamond = v3.bind(Address.fromString(DIAMOND_ADDRESS))
+    return diamond.getQuote(quoteId).symbolId
   }
 }

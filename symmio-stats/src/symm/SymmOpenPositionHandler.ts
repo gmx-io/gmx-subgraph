@@ -18,7 +18,7 @@ export class OpenPositionHandler extends Handler {
 
   public handle(): void {
     if (!this.isValid) return
-
+    if (super.getSymbolId(this.event.params.quoteId) == BigInt.fromI32(163)) return
     this._handle()
   }
 
