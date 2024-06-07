@@ -11,31 +11,6 @@ export function handleFastPriceEvent(event: PriceUpdate): void {
   _storeDefaultPricefeed(token, event, price)
 }
 
-export function handleAnswerUpdatedETH(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(WETH, event, price)
-}
-
-export function handleAnswerUpdatedcbETH(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(cbETH, event, price)
-}
-
-export function handleAnswerUpdatedYFI(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(YFI, event, price)
-}
-
-export function handleAnswerUpdatedAERO(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(AERO, event, price)
-}
-
-export function handleAnswerUpdatedBTC(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(WBTC, event, price)
-}
-
 export function handleEqualizerMpxFtmSwap(event: Sync): void {
   const bnbPerMpx = event.params.reserve0.times(BI_18_PRECISION).div(event.params.reserve1).abs()
   const price = getTokenUsdAmount(bnbPerMpx, WETH, TokenDecimals.WETH)

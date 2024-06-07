@@ -13,7 +13,7 @@
     "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx-raw --deploy-key $(cat .access_token)"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.51.0",
-    "@graphprotocol/graph-ts": "^0.31.0"
+    "@graphprotocol/graph-cli": "^0.73.0",
+    "@graphprotocol/graph-ts": "^0.35.1"
   }
 }

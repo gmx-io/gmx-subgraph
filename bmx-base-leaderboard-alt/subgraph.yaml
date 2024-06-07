@@ -6,7 +6,7 @@ schema:
 
 dataSources:
 # Transfers
-  - kind: ethereum/contract
+  - kind: ethereum
     name: transferGmx
     network: base
     source:
@@ -26,7 +26,7 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleGmxTransfer
       file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: transferGlp
     network: base
     source:
@@ -46,7 +46,7 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleGlpTransfer
       file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: transferEsGmx
     network: base
     source:
@@ -66,156 +66,9 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleEsGmxTransfer
       file: ./src/arbitrum/reward.ts
-# Trackers
-  # - kind: ethereum/contract
-  #   name: FeeGmxTrackerClaim
-  #   network: base
-  #   source:
-  #     address: "0xfAEdbA0E97D5DCD7A29fB6778D7e17b1be35c0b8"
-  #     abi: RewardTracker
-  #     startBlock: 28986543
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Claim
-  #     abis:
-  #       - name: RewardTracker
-  #         file: ./abis/RewardTracker.json
-  #     eventHandlers:
-  #       - event: Claim(address,uint256)
-  #         handler: handleClaimFees
-  #     file: ./src/arbitrum/reward.ts
-#  - kind: ethereum/contract
-#    name: FeeGlpTrackerClaim
-#    network: base
-#    source:
-#      address: "0xa2242d0A8b0b5c1A487AbFC03Cd9FEf6262BAdCA"
-#      abi: RewardTracker
-#      startBlock: 3098894
-#    mapping:
-#      kind: ethereum/events
-#      apiVersion: 0.0.6
-#      language: wasm/assemblyscript
-#      entities:
-#        - Claim
-#      abis:
-#        - name: RewardTracker
-#          file: ./abis/RewardTracker.json
-#      eventHandlers:
-#        - event: Claim(address,uint256)
-#          handler: handleClaimFees
-#      file: ./src/arbitrum/reward.ts
-
-# Chainlink aggregators
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorBTC
-    network: base
-    source:
-      address: "0xE186722b9d5C063625C49a4BF6Bb3d669F66A8b5"
-      abi: ChainlinkAggregator
-      startBlock: 2095708
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedBTC
-      file: ./src/arbitrum/tokenPrice.ts
-
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorETH
-    network: base
-    source:
-      address: "0x57d2d46Fc7ff2A7142d479F2f59e1E3F95447077"
-      abi: ChainlinkAggregator
-      startBlock: 2092836
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedETH
-      file: ./src/arbitrum/tokenPrice.ts
-
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorcbETH
-    network: base
-    source:
-      address: "0x330eC3210511cC8f5A87A737A08905092e033AF3"
-      abi: ChainlinkAggregator
-      startBlock: 3617582
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedcbETH
-      file: ./src/arbitrum/tokenPrice.ts
-
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorYFI
-    network: base
-    source:
-      address: "0xdB793acA8bE40a123c34300Bb21b02F21F8ef501"
-      abi: ChainlinkAggregator
-      startBlock: 4605366
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedYFI
-      file: ./src/arbitrum/tokenPrice.ts
-
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorAERO
-    network: base
-    source:
-      address: "0xC18cC9B106A50D945024F0a25EfF16B6dC56D4B9"
-      abi: ChainlinkAggregator
-      startBlock: 12730214
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedAERO
-      file: ./src/arbitrum/tokenPrice.ts
 
 # Morphex contracts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: FastPriceFeed
     network: base
     source:
@@ -235,7 +88,7 @@ dataSources:
         - event: PriceUpdate(address,uint256,address)
           handler: handleFastPriceEvent
       file: ./src/arbitrum/tokenPrice.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: GmxPrice
     network: base
     source:
@@ -255,7 +108,7 @@ dataSources:
         - event: Sync(uint256,uint256)
           handler: handleEqualizerMpxFtmSwap
       file: ./src/arbitrum/tokenPrice.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: GlpManager
     network: base
     source:
@@ -277,7 +130,7 @@ dataSources:
         - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleRemoveLiquidity
       file: ./src/arbitrum/tokenPrice.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: positionRouter
     network: base
     source:
@@ -299,7 +152,7 @@ dataSources:
         - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
           handler: handleDecreasePositionReferral
       file: ./src/trading.ts
-  - kind: ethereum/contract
+  - kind: ethereum
     name: gmxVault
     network: base
     source:

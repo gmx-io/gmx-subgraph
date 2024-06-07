@@ -23,9 +23,9 @@ export const BI_22_PRECISION = BigInt.fromI32(10).pow(22)
 
 
 export enum TokenDecimals {
-  USDC = 18,
-  USDT = 18,
-  BTC = 18,
+  USDC = 6,
+  USDT = 6,
+  BTC = 8,
   WETH = 18,
   DAI = 18,
   GMX = 18,
@@ -199,3 +199,5 @@ export function _storeERC20Transfer(token: string, event: erc20.Transfer, amount
 
   transfer.save()
 }
+// graph init --studio bmx_analytics_base_8_2 --from-contract 0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e --network mainnet
+// graph init --studio bmx-base-leaderboard-alt --from-contract 0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e --network mainnet

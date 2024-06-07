@@ -13,7 +13,7 @@ import {
   AERO,
   timestampToPeriod,
   USDC,
-  DAI
+  DAI, getTokenDecimals
 } from "./helpers"
 
 import {
@@ -43,34 +43,6 @@ function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt, b
   totalEntity.save()
 }
 
-export function handleAnswerUpdatedBTC(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(BTC, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedETH(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(ETH, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedcbETH(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(cbETH, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedYFI(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(YFI, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedAERO(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(AERO, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(USDC, event.params.current, event.block.timestamp, event.block.number)
-}
-
-export function handleAnswerUpdatedDAI(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(DAI, event.params.current, event.block.timestamp, event.block.number)
-}
-
 function _handleFastPriceUpdate(token: Address, price: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
   let dailyTimestampGroup = timestampToPeriod(timestamp, "daily")
   _storeFastPrice(dailyTimestampGroup.toString() + ":daily:" + token.toHexString(), token, price, dailyTimestampGroup, blockNumber, "daily")
@@ -94,5 +66,13 @@ function _storeFastPrice(id: string, token: Address, price: BigInt, timestampGro
 
 export function handlePriceUpdate(event: PriceUpdate): void {
   _handleFastPriceUpdate(event.params.token, event.params.price, event.block.timestamp, event.block.number)
+
+  let token = event.params.token.toHexString()
+  let price = (event.params.price.times(BigInt.fromI32(10).pow(getTokenDecimals(token)))).div(BigInt.fromI32(10).pow(30))
+  _storeChainlinkPrice(token, price, event.block.timestamp, event.block.number)
+  if (token == BTC) {  // adding virtual price updates since fast prices does not update stable prices
+    _storeChainlinkPrice(USDC, BigInt.fromI32(10).pow(getTokenDecimals(USDC)), event.block.timestamp, event.block.number)
+    _storeChainlinkPrice(DAI, BigInt.fromI32(10).pow(getTokenDecimals(DAI)), event.block.timestamp, event.block.number)
+  }
 }
 
