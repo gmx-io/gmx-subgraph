@@ -35,7 +35,7 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
     throw new Error("Unsupported period " + period)
   }
 
-  return timestamp / periodTime * periodTime
+  return timestamp.div(periodTime.times(periodTime))
 }
 
 export function getTokenDecimals(token: String): u8 {
@@ -56,14 +56,14 @@ export function getTokenDecimals(token: String): u8 {
   return tokenDecimals.get(token) as u8
 }
 
-export function getTokenAmountUsd(token: String, amount: BigInt): BigInt {
+export function getTokenAmountUsd(token: string, amount: BigInt): BigInt {
   let decimals = getTokenDecimals(token)
   let denominator = BigInt.fromI32(10).pow(decimals)
   let price = getTokenPrice(token)
-  return amount * price / denominator
+  return (amount.times(price)).div(denominator)
 }
 
-export function getTokenPrice(token: String): BigInt {
+export function getTokenPrice(token: string): BigInt {
   if (token == USDbC) {
     token = USDC
   }
@@ -73,7 +73,7 @@ export function getTokenPrice(token: String): BigInt {
     if (chainlinkPriceEntity != null) {
       // all chainlink prices have 8 decimals
       // adjusting them to fit GMX 30 decimals USD values
-      return chainlinkPriceEntity.value * BigInt.fromI32(10).pow(22)
+      return chainlinkPriceEntity.value.times(BigInt.fromI32(10).pow(22))
     }
   }
 
@@ -86,11 +86,11 @@ export function getTokenPrice(token: String): BigInt {
   }
 
   let prices = new TypedMap<String, BigInt>()
-  prices.set(ETH, BigInt.fromI32(1500) * PRECISION)
-  prices.set(BTC, BigInt.fromI32(22000) * PRECISION)
-  prices.set(cbETH, BigInt.fromI32(1600) * PRECISION)
-  prices.set(YFI, BigInt.fromI32(5500) * PRECISION)
-  prices.set(AERO, BigInt.fromI32(1) * PRECISION)
+  prices.set(ETH, BigInt.fromI32(1500).times(PRECISION))
+  prices.set(BTC, BigInt.fromI32(22000).times(PRECISION))
+  prices.set(cbETH, BigInt.fromI32(1600).times(PRECISION))
+  prices.set(YFI, BigInt.fromI32(5500).times(PRECISION))
+  prices.set(AERO, BigInt.fromI32(1).times(PRECISION))
   prices.set(DAI, PRECISION)
   prices.set(USDC, PRECISION)
   prices.set(BMX, PRECISION)

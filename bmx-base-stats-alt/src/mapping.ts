@@ -147,33 +147,33 @@ function _storeLiquidatedPosition(
 
   liquidatedPosition.markPrice = markPrice
   liquidatedPosition.averagePrice = averagePrice
-  let priceDelta = isLong ? averagePrice - markPrice : markPrice - averagePrice
-  liquidatedPosition.loss = size * priceDelta / averagePrice
+  let priceDelta = isLong ? averagePrice.minus(markPrice) : markPrice.minus(averagePrice)
+  liquidatedPosition.loss = (size.times(priceDelta)).div(averagePrice)
 
   let fundingRateId = _getFundingRateId("total", "total", collateralToken)
   let fundingRateEntity = FundingRate.load(fundingRateId)
-  let accruedFundingRate = BigInt.fromI32((fundingRateEntity as FundingRate).endFundingRate) - position.entryFundingRate
-  liquidatedPosition.borrowFee = accruedFundingRate * size / FUNDING_PRECISION
+  let accruedFundingRate = BigInt.fromI32((fundingRateEntity as FundingRate).endFundingRate).minus(position.entryFundingRate)
+  liquidatedPosition.borrowFee = (accruedFundingRate.times(size)).div(FUNDING_PRECISION)
 
   liquidatedPosition.save()
 }
 
 export function handleBuyUSDG(event: BuyUSDGEvent): void {
-  let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
+  let volume = event.params.usdgAmount.times(BigInt.fromString("1000000000000"))
   _storeVolume("mint", event.block.timestamp, volume)
   _storeVolumeBySource("mint", event.block.timestamp, event.transaction.to as Address, volume)
 
-  let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
+  let fee = (volume.times(event.params.feeBasisPoints)).div(BASIS_POINTS_DIVISOR)
   _storeFees("mint", event.block.timestamp, fee)
   _storeUserAction(event.block.timestamp, event.params.account, "mintBurn")
 }
 
 export function handleSellUSDG(event: SellUSDGEvent): void {
-  let volume = event.params.usdgAmount * BigInt.fromString("1000000000000")
+  let volume = event.params.usdgAmount.times(BigInt.fromString("1000000000000"))
   _storeVolumeBySource("burn", event.block.timestamp, event.transaction.to as Address, volume)
   _storeVolume("burn", event.block.timestamp, volume)
 
-  let fee = volume * event.params.feeBasisPoints / BASIS_POINTS_DIVISOR
+  let fee = (volume.times(event.params.feeBasisPoints)).div(BASIS_POINTS_DIVISOR)
   _storeFees("burn", event.block.timestamp, fee)
   _storeUserAction(event.block.timestamp, event.params.account, "mintBurn")
 }
@@ -218,18 +218,18 @@ export function handleSwap(event: SwapEvent): void {
 
   let decimals = getTokenDecimals(entity.tokenIn)
   let denominator = BigInt.fromString("10").pow(decimals)
-  let volume = entity.amountIn * entity.tokenInPrice / denominator
+  let volume = (entity.amountIn.times(entity.tokenInPrice)).div(denominator)
   _storeVolume("swap", event.block.timestamp, volume)
   _storeVolumeBySource("swap", event.block.timestamp, event.transaction.to as Address, volume)
   _storeVolumeByToken("swap", event.block.timestamp, event.params.tokenIn, event.params.tokenOut, volume)
 
-  let fee = volume * entity.feeBasisPoints / BASIS_POINTS_DIVISOR
+  let fee = (volume.times(entity.feeBasisPoints)).div(BASIS_POINTS_DIVISOR)
   _storeFees("swap", event.block.timestamp, fee)
 
   _storeUserAction(event.block.timestamp, event.transaction.from, "swap")
 }
 
-function _storeUserAction(timestamp: BigInt, account: Address, actionType: String): void {
+function _storeUserAction(timestamp: BigInt, account: Address, actionType: string): void {
   let totalEntity = _storeUserActionByType(timestamp, account, actionType, "total", null)
 
   _storeUserActionByType(timestamp, account, actionType, "daily", totalEntity)
@@ -290,8 +290,8 @@ function _storeUserActionByType(
 
   userStat.actionCount += 1
 
-  let actionCountProp: string
-  let uniqueCountProp: string
+  let actionCountProp: string = ""
+  let uniqueCountProp: string = ""
   if (actionType == "margin") {
     actionCountProp = "actionMarginCount"
     uniqueCountProp = "uniqueMarginCount"
@@ -379,7 +379,7 @@ export function handleIncreasePoolAmount(event: IncreasePoolAmount): void {
   let timestamp = event.block.timestamp
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
-  totalEntity.poolAmount += event.params.amount
+  totalEntity.poolAmount = totalEntity.poolAmount.plus(event.params.amount)
   totalEntity.poolAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.poolAmount)
   totalEntity.save()
 
@@ -392,7 +392,7 @@ export function handleDecreasePoolAmount(event: DecreasePoolAmount): void {
   let timestamp = event.block.timestamp
   let token = event.params.token
   let totalEntity = _getOrCreateTokenStat(timestamp, "total", token)
-  totalEntity.poolAmount -= event.params.amount
+  totalEntity.poolAmount = totalEntity.poolAmount.minus(event.params.amount)
   totalEntity.poolAmountUsd = getTokenAmountUsd(token.toHexString(), totalEntity.poolAmount)
   totalEntity.save()
 
@@ -530,11 +530,11 @@ function _storeFees(type: string, timestamp: BigInt, fees: BigInt): void {
   let periodTimestamp = parseInt(_getDayId(timestamp)) as i32
   let id = periodTimestamp.toString() + ":daily"
   let entity = _getOrCreateFeeStat(id, "daily", periodTimestamp)
-  entity.setBigInt(type, entity.getBigInt(type) + fees)
+  entity.setBigInt(type, entity.getBigInt(type).plus(fees))
   entity.save()
 
   let totalEntity = _getOrCreateFeeStat("total", "total", periodTimestamp)
-  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + fees)
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type).plus(fees))
   totalEntity.save()
 }
 
@@ -556,17 +556,17 @@ function _storeVolume(type: string, timestamp: BigInt, volume: BigInt): void {
   let hourPeriodTimestamp = parseInt(_getHourId(timestamp)) as i32
   let hourId = hourPeriodTimestamp.toString() + ":hourly"
   let hourEntity = _getOrCreateVolumeStat(hourId, "hourly", hourPeriodTimestamp)
-  hourEntity.setBigInt(type, hourEntity.getBigInt(type) + volume)
+  hourEntity.setBigInt(type, hourEntity.getBigInt(type).plus(volume))
   hourEntity.save()
 
   let dayPeriodTimestamp = parseInt(_getDayId(timestamp)) as i32
   let dayId = dayPeriodTimestamp.toString() + ":daily"
   let dayEntity = _getOrCreateVolumeStat(dayId, "daily", dayPeriodTimestamp)
-  dayEntity.setBigInt(type, dayEntity.getBigInt(type) + volume)
+  dayEntity.setBigInt(type, dayEntity.getBigInt(type).plus(volume))
   dayEntity.save()
 
   let totalEntity = _getOrCreateVolumeStat("total", "total", dayPeriodTimestamp)
-  totalEntity.setBigInt(type, totalEntity.getBigInt(type) + volume)
+  totalEntity.setBigInt(type, totalEntity.getBigInt(type).plus(volume))
   totalEntity.save()
 }
 
@@ -604,7 +604,7 @@ function _storeVolumeBySource(type: string, timestamp: BigInt, source: Address, 
     }
   }
 
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.setBigInt(type, entity.getBigInt(type).plus(volume))
   entity.save()
 }
 
@@ -623,7 +623,7 @@ function _storeVolumeByToken(type: string, timestamp: BigInt, tokenA: Address, t
     }
   }
 
-  entity.setBigInt(type, entity.getBigInt(type) + volume)
+  entity.setBigInt(type, entity.getBigInt(type).plus(volume))
   entity.save()
 }
 
