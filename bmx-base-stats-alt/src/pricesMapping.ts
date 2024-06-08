@@ -68,11 +68,12 @@ export function handlePriceUpdate(event: PriceUpdate): void {
   _handleFastPriceUpdate(event.params.token, event.params.price, event.block.timestamp, event.block.number)
 
   let token = event.params.token.toHexString()
-  let price = (event.params.price.times(BigInt.fromI32(10).pow(getTokenDecimals(token)))).div(BigInt.fromI32(10).pow(30))
+  let price = event.params.price.div(BigInt.fromI32(10).pow(22))
   _storeChainlinkPrice(token, price, event.block.timestamp, event.block.number)
   if (token == BTC) {  // adding virtual price updates since fast prices does not update stable prices
-    _storeChainlinkPrice(USDC, BigInt.fromI32(10).pow(getTokenDecimals(USDC)), event.block.timestamp, event.block.number)
-    _storeChainlinkPrice(DAI, BigInt.fromI32(10).pow(getTokenDecimals(DAI)), event.block.timestamp, event.block.number)
+    let _price = BigInt.fromI32(10).pow(8)
+    _storeChainlinkPrice(USDC, _price, event.block.timestamp, event.block.number)
+    _storeChainlinkPrice(DAI, _price, event.block.timestamp, event.block.number)
   }
 }
 
