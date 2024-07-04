@@ -1,0 +1,7 @@
+export const ReferralStorage = "0x88a3c38c926a9ecb1344de0ac6c2ed6a95ca6210"
+export const WETH = "0x4200000000000000000000000000000000000006"
+export const WBTC = "0xcdd475325d6f564d27247d1dddbb0dac6fa0a5cf"
+export const weETH = "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a"
+export const MODE = "0xdfc7c877a950e49d2610114102175a06c2e3167a"
+export const BMX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
+export const BLT = "0x952adbb385296dcf86a668f7eaa02df7eb684439"

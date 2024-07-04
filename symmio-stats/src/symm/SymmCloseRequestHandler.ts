@@ -27,13 +27,7 @@ export class CloseRequestHandler extends Handler {
     if (this.user == zero_address) return
     const volumeInDollars = this.getVolume()
     updateVolume(this.user, this.day, this.week, volumeInDollars, this.timestamp) // user volume tracker
-    updateVolume(
-      Address.fromBytes(zero_address),
-      this.day,
-      this.week,
-      volumeInDollars,
-      this.timestamp,
-    ) // total volume tracker
+    updateVolume(Address.fromBytes(zero_address), this.day, this.week, volumeInDollars, this.timestamp) // total volume tracker
 
     const quote = Quote.load(this.getQuoteObjectId(this.event.params.quoteId))
     if (quote == null) return // FIXME: should not happen !
