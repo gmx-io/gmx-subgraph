@@ -4,11 +4,11 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy-prod": "graph deploy --product hosted-service morphex-labs/bmx-base-prices",
+    "deploy-prod": "graph deploy --studio bmx-mode-prices",
     "deploy-test": "graph deploy --product hosted-service gdev8317/gmx-arbitrum-prices --deploy-key $(cat .access_token)"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.42.3",
-    "@graphprotocol/graph-ts": "0.29.3"
+    "@graphprotocol/graph-cli": "^0.73.0",
+    "@graphprotocol/graph-ts": "^0.35.1"
   }
 }

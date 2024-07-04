@@ -7,15 +7,12 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let DAI = "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"
-export let ETH = "0x4200000000000000000000000000000000000006"
-export let BTC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
-export let cbETH = "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22"
-export let YFI = "0x9eaf8c1e34f05a589eda6bafdf391cf6ad3cb239"
-export let AERO = "0x940181a94a35a4569e4529a3cdfb74e38fd98631"
-export let USDbC = "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
-export let USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
-export let BMX = "0x548f93779fbc992010c07467cbaf329dd5f059b7"
+// export let ETH = "0x4200000000000000000000000000000000000006"
+export let weETH = "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a"
+export let BTC = "0xcdd475325d6f564d27247d1dddbb0dac6fa0a5cf"
+export let MODE = "0xdfc7c877a950e49d2610114102175a06c2e3167a"
+export let USDC = "0xd988097fb8612cc24eec14542bc03424c656005f"
+export let BMX = "0x66eed5ff1701e6ed8470dc391f05e27b1d0657eb"
 
 
 export function timestampToDay(timestamp: BigInt): BigInt {
@@ -39,20 +36,13 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 }
 
 export function getTokenDecimals(token: String): u8 {
-  if (token == USDbC) {
-    token = USDC
-  }
-
   let tokenDecimals = new Map<String, i32>()
-  tokenDecimals.set(ETH, 18)
+  // tokenDecimals.set(ETH, 18)
+  tokenDecimals.set(weETH, 18)
   tokenDecimals.set(BTC, 8)
-  tokenDecimals.set(cbETH, 18)
-  tokenDecimals.set(YFI, 18)
-  tokenDecimals.set(AERO, 18)
+  tokenDecimals.set(MODE, 18)
   tokenDecimals.set(USDC, 6)
-  tokenDecimals.set(DAI, 18)
   tokenDecimals.set(BMX, 18)
-
   return tokenDecimals.get(token) as u8
 }
 
@@ -64,10 +54,6 @@ export function getTokenAmountUsd(token: string, amount: BigInt): BigInt {
 }
 
 export function getTokenPrice(token: string): BigInt {
-  if (token == USDbC) {
-    token = USDC
-  }
-
   if (token != BMX) {
     let chainlinkPriceEntity = ChainlinkPrice.load(token)
     if (chainlinkPriceEntity != null) {
@@ -86,14 +72,11 @@ export function getTokenPrice(token: string): BigInt {
   }
 
   let prices = new TypedMap<String, BigInt>()
-  prices.set(ETH, BigInt.fromI32(1500).times(PRECISION))
-  prices.set(BTC, BigInt.fromI32(22000).times(PRECISION))
-  prices.set(cbETH, BigInt.fromI32(1600).times(PRECISION))
-  prices.set(YFI, BigInt.fromI32(5500).times(PRECISION))
-  prices.set(AERO, BigInt.fromI32(1).times(PRECISION))
-  prices.set(DAI, PRECISION)
+  // prices.set(ETH, BigInt.fromI32(1500).times(PRECISION))
+  prices.set(weETH, BigInt.fromI32(3400).times(PRECISION))
+  prices.set(BTC, BigInt.fromI32(58000).times(PRECISION))
+  prices.set(MODE, BigInt.fromI32(1).times(PRECISION))
   prices.set(USDC, PRECISION)
   prices.set(BMX, PRECISION)
-
   return prices.get(token) as BigInt
 }

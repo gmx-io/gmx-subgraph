@@ -8,11 +8,11 @@ dataSources:
 # Transfers
   - kind: ethereum
     name: transferGmx
-    network: base
+    network: mode-mainnet
     source:
-      address: "0x548f93779fbc992010c07467cbaf329dd5f059b7"
+      address: "0x66eEd5FF1701E6ed8470DC391F05e27B1d0657eb"
       abi: ERC20
-      startBlock: 3079012
+      startBlock: 9000541
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -28,11 +28,11 @@ dataSources:
       file: ./src/arbitrum/reward.ts
   - kind: ethereum
     name: transferGlp
-    network: base
+    network: mode-mainnet
     source:
-      address: "0xe771b4E273dF31B85D7A7aE0Efd22fb44BdD0633"
+      address: "0x952AdBB385296Dcf86a668f7eaa02DF7eb684439"
       abi: ERC20
-      startBlock: 3007402
+      startBlock: 9842805
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -46,35 +46,35 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleGlpTransfer
       file: ./src/arbitrum/reward.ts
-  - kind: ethereum
-    name: transferEsGmx
-    network: base
-    source:
-      address: "0x3Ff7AB26F2dfD482C40bDaDfC0e88D01BFf79713"
-      abi: ERC20
-      startBlock: 3590191
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Transfer
-      abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleEsGmxTransfer
-      file: ./src/arbitrum/reward.ts
+#  - kind: ethereum
+#    name: transferEsGmx
+#    network: base
+#    source:
+#      address: "0x3Ff7AB26F2dfD482C40bDaDfC0e88D01BFf79713"
+#      abi: ERC20
+#      startBlock: 3590191
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Transfer
+#      abis:
+#        - name: ERC20
+#          file: ./abis/ERC20.json
+#      eventHandlers:
+#        - event: Transfer(indexed address,indexed address,uint256)
+#          handler: handleEsGmxTransfer
+#      file: ./src/arbitrum/reward.ts
 
 # Morphex contracts
   - kind: ethereum
     name: FastPriceFeed
-    network: base
+    network: mode-mainnet
     source:
-      address: "0x662B64186B50d5346321cf4740119EF04A72De27"
+      address: "0x3D220D2747fc2b25F771b859dBC38A6963C2b0e4"
       abi: FastPriceEvents
-      startBlock: 3009046
+      startBlock: 9844589
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -88,33 +88,33 @@ dataSources:
         - event: PriceUpdate(address,uint256,address)
           handler: handleFastPriceEvent
       file: ./src/arbitrum/tokenPrice.ts
-  - kind: ethereum
-    name: GmxPrice
-    network: base
-    source:
-      address: "0xd272920B2b4eBeE362a887451EDBd6d68A76E507"
-      abi: UniswapPoolV3
-      startBlock: 3517295
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Sync
-      abis:
-        - name: UniswapPoolV3
-          file: ./abis/UniswapPoolV3.json
-      eventHandlers:
-        - event: Sync(uint256,uint256)
-          handler: handleEqualizerMpxFtmSwap
-      file: ./src/arbitrum/tokenPrice.ts
+#  - kind: ethereum
+#    name: GmxPrice
+#    network: base
+#    source:
+#      address: "0xd272920B2b4eBeE362a887451EDBd6d68A76E507"
+#      abi: UniswapPoolV3
+#      startBlock: 3517295
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Sync
+#      abis:
+#        - name: UniswapPoolV3
+#          file: ./abis/UniswapPoolV3.json
+#      eventHandlers:
+#        - event: Sync(uint256,uint256)
+#          handler: handleEqualizerMpxFtmSwap
+#      file: ./src/arbitrum/tokenPrice.ts
   - kind: ethereum
     name: GlpManager
-    network: base
+    network: mode-mainnet
     source:
-      address: "0x9fAc7b75f367d5B35a6D6D0a09572eFcC3D406C5"
+      address: "0xf9Fc0B2859f9B6d33fD1Cea5B0A9f1D56C258178"
       abi: GlpManager
-      startBlock: 3007412
+      startBlock: 9842815
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -132,11 +132,11 @@ dataSources:
       file: ./src/arbitrum/tokenPrice.ts
   - kind: ethereum
     name: positionRouter
-    network: base
+    network: mode-mainnet
     source:
-      address: "0x927F9c03d1Ac6e2630d31E614F226b5Ed028d443"
+      address: "0x6D6ec3bd7c94ab35e7a0a6FdA864EE35eB9fAE04"
       abi: positionRouter
-      startBlock: 3008284
+      startBlock: 9843010
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -154,11 +154,11 @@ dataSources:
       file: ./src/trading.ts
   - kind: ethereum
     name: gmxVault
-    network: base
+    network: mode-mainnet
     source:
-      address: "0xec8d8D4b215727f3476FF0ab41c406FA99b4272C"
+      address: "0xff745bdB76AfCBa9d3ACdCd71664D4250Ef1ae49"
       abi: gmxVault
-      startBlock: 3007377
+      startBlock: 9842777
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

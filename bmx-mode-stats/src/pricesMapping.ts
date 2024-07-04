@@ -1,28 +1,7 @@
 import { BigInt, Address } from "@graphprotocol/graph-ts"
-
-import {
-  ChainlinkPrice,
-  FastPrice
-} from "../generated/schema"
-
-import {
-  BTC,
-  ETH,
-  cbETH,
-  YFI,
-  AERO,
-  timestampToPeriod,
-  USDC,
-  DAI, getTokenDecimals
-} from "./helpers"
-
-import {
-  AnswerUpdated as AnswerUpdatedEvent
-} from '../generated/ChainlinkAggregatorBTC/ChainlinkAggregator'
-
-import {
-  PriceUpdate
-} from '../generated/FastPriceEvents/FastPriceEvents'
+import { ChainlinkPrice, FastPrice } from "../generated/schema"
+import { weETH, BTC, MODE, USDC, timestampToPeriod, getTokenDecimals } from "./helpers"
+import { PriceUpdate } from '../generated/FastPriceEvents/FastPriceEvents'
 
 function _storeChainlinkPrice(token: string, value: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
   let id = token + ":" + timestamp.toString()
@@ -73,7 +52,6 @@ export function handlePriceUpdate(event: PriceUpdate): void {
   if (token == BTC) {  // adding virtual price updates since fast prices does not update stable prices
     let _price = BigInt.fromI32(10).pow(8)
     _storeChainlinkPrice(USDC, _price, event.block.timestamp, event.block.number)
-    _storeChainlinkPrice(DAI, _price, event.block.timestamp, event.block.number)
   }
 }
 
