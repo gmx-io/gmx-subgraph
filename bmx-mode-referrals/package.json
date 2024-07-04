@@ -1,0 +1,14 @@
+{
+  "name": "mpx-fantom-referrals",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy-test": "graph codegen && graph deploy --product hosted-service gdev8317/gmx-avalanche-referrals-staging --deploy-key $(cat .access_token)",
+    "deploy-prod": "graph codegen && graph deploy --product hosted-service morphex-labs/bmx-base-referrals"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.42.3",
+    "@graphprotocol/graph-ts": "0.29.3"
+  }
+}
