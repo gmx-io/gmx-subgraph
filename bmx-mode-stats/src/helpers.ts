@@ -7,7 +7,7 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-// export let ETH = "0x4200000000000000000000000000000000000006"
+export let ETH = "0x4200000000000000000000000000000000000006"
 export let weETH = "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a"
 export let BTC = "0xcdd475325d6f564d27247d1dddbb0dac6fa0a5cf"
 export let MODE = "0xdfc7c877a950e49d2610114102175a06c2e3167a"
@@ -37,7 +37,7 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
 
 export function getTokenDecimals(token: String): u8 {
   let tokenDecimals = new Map<String, i32>()
-  // tokenDecimals.set(ETH, 18)
+  tokenDecimals.set(ETH, 18)
   tokenDecimals.set(weETH, 18)
   tokenDecimals.set(BTC, 8)
   tokenDecimals.set(MODE, 18)
@@ -72,7 +72,7 @@ export function getTokenPrice(token: string): BigInt {
   }
 
   let prices = new TypedMap<String, BigInt>()
-  // prices.set(ETH, BigInt.fromI32(1500).times(PRECISION))
+  prices.set(ETH, BigInt.fromI32(3000).times(PRECISION))
   prices.set(weETH, BigInt.fromI32(3400).times(PRECISION))
   prices.set(BTC, BigInt.fromI32(58000).times(PRECISION))
   prices.set(MODE, BigInt.fromI32(1).times(PRECISION))
