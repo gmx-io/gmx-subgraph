@@ -52,8 +52,8 @@ function _loadOrCreateOpenInterestByToken(id: string, period: string, timestamp:
 }
 
 function _updateOpenInterestByToken(timestamp: BigInt, increase: boolean, isLong: boolean, delta: BigInt, indexToken: Address): void {
-  const id = indexToken.toHexString();
-  const entity = _loadOrCreateOpenInterestByToken(id, "total", timestamp, indexToken)
+  let id = indexToken.toHexString();
+  let entity = _loadOrCreateOpenInterestByToken(id, "total", timestamp, indexToken)
 
   if (isLong) {
     entity.long = increase ? entity.long + delta : entity.long - delta
@@ -63,9 +63,9 @@ function _updateOpenInterestByToken(timestamp: BigInt, increase: boolean, isLong
   entity.save()
 
   // update day open interest
-  const dayTimestamp = timestampToDay(timestamp)
-  const dayId = indexToken.toHexString() + ":" + dayTimestamp.toHexString()
-  const dayEntity = _loadOrCreateOpenInterestByToken(dayId, "daily", dayTimestamp, indexToken)
+  let dayTimestamp = timestampToDay(timestamp)
+  let dayId = indexToken.toHexString() + ":" + dayTimestamp.toHexString()
+  let dayEntity = _loadOrCreateOpenInterestByToken(dayId, "daily", dayTimestamp, indexToken)
 
   dayEntity.long = entity.long
   dayEntity.short = entity.short
