@@ -61,6 +61,27 @@ dataSources:
           handler: handleBatchSend
       file: ./src/mapping.ts
 
+  - kind: ethereum/contract
+    name: BatchSender2
+    network: avalanche
+    source:
+      address: "0x0BEa5D3081921A08d73f150126f99cda0eb29C0e"
+      abi: BatchSender
+      startBlock: 47790852
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
+
 templates:
   - kind: ethereum/contract
     name: MarketTokenTemplate
