@@ -5,11 +5,13 @@ import {
   ClaimRef,
   ClaimableFundingFeeInfo,
   Order,
+  TokenPrice,
   Transaction
 } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 import { orderTypes } from "./orders";
 import { CollateralClaimedEventData } from "../utils/eventData/CollateralClaimedEventData";
+import { getTokenPrice } from "./prices";
 
 let ZERO = BigInt.fromI32(0);
 let ONE = BigInt.fromI32(1);
@@ -75,6 +77,11 @@ export function saveClaimActionOnOrderExecuted(transaction: Transaction, eventDa
     let targetTokenAddresses = claimAction.tokenAddresses;
     targetTokenAddresses.push(sourceTokenAddress);
     claimAction.tokenAddresses = targetTokenAddresses;
+
+    let tokenPrice = getTokenPrice(sourceTokenAddress);
+    let tokenPrices = claimAction.tokenPrices;
+    tokenPrices.push(tokenPrice);
+    claimAction.tokenPrices = tokenPrices;
   }
 
   let sourceAmounts = claimableFundingFeeInfo.amounts;
@@ -152,6 +159,11 @@ function addFieldsToCollateralLikeClaimAction(claimAction: ClaimAction, eventDat
   tokenAddresses.push(eventData.token);
   claimAction.tokenAddresses = tokenAddresses;
 
+  let tokenPrices = claimAction.tokenPrices;
+  let tokenPrice = getTokenPrice(eventData.token);
+  tokenPrices.push(tokenPrice);
+  claimAction.tokenPrices = tokenPrices;
+
   let amounts = claimAction.amounts;
   amounts.push(eventData.amount);
   claimAction.amounts = amounts;
@@ -170,6 +182,7 @@ function getOrCreateClaimCollateralAction(
     entity = new ClaimCollateralAction(id);
     entity.marketAddresses = new Array<string>(0);
     entity.tokenAddresses = new Array<string>(0);
+    entity.tokenPrices = new Array<BigInt>(0);
     entity.amounts = new Array<BigInt>(0);
 
     entity.eventName = eventName;
@@ -190,6 +203,7 @@ function getOrCreateClaimAction(eventName: string, eventData: EventData, transac
     entity = new ClaimAction(id);
     entity.marketAddresses = new Array<string>(0);
     entity.tokenAddresses = new Array<string>(0);
+    entity.tokenPrices = new Array<BigInt>(0);
     entity.amounts = new Array<BigInt>(0);
     entity.isLongOrders = new Array<boolean>(0);
 
