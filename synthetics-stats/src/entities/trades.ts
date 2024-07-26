@@ -1,4 +1,4 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   Order,
   PositionDecrease,
@@ -98,7 +98,7 @@ export function saveOrderFrozenTradeAction(
   return tradeAction;
 }
 
-export function saveSwapExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): TradeAction {
+export function saveSwapExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): void {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
   let swapPath = order.swapPath!;
@@ -108,23 +108,21 @@ export function saveSwapExecutedTradeAction(eventId: string, order: Order, trans
   let swapInfoId = getSwapInfoId(order.id, lastSwapAddress);
 
   let swapInfo = SwapInfo.load(swapInfoId);
-
-  if (swapInfo == null) {
-    throw new Error("Swap info not found " + swapInfoId);
-  }
-
+  
   tradeAction.eventName = "OrderExecuted";
-
+  
   tradeAction.orderKey = order.id;
   tradeAction.orderType = order.orderType;
-
-  tradeAction.executionAmountOut = swapInfo.amountOut;
+  
+  if (swapInfo != null) {
+    tradeAction.executionAmountOut = swapInfo.amountOut;
+  } else {
+    tradeAction.executionAmountOut = BigInt.fromI32(0);
+  }
   tradeAction.transaction = transaction.id;
   tradeAction.timestamp = transaction.timestamp;
 
   tradeAction.save();
-
-  return tradeAction;
 }
 
 export function savePositionIncreaseExecutedTradeAction(
