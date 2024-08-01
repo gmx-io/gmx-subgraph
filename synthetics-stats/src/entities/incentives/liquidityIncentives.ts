@@ -10,7 +10,7 @@ import { EventData } from "../../utils/eventData";
 import { periodToSeconds, timestampToPeriodStart } from "../../utils/time";
 import { EventLog1 } from "../../../generated/EventEmitter/EventEmitter";
 import { getMarketInfo } from "../markets";
-import { convertAmountToUsd, convertUsdToAmount, getTokenPrice } from "../prices";
+import { convertAmountToUsd, convertUsdToAmount } from "../prices";
 import { ZERO } from "../../utils/number";
 import { MarketPoolValueUpdatedEventData } from "../../utils/eventData/MarketPoolValueUpdatedEventData";
 
@@ -103,6 +103,11 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     // interpolate cumulative time * marketTokensBalance starting from the beginning of the period
 
     let marketInfo = getMarketInfo(marketAddress)!;
+    let marketTokensSupply =
+      marketInfo.marketTokensSupplyFromPoolUpdated == null
+        ? marketInfo.marketTokensSupply
+        : marketInfo.marketTokensSupplyFromPoolUpdated;
+    // entity.timestamp = timestamp of the start of the week (from wed)
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.timestamp));
     entity.cumulativeTimeByMarketTokensSupply = marketInfo.marketTokensSupply.times(timeInSeconds);
   } else {

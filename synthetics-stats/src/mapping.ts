@@ -26,7 +26,12 @@ import {
   saveSwapFeesInfo,
   saveSwapFeesInfoWithPeriod
 } from "./entities/fees";
-import { getMarketInfo, saveMarketInfo, saveMarketInfoTokensSupply } from "./entities/markets";
+import {
+  getMarketInfo,
+  saveMarketInfo,
+  saveMarketInfoTokensSupply,
+  saveMarketInfoMarketTokensSupplyFromPoolUpdated
+} from "./entities/markets";
 import {
   orderTypes,
   saveOrder,
@@ -416,6 +421,10 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "MarketPoolValueUpdated") {
     // `saveMarketIncentivesStat should be called before `MarketPoolInfo` entity is updated
     saveMarketIncentivesStat(eventData, event);
+    saveMarketInfoMarketTokensSupplyFromPoolUpdated(
+      eventData.getAddressItemString("market")!,
+      eventData.getUintItem("marketTokensSupply")
+    );
     return;
   }
 

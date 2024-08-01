@@ -45,3 +45,12 @@ export function saveMarketInfoTokensSupply(marketAddress: string, value: BigInt)
   marketInfo.marketTokensSupply = marketInfo.marketTokensSupply.plus(value);
   marketInfo.save();
 }
+
+
+export function saveMarketInfoMarketTokensSupplyFromPoolUpdated(marketAddress: string, value: BigInt | null): void {
+  if (value != null) {
+    let marketInfo = getMarketInfo(marketAddress)
+    marketInfo.marketTokensSupplyFromPoolUpdated = value as BigInt;
+    marketInfo.save();
+  }
+}

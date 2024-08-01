@@ -364,6 +364,7 @@ type MarketInfo @entity {
   shortToken: String!
 
   marketTokensSupply: BigInt!
+  marketTokensSupplyFromPoolUpdated: BigInt!
 }
 
 type DepositRef @entity {
