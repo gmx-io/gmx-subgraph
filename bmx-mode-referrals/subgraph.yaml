@@ -23,26 +23,26 @@ dataSources:
           handler: handleExecuteDecreaseOrder
       file: ./src/mapping.ts
 
-#  - kind: ethereum/contract
-#    name: BatchSender
-#    network: base
-#    source:
-#      address: "0xF9a352b7C7B62a852e5C8A64A455246Dd9596461"
-#      abi: BatchSender
-#      startBlock: 3143314
-#    mapping:
-#      kind: ethereum/events
-#      apiVersion: 0.0.6
-#      language: wasm/assemblyscript
-#      entities:
-#        - BatchSend
-#      abis:
-#        - name: BatchSender
-#          file: ./abis/BatchSender.json
-#      eventHandlers:
-#        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
-#          handler: handleBatchSend
-#      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: BatchSender
+    network: mode-mainnet
+    source:
+      address: "0x4B3491B723a14454D8235452871810e79455F69D"
+      abi: BatchSender
+      startBlock: 10185089
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
 
   - kind: ethereum/contract
     name: PositionManager
