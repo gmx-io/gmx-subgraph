@@ -32,7 +32,7 @@ export function timestampToPeriod(timestamp: BigInt, period: string): BigInt {
     throw new Error("Unsupported period " + period)
   }
 
-  return timestamp.div(periodTime.times(periodTime))
+  return timestamp.div(periodTime).times(periodTime)
 }
 
 export function getTokenDecimals(token: String): u8 {
