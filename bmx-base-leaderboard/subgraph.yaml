@@ -214,6 +214,27 @@ dataSources:
           handler: handleAnswerUpdatedAERO
       file: ./src/arbitrum/tokenPrice.ts
 
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorMOG
+    network: base
+    source:
+      address: "0xeCA1EBFb5CA472C76328f5DdE011c6CcCF2a66F4"
+      abi: ChainlinkAggregator
+      startBlock: 17868792
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdatedMOG
+      file: ./src/arbitrum/tokenPrice.ts
+
 # Morphex contracts
   - kind: ethereum/contract
     name: FastPriceFeed
