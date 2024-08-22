@@ -65,7 +65,7 @@ export function handleAnswerUpdatedAERO(event: AnswerUpdatedEvent): void {
 }
 
 export function handleAnswerUpdatedMOG(event: AnswerUpdatedEvent): void {
-  _storeChainlinkPrice(MOG, event.params.current, event.block.timestamp, event.block.number)
+  _storeChainlinkPrice(MOG, event.params.current.div(BigInt.fromI32(10).pow(10)), event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
