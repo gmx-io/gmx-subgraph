@@ -87,17 +87,19 @@ type PositionIncrease @entity(immutable: true) {
   sizeDeltaInTokens: BigInt!
   collateralDeltaAmount: BigInt!
   executionPrice: BigInt!
-  priceImpactDiffUsd: BigInt!
   orderType: BigInt!
   borrowingFactor: BigInt!
   longTokenFundingAmountPerSize: BigInt!
   shortTokenFundingAmountPerSize: BigInt!
   priceImpactAmount: BigInt!
   priceImpactUsd: BigInt!
-  basePnlUsd: BigInt!
   isLong: Boolean!
 
   transaction: Transaction
+
+  # TODO: no such field in PositionIncrease event
+  priceImpactDiffUsd: BigInt!
+  basePnlUsd: BigInt!
 }
 
 type PositionDecrease @entity(immutable: true) {

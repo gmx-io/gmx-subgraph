@@ -94,7 +94,6 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
 
   let data = new MarketPoolValueUpdatedEventData(eventData);
 
-  let marketTokensSupply = data.marketTokensSupply;
   let marketAddress = data.market;
   let entity = _getOrCreateMarketIncentivesStat(marketAddress, event.block.timestamp.toI32());
 
@@ -103,13 +102,13 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     // interpolate cumulative time * marketTokensBalance starting from the beginning of the period
 
     let marketInfo = getMarketInfo(marketAddress)!;
-    let marketTokensSupply =
+    let lastMarketTokensSupply =
       marketInfo.marketTokensSupplyFromPoolUpdated == null
         ? marketInfo.marketTokensSupply
         : marketInfo.marketTokensSupplyFromPoolUpdated;
     // entity.timestamp = timestamp of the start of the week (from wed)
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.timestamp));
-    entity.cumulativeTimeByMarketTokensSupply = marketInfo.marketTokensSupply.times(timeInSeconds);
+    entity.cumulativeTimeByMarketTokensSupply = lastMarketTokensSupply.times(timeInSeconds);
   } else {
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.updatedTimestamp));
     entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
@@ -117,7 +116,7 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
     );
   }
 
-  entity.lastMarketTokensSupply = marketTokensSupply;
+  entity.lastMarketTokensSupply = data.marketTokensSupply;
   entity.updatedTimestamp = event.block.timestamp.toI32();
 
   let endTimestamp = entity.timestamp + SECONDS_IN_WEEK;

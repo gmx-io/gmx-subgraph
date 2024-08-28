@@ -108,12 +108,12 @@ export function saveSwapExecutedTradeAction(eventId: string, order: Order, trans
   let swapInfoId = getSwapInfoId(order.id, lastSwapAddress);
 
   let swapInfo = SwapInfo.load(swapInfoId);
-  
+
   tradeAction.eventName = "OrderExecuted";
-  
+
   tradeAction.orderKey = order.id;
   tradeAction.orderType = order.orderType;
-  
+
   if (swapInfo != null) {
     tradeAction.executionAmountOut = swapInfo.amountOut;
   } else {
@@ -135,12 +135,18 @@ export function savePositionIncreaseExecutedTradeAction(
   let marketInfo = getMarketInfo(order.marketAddress);
   let tokenPrice = TokenPrice.load(marketInfo.indexToken)!;
 
-  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
-  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
-
   if (positionIncrease == null) {
     throw new Error("PositionIncrease not found " + order.id);
   }
+
+  let positionFeesInfo = PositionFeesInfo.load(order.id + ":" + "PositionFeesCollected");
+  if (positionFeesInfo == null) {
+    log.warning("PositionFeesInfo not found {}", [order.id]);
+    throw new Error("PositionFeesInfo not found " + order.id);
+  }
+
+  tradeAction.indexTokenPriceMin = tokenPrice.minPrice;
+  tradeAction.indexTokenPriceMax = tokenPrice.maxPrice;
 
   tradeAction.eventName = "OrderExecuted";
 
@@ -152,6 +158,13 @@ export function savePositionIncreaseExecutedTradeAction(
 
   tradeAction.executionPrice = positionIncrease.executionPrice;
   tradeAction.priceImpactUsd = positionIncrease.priceImpactUsd;
+
+  tradeAction.collateralTokenPriceMin = positionFeesInfo.collateralTokenPriceMin;
+  tradeAction.collateralTokenPriceMax = positionFeesInfo.collateralTokenPriceMax;
+
+  tradeAction.positionFeeAmount = positionFeesInfo.positionFeeAmount;
+  tradeAction.borrowingFeeAmount = positionFeesInfo.borrowingFeeAmount;
+  tradeAction.fundingFeeAmount = positionFeesInfo.fundingFeeAmount;
 
   tradeAction.transaction = transaction.id;
   tradeAction.timestamp = transaction.timestamp;

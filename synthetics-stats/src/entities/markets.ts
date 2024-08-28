@@ -30,6 +30,7 @@ export function getMarketInfo(marketAddress: string): MarketInfo {
       entity.indexToken = marketConfig.indexToken;
       entity.longToken = marketConfig.longToken;
       entity.shortToken = marketConfig.shortToken;
+      entity.marketTokensSupply = ZERO;
       entity.save();
     } else {
       log.error("MarketInfo not found {}", [marketAddress]);
