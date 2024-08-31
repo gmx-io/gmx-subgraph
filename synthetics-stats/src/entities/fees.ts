@@ -272,20 +272,35 @@ export function saveCollectedMarketFees(
   totalFees.feeUsdForPool = totalFees.feeUsdForPool.plus(feeUsdForPool);
   totalFees.save();
 
-  let feesForPeriod = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "1h");
+  let feesFor1hPeriod = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "1h");
 
   updateCollectedFeesFractions(
     poolValue,
-    feesForPeriod,
+    feesFor1hPeriod,
     totalFees,
     feeUsdForPool,
     marketTokensSupply,
     prevCumulativeFeeUsdPerGmToken
   );
 
-  feesForPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
-  feesForPeriod.feeUsdForPool = feesForPeriod.feeUsdForPool.plus(feeUsdForPool);
-  feesForPeriod.save();
+  feesFor1hPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
+  feesFor1hPeriod.feeUsdForPool = feesFor1hPeriod.feeUsdForPool.plus(feeUsdForPool);
+  feesFor1hPeriod.save();
+
+  let feesFor1dPeriod = getOrCreateCollectedMarketFees(marketAddress, transaction.timestamp, "1d");
+
+  updateCollectedFeesFractions(
+    poolValue,
+    feesFor1dPeriod,
+    totalFees,
+    feeUsdForPool,
+    marketTokensSupply,
+    prevCumulativeFeeUsdPerGmToken
+  );
+
+  feesFor1dPeriod.cummulativeFeeUsdForPool = totalFees.cummulativeFeeUsdForPool;
+  feesFor1dPeriod.feeUsdForPool = feesFor1dPeriod.feeUsdForPool.plus(feeUsdForPool);
+  feesFor1dPeriod.save();
 }
 
 export function handlePositionImpactPoolDistributed(
