@@ -5,20 +5,17 @@ enum OrderStatus {
   Frozen
 }
 
-enum TradeActionType {
-  OrderCreated
-  OrderCancelled
-  OrderExecuted
-  OrderFrozen
-  OrderUpdated
-}
-
 enum ClaimActionType {
   ClaimPriceImpact
   ClaimFunding
   SettleFundingFeeCreated
   SettleFundingFeeExecuted
   SettleFundingFeeCancelled
+}
+
+enum GlvOrMarketType {
+  Glv
+  Market
 }
 
 type AffiliateRewardUpdate @entity(immutable: true) {
@@ -455,42 +452,45 @@ type LiquidityProviderIncentivesStat @entity {
   # used for liquidity providers incentives program
   # tracks average weighted liquidity provided by user per week
 
-  # account:market:period:timestamp
+  # account:glvOrMarket:period:timestamp
   id: ID!
   period: String!
   timestamp: Int!
   account: String!
-  marketAddress: String!
+  glvOrMarketAddress: String!
+  type: GlvOrMarketType!
 
   updatedTimestamp: Int!
-  lastMarketTokensBalance: BigInt!
-  cumulativeTimeByMarketTokensBalance: BigInt!
-  weightedAverageMarketTokensBalance: BigInt!
+  lastTokensBalance: BigInt!
+  cumulativeTimeByTokensBalance: BigInt!
+  weightedAverageTokensBalance: BigInt!
 }
 
-type MarketIncentivesStat @entity {
+type IncentivesStat @entity {
   # used for incentives program
   # tracks average weighted liquidity in each pool
 
-  # marketAddress:period:timestamp
+  # glvOrMarket:period:timestamp
   id: ID!
   period: String!
   timestamp: Int!
-  marketAddress: String!
+  glvOrMarketAddress: String!
+  type: GlvOrMarketType!
 
   updatedTimestamp: Int!
-  lastMarketTokensSupply: BigInt!
-  cumulativeTimeByMarketTokensSupply: BigInt!
-  weightedAverageMarketTokensSupply: BigInt!
+  lastTokensSupply: BigInt!
+  cumulativeTimeByTokensSupply: BigInt!
+  weightedAverageTokensSupply: BigInt!
 }
 
-type UserMarketInfo @entity {
+type LiquidityProviderInfo @entity {
   # account:marketAddress
   id: ID!
 
-  marketTokensBalance: BigInt!
+  tokensBalance: BigInt!
   account: String!
-  marketAddress: String!
+  glvOrMarketAddress: String!
+  type: GlvOrMarketType!
 }
 
 type SellUSDG @entity {

@@ -2,8 +2,8 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import {
   UserGlpGmMigrationStat,
   LiquidityProviderIncentivesStat,
-  MarketIncentivesStat,
-  UserMarketInfo,
+  IncentivesStat,
+  LiquidityProviderInfo,
   GlpGmMigrationStat
 } from "../../../generated/schema";
 import { EventData } from "../../utils/eventData";
@@ -26,16 +26,22 @@ let GLP_GM_MIGRATION_CAP_THRESHOLD_IN_ARB = BigInt.fromI32(200_000_000).times(AR
 let MAX_FEE_BASIS_POINTS_FOR_REBATE = BigInt.fromI32(25);
 let MAX_FEE_BASIS_POINTS_FOR_REBATE_REDUCED = BigInt.fromI32(10);
 
-export function saveUserMarketInfo(account: string, marketAddress: string, marketTokensDelta: BigInt): void {
-  let entity = _getUserMarketInfo(account, marketAddress);
-  entity.marketTokensBalance = entity.marketTokensBalance.plus(marketTokensDelta);
+export function saveLiquidityProviderInfo(
+  account: string,
+  glvOrMarketAddress: string,
+  type: string,
+  tokensDelta: BigInt
+): void {
+  let entity = _getLiquidityProviderInfo(account, glvOrMarketAddress, type);
+  entity.tokensBalance = entity.tokensBalance.plus(tokensDelta);
 
   entity.save();
 }
 
 export function saveLiquidityProviderIncentivesStat(
   account: string,
-  marketAddress: string,
+  glvOrMarketAddress: string,
+  type: string,
   period: string,
   marketTokenBalanceDelta: BigInt,
   timestamp: i32
@@ -44,30 +50,28 @@ export function saveLiquidityProviderIncentivesStat(
     return;
   }
 
-  let entity = _getOrCreateLiquidityProviderIncentivesStat(account, marketAddress, period, timestamp);
+  let entity = _getOrCreateLiquidityProviderIncentivesStat(account, glvOrMarketAddress, type, period, timestamp);
 
   if (entity.updatedTimestamp == 0) {
     // new entity was created
 
-    let userMarketInfo = _getUserMarketInfo(account, marketAddress);
+    let liquidityProviderInfo = _getLiquidityProviderInfo(account, glvOrMarketAddress, type);
 
-    // interpolate cumulative time x marketTokensBalance starting from the beginning of the period
+    // interpolate cumulative time x tokensBalance starting from the beginning of the period
     let timeInSeconds = BigInt.fromI32(timestamp - entity.timestamp);
-    entity.cumulativeTimeByMarketTokensBalance = userMarketInfo.marketTokensBalance.times(timeInSeconds);
-    entity.lastMarketTokensBalance = userMarketInfo.marketTokensBalance.plus(marketTokenBalanceDelta);
+    entity.cumulativeTimeByTokensBalance = liquidityProviderInfo.tokensBalance.times(timeInSeconds);
+    entity.lastTokensBalance = liquidityProviderInfo.tokensBalance.plus(marketTokenBalanceDelta);
   } else {
     let timeInSeconds = BigInt.fromI32(timestamp - entity.updatedTimestamp);
-    entity.cumulativeTimeByMarketTokensBalance = entity.cumulativeTimeByMarketTokensBalance.plus(
-      entity.lastMarketTokensBalance.times(timeInSeconds)
+    entity.cumulativeTimeByTokensBalance = entity.cumulativeTimeByTokensBalance.plus(
+      entity.lastTokensBalance.times(timeInSeconds)
     );
-    entity.lastMarketTokensBalance = entity.lastMarketTokensBalance.plus(marketTokenBalanceDelta);
+    entity.lastTokensBalance = entity.lastTokensBalance.plus(marketTokenBalanceDelta);
   }
 
   let endTimestamp = entity.timestamp + SECONDS_IN_WEEK;
-  let extrapolatedTimeByMarketTokensBalance = entity.lastMarketTokensBalance.times(
-    BigInt.fromI32(endTimestamp - timestamp)
-  );
-  entity.weightedAverageMarketTokensBalance = entity.cumulativeTimeByMarketTokensBalance
+  let extrapolatedTimeByMarketTokensBalance = entity.lastTokensBalance.times(BigInt.fromI32(endTimestamp - timestamp));
+  entity.weightedAverageTokensBalance = entity.cumulativeTimeByTokensBalance
     .plus(extrapolatedTimeByMarketTokensBalance)
     .div(BigInt.fromI32(SECONDS_IN_WEEK));
   entity.updatedTimestamp = timestamp;
@@ -95,35 +99,35 @@ export function saveMarketIncentivesStat(eventData: EventData, event: EventLog1)
   let data = new MarketPoolValueUpdatedEventData(eventData);
 
   let marketAddress = data.market;
-  let entity = _getOrCreateMarketIncentivesStat(marketAddress, event.block.timestamp.toI32());
+  let entity = _getOrCreateIncentivesStat(marketAddress, "Market", event.block.timestamp.toI32());
 
   if (entity.updatedTimestamp == 0) {
     // new entity was created
-    // interpolate cumulative time * marketTokensBalance starting from the beginning of the period
+    // interpolate cumulative time * tokensBalance starting from the beginning of the period
 
     let marketInfo = getMarketInfo(marketAddress)!;
-    let lastMarketTokensSupply =
+    let lastTokensSupply =
       marketInfo.marketTokensSupplyFromPoolUpdated == null
         ? marketInfo.marketTokensSupply
         : marketInfo.marketTokensSupplyFromPoolUpdated;
     // entity.timestamp = timestamp of the start of the week (from wed)
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.timestamp));
-    entity.cumulativeTimeByMarketTokensSupply = lastMarketTokensSupply.times(timeInSeconds);
+    entity.cumulativeTimeByTokensSupply = lastTokensSupply.times(timeInSeconds);
   } else {
     let timeInSeconds = event.block.timestamp.minus(BigInt.fromI32(entity.updatedTimestamp));
-    entity.cumulativeTimeByMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply.plus(
-      entity.lastMarketTokensSupply.times(timeInSeconds)
+    entity.cumulativeTimeByTokensSupply = entity.cumulativeTimeByTokensSupply.plus(
+      entity.lastTokensSupply.times(timeInSeconds)
     );
   }
 
-  entity.lastMarketTokensSupply = data.marketTokensSupply;
+  entity.lastTokensSupply = data.marketTokensSupply;
   entity.updatedTimestamp = event.block.timestamp.toI32();
 
   let endTimestamp = entity.timestamp + SECONDS_IN_WEEK;
-  let extrapolatedTimeByMarketTokensSupply = entity.lastMarketTokensSupply.times(
+  let extrapolatedTimeByMarketTokensSupply = entity.lastTokensSupply.times(
     BigInt.fromI32(endTimestamp).minus(event.block.timestamp)
   );
-  entity.weightedAverageMarketTokensSupply = entity.cumulativeTimeByMarketTokensSupply
+  entity.weightedAverageTokensSupply = entity.cumulativeTimeByTokensSupply
     .plus(extrapolatedTimeByMarketTokensSupply)
     .div(BigInt.fromI32(SECONDS_IN_WEEK));
 
@@ -304,59 +308,63 @@ function _getOrCreateUserGlpGmMigrationStatGlpData(account: string, timestamp: i
 
 function _getOrCreateLiquidityProviderIncentivesStat(
   account: string,
-  marketAddress: string,
+  glvOrMarketAddress: string,
+  type: string,
   period: string,
   timestamp: i32
 ): LiquidityProviderIncentivesStat {
   let startTimestamp = timestampToPeriodStart(timestamp, period);
-  let id = account + ":" + marketAddress + ":" + period + ":" + startTimestamp.toString();
+  let id = account + ":" + glvOrMarketAddress + ":" + period + ":" + startTimestamp.toString();
   let entity = LiquidityProviderIncentivesStat.load(id);
   if (entity == null) {
     entity = new LiquidityProviderIncentivesStat(id);
     entity.timestamp = startTimestamp;
     entity.period = period;
     entity.account = account;
-    entity.marketAddress = marketAddress;
+    entity.glvOrMarketAddress = glvOrMarketAddress;
+    entity.type = type;
 
     entity.updatedTimestamp = 0;
-    entity.lastMarketTokensBalance = ZERO;
-    entity.cumulativeTimeByMarketTokensBalance = ZERO;
-    entity.weightedAverageMarketTokensBalance = ZERO;
+    entity.lastTokensBalance = ZERO;
+    entity.cumulativeTimeByTokensBalance = ZERO;
+    entity.weightedAverageTokensBalance = ZERO;
   }
 
   return entity!;
 }
 
-function _getOrCreateMarketIncentivesStat(marketAddress: string, timestamp: i32): MarketIncentivesStat {
+function _getOrCreateIncentivesStat(glvOrMarketAddress: string, type: string, timestamp: i32): IncentivesStat {
   let period = "1w";
   let startTimestamp = timestampToPeriodStart(timestamp, period);
-  let id = marketAddress + ":" + period + ":" + startTimestamp.toString();
-  let entity = MarketIncentivesStat.load(id);
+  let id = glvOrMarketAddress + ":" + period + ":" + startTimestamp.toString();
+  let entity = IncentivesStat.load(id);
 
   if (entity == null) {
-    entity = new MarketIncentivesStat(id);
+    entity = new IncentivesStat(id);
     entity.timestamp = startTimestamp;
     entity.period = period;
-    entity.marketAddress = marketAddress;
+    entity.glvOrMarketAddress = glvOrMarketAddress;
+    entity.type = type;
 
     entity.updatedTimestamp = 0;
-    entity.lastMarketTokensSupply = ZERO;
-    entity.cumulativeTimeByMarketTokensSupply = ZERO;
-    entity.weightedAverageMarketTokensSupply = ZERO;
+    entity.lastTokensSupply = ZERO;
+    entity.cumulativeTimeByTokensSupply = ZERO;
+    entity.weightedAverageTokensSupply = ZERO;
   }
 
   return entity!;
 }
 
-function _getUserMarketInfo(account: string, marketAddress: string): UserMarketInfo {
-  let id = account + ":" + marketAddress;
-  let entity = UserMarketInfo.load(id);
+function _getLiquidityProviderInfo(account: string, glvOrMarketAddress: string, type: string): LiquidityProviderInfo {
+  let id = account + ":" + glvOrMarketAddress;
+  let entity = LiquidityProviderInfo.load(id);
 
   if (entity == null) {
-    entity = new UserMarketInfo(id);
-    entity.marketTokensBalance = ZERO;
+    entity = new LiquidityProviderInfo(id);
+    entity.tokensBalance = ZERO;
     entity.account = account;
-    entity.marketAddress = marketAddress;
+    entity.glvOrMarketAddress = glvOrMarketAddress;
+    entity.type = type;
   }
 
   return entity!;

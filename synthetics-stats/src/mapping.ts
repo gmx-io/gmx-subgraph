@@ -1,8 +1,8 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, Bytes, log } from "@graphprotocol/graph-ts";
 
 import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
-import { MarketTokenTemplate } from "../generated/templates";
+import { MarketTokenTemplate, GlvTokenTemplate } from "../generated/templates";
 import { ClaimRef, DepositRef, MarketInfo, Order, SellUSDG } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
 import { SellUSDG as SellUSDGEvent } from "../generated/Vault/Vault";
@@ -62,7 +62,7 @@ import {
   saveMarketIncentivesStat,
   saveUserGlpGmMigrationStatGlpData,
   saveUserGlpGmMigrationStatGmData,
-  saveUserMarketInfo
+  saveLiquidityProviderInfo
 } from "./entities/incentives/liquidityIncentives";
 import { saveDistribution } from "./entities/distributions";
 import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
@@ -139,6 +139,26 @@ export function handleBatchSend(event: BatchSend): void {
   }
 }
 
+export function handleGlvTokenTransfer(event: Transfer): void {
+  let glvAddress = event.address.toHexString();
+  let from = event.params.from.toHexString();
+  let to = event.params.to.toHexString();
+  let value = event.params.value;
+
+  // `from` user redeems or transfers out GLV tokens
+  if (from != ADDRESS_ZERO) {
+    // LiquidityProviderIncentivesStat *should* be updated before LiquidityProviderInfo
+    saveLiquidityProviderIncentivesStat(from, glvAddress, "Glv", "1w", value.neg(), event.block.timestamp.toI32());
+    saveLiquidityProviderInfo(from, glvAddress, "Glv", value.neg());
+  }
+
+  // `to` user receives GLV tokens
+  if (to != ADDRESS_ZERO) {
+    saveLiquidityProviderIncentivesStat(to, glvAddress, "Glv", "1w", value, event.block.timestamp.toI32());
+    saveLiquidityProviderInfo(to, glvAddress, "Glv", value);
+  }
+}
+
 export function handleMarketTokenTransfer(event: Transfer): void {
   let marketAddress = event.address.toHexString();
   let from = event.params.from.toHexString();
@@ -148,17 +168,17 @@ export function handleMarketTokenTransfer(event: Transfer): void {
   // `from` user redeems or transfers out GM tokens
   if (from != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
-    saveLiquidityProviderIncentivesStat(from, marketAddress, "1w", value.neg(), event.block.timestamp.toI32());
-    saveUserMarketInfo(from, marketAddress, value.neg());
+    saveLiquidityProviderIncentivesStat(from, marketAddress, "Market", "1w", value.neg(), event.block.timestamp.toI32());
+    saveLiquidityProviderInfo(from, marketAddress, "Market", value.neg());
     let transaction = getOrCreateTransaction(event);
     saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.logIndex);
   }
 
   // `to` user receives GM tokens
   if (to != ADDRESS_ZERO) {
-    // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
-    saveLiquidityProviderIncentivesStat(to, marketAddress, "1w", value, event.block.timestamp.toI32());
-    saveUserMarketInfo(to, marketAddress, value);
+    // LiquidityProviderIncentivesStat *should* be updated before LiquidityProviderInfo
+    saveLiquidityProviderIncentivesStat(to, marketAddress, "Market", "1w", value, event.block.timestamp.toI32());
+    saveLiquidityProviderInfo(to, marketAddress, "Market", value);
     let transaction = getOrCreateTransaction(event);
     saveUserGmTokensBalanceChange(to, marketAddress, value, transaction, event.logIndex);
   }
@@ -190,6 +210,19 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "MarketCreated") {
     saveMarketInfo(eventData);
     MarketTokenTemplate.create(eventData.getAddressItem("marketToken")!);
+    return;
+  }
+
+  if (eventName == "GlvCreated") {
+    // saveMarketInfo(eventData);
+    log.warning("block number: {} tx hash: {}", [event.block.number.toHexString(), event.transaction.hash.toHexString()]);
+    let glvToken = eventData.getAddressItem("glvToken");
+    if (!glvToken) {
+      // for fuji
+      glvToken = eventData.getAddressItem("glv")!;
+    }
+    log.warning("glv token: {}", [glvToken ? glvToken.toHexString() : "undefined"]);
+    GlvTokenTemplate.create(glvToken as Address);
     return;
   }
 

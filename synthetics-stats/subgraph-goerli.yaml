@@ -111,3 +111,23 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleMarketTokenTransfer
       file: ./src/mapping.ts
+
+templates:
+  - kind: ethereum/contract
+    name: GlvTokenTemplate
+    network: arbitrum-one
+    source:
+      abi: GlvToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Transaction
+      abis:
+        - name: GlvToken
+          file: ./abis/GlvToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlvTokenTransfer
+      file: ./src/mapping.ts
