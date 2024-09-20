@@ -1,0 +1,9 @@
+export const ID = "{{id}}"
+export const EPOCH_START_TIMESTAMP = {{epochStartTimestamp}}
+export const EPOCH_DURATION = {{epochDuration}}
+export const WETH = "{{weth}}"
+export const WETH_PRICE_FEED  = "{{wethPriceFeed}}"
+export const DIBS = "{{dibs}}"
+export const DIBS_LOTTERY = "{{dibsLottery}}"
+export const FACTORY = "{{factoryAddress}}"
+export const DIBS_START_BLOCK = {{dibsStartBlock}}

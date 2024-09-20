@@ -1,0 +1,124 @@
+type TotalVolumeTracker @entity {
+  id: ID! # "VOLUME_TRACKER"
+  totalVolume: BigInt!
+  dibsVolume: BigInt!
+}
+
+type DailyVolumeTracker @entity {
+  id: ID! # day
+  day: BigInt!
+  totalVolume: BigInt!
+  dibsVolume: BigInt!
+}
+
+type TokenTracker @entity {
+  id: ID! # tokenAddress
+  token: Bytes!
+  total: BigInt!
+  dibs: BigInt!
+}
+
+type SwapLog @entity {
+  id: ID! # txHash + logIndex
+  txHash: Bytes!
+  logIndex: BigInt!
+  user: Bytes!
+  tokenIn: Bytes!
+  amountIn: BigInt!
+  volumeInBNB: BigInt!
+  BNBPrice: BigInt!
+  volumeInDollars: BigInt!
+  stable: Boolean!
+  timestamp: BigInt!
+}
+
+type Referral @entity {
+  id: ID! # userAddress + referralAddress
+  user: Bytes!
+  referrer: Bytes!
+}
+
+type GeneratedVolume @entity {
+  id: ID! # user
+  user: Bytes!
+  amountAsUser: BigInt!
+  lastUpdate: BigInt!
+}
+
+type WeeklyGeneratedVolume @entity {
+  id: ID! # user - round (epoch)
+  user: Bytes!
+  amountAsUser: BigInt!
+  lastUpdate: BigInt!
+  epoch: BigInt!
+}
+
+type DailyGeneratedVolume @entity {
+  id: ID! # user - round (day)
+  user: Bytes!
+  amountAsUser: BigInt!
+  lastUpdate: BigInt!
+  day: BigInt!
+}
+
+type UserTotalVolume @entity {
+  id: ID! # user
+  user: Bytes!
+  volume: BigInt!
+  lastUpdate: BigInt!
+}
+
+type UserWeeklyClaim @entity {
+  id: ID! # user-token-epoch
+  user: Bytes!
+  token: Bytes!
+  epoch: BigInt!
+  amount: BigInt!
+}
+
+type UserTotalClaim @entity {
+  id: ID! # user-token
+  user: Bytes!
+  token: Bytes!
+  amount: BigInt!
+}
+
+type Pair @entity {
+  id: ID! # pair address
+  token0: Bytes!
+  token1: Bytes!
+  reserve0: BigInt!
+  reserve1: BigInt!
+  stable: Boolean!
+}
+
+type AllPair @entity {
+  id: ID!
+  pairs: [Pair!]! # list of all pairs
+}
+
+type TokenToPair @entity {
+  id: ID! # token
+  pairs: [Pair!]! # list of direct pairs
+}
+
+type TokenData @entity {
+  id: ID! # TOKEN_DATA
+  tokens: [Bytes!]! # list of all tokens
+}
+
+type PathToTarget @entity {
+  id: ID! # token address + target
+  token: Bytes!
+  target: Bytes!
+  path: [Bytes!]! # path of pairs
+}
+
+type Quote @entity {
+  id: ID!
+  account: Bytes!
+  quantity: BigInt!
+  closedAmount: BigInt!
+  avgClosedPrice: BigInt!
+  transaction: Bytes!
+}
