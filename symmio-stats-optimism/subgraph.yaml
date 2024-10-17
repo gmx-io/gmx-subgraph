@@ -1,49 +1,10 @@
-specVersion: 0.0.4
-schema:
-  file: ./schema.graphql
-dataSources:
-  - kind: ethereum/contract
-    name: SymmDataSource
-    network: base
-    source:
-      address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
-      abi: v3
-      startBlock: 14989327  # later start block to match chosen epoch start ts
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - OpenPosition
-      abis:
-        - name: v3
-          file: ./abis/v3.json
-        - name: MultiAccount
-          file: ./abis/MultiAccount.json
-      eventHandlers:
-        - event: OpenPosition(uint256,address,address,uint256,uint256)
-          handler: handleOpenPosition
-        - event: SendQuote(address,uint256,address[],uint256,uint8,uint8,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
-          handler: handleSendQuote
-        - event: FillCloseRequest(uint256,address,address,uint256,uint256,uint8)
-          handler: handleFillCloseRequest
-        - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
-          handler: handleEmergencyCloseRequest
-        - event: ForceClosePosition(uint256,address,address,uint256,uint256,uint8)
-          handler: handleForceCloseRequest
-        - event: LiquidatePositionsPartyA(address,address,uint256[])
-          handler: handleLiquidatePositionsPartyA
-        - event: LiquidatePositionsPartyB(address,address,address,uint256[])
-          handler: handleLiquidatePositionsPartyB
-      file: ./src/symm/main.ts
-
   - kind: ethereum/contract
     name: DibsRewarder
-    network: base
+    network: optimism
     source:
-      address: "0x659458f3B35762416C65184A6d62F66922594198"
+      address: "0xF18075aBDeb2C37236d9BfEa5d8952Ce9c54E7D6"
       abi: DibsRewarder
-      startBlock: 15117747
+      startBlock: 126762860
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
