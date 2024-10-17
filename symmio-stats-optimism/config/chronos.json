@@ -1,0 +1,13 @@
+{
+  "id": "chronos",
+  "network": "arbitrum-one",
+  "dibs": "0x6cB66a0762E7Ce3c0Abc9d0241bF4cfFc67fcdA1",
+  "epochStartTimestamp": 1682553600,
+  "epochDuration": 604800,
+  "weth": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+  "wethPriceFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+  "dibsLottery": "0x7AA64eB76100DD214716154DbB105c4d626EA159",
+  "factoryAddress": "0xCe9240869391928253Ed9cc9Bcb8cb98CB5B0722",
+  "factoryStartBlock": 81922397,
+  "dibsStartBlock": 85072311
+}
