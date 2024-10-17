@@ -6,7 +6,7 @@ dataSources:
     name: DibsRewarder
     network: optimism
     source:
-      address: "0xF18075aBDeb2C37236d9BfEa5d8952Ce9c54E7D6"
+      address: "0xBF48a79369f8e509D4b867dfAa1ABe8d186290fE"
       abi: DibsRewarder
       startBlock: 126762860
     mapping:
