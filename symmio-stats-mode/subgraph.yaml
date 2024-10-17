@@ -1,0 +1,59 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: SymmDataSource
+    network: mode-mainnet
+    source:
+      address: "0x3d17f073cCb9c3764F105550B0BCF9550477D266"
+      abi: v3
+      startBlock: 11261499
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - OpenPosition
+      abis:
+        - name: v3
+          file: ./abis/v3.json
+        - name: MultiAccount
+          file: ./abis/MultiAccount.json
+      eventHandlers:
+        - event: OpenPosition(uint256,address,address,uint256,uint256)
+          handler: handleOpenPosition
+        - event: SendQuote(address,uint256,address[],uint256,uint8,uint8,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleSendQuote
+        - event: FillCloseRequest(uint256,address,address,uint256,uint256,uint8)
+          handler: handleFillCloseRequest
+        - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
+          handler: handleEmergencyCloseRequest
+        - event: ForceClosePosition(uint256,address,address,uint256,uint256,uint8)
+          handler: handleForceCloseRequest
+        - event: LiquidatePositionsPartyA(address,address,uint256[])
+          handler: handleLiquidatePositionsPartyA
+        - event: LiquidatePositionsPartyB(address,address,address,uint256[])
+          handler: handleLiquidatePositionsPartyB
+      file: ./src/symm/main.ts
+
+  - kind: ethereum/contract
+    name: DibsRewarder
+    network: mode-mainnet
+    source:
+      address: "0x1465E6a8198a69FD9aF11ED4FBfb3b51710D6505"
+      abi: DibsRewarder
+      startBlock: 13029040
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Claim
+      abis:
+        - name: DibsRewarder
+          file: ./abis/DibsRewarder.json
+      eventHandlers:
+        - event: Claim(indexed address,indexed address,uint256,uint256)
+          handler: handleClaim
+      file: ./src/symm/main.ts

@@ -1,0 +1,24 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: DibsRewarder
+    network: optimism
+    source:
+      address: "0xBF48a79369f8e509D4b867dfAa1ABe8d186290fE"
+      abi: DibsRewarder
+      startBlock: 126762860
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Claim
+      abis:
+        - name: DibsRewarder
+          file: ./abis/DibsRewarder.json
+      eventHandlers:
+        - event: Claim(indexed address,indexed address,uint256,uint256)
+          handler: handleClaim
+      file: ./src/symm/main.ts

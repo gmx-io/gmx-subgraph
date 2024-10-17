@@ -1,0 +1,25 @@
+{
+  "name": "dibs",
+  "license": "MIT",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "test": "graph test",
+    "prepare:thena": "mustache config/thena.json subgraph.solidly.template.yaml > subgraph.yaml; mustache config/thena.json config/config.template.ts > config/config.ts",
+    "prepare:chronos": "mustache config/chronos.json subgraph.solidly.template.yaml > subgraph.yaml; mustache config/chronos.json config/config.template.ts > config/config.ts",
+    "prepare:ramses": "mustache config/ramses.json subgraph.solidly.template.yaml > subgraph.yaml; mustache config/ramses.json config/config.template.ts > config/config.ts",
+    "prepare:based": "mustache config/based.json subgraph.based.yaml > subgraph.yaml; mustache config/based.json config/config.symm.ts > config/config.ts",
+    "deploy-prod": "graph deploy --product hosted-service morphex-labs/morphex-fantom-referrals"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.64.1",
+    "@graphprotocol/graph-ts": "0.32.0",
+    "@types/node": "^20.10.6",
+    "node-fetch": "^3.3.2",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.6.0",
+    "mustache": "^4.2.0"
+  }
+}

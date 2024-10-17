@@ -1,0 +1,57 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: PairFactoryDataSource
+    network: "{{ network }}"
+    source:
+      address: "{{ factoryAddress }}"
+      abi: PairFactory
+      startBlock: {{factoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PairCreated
+      abis:
+        - name: PairFactory
+          file: ./abis/PairFactory.json
+        - name: Pair
+          file: ./abis/Pair.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,bool,address,uint256)
+          handler: handlePairCreated
+      file: ./src/solidly/pairs.ts
+templates:
+  - name: PairReader
+    kind: ethereum/contract
+    network: "{{ network }}"
+    source:
+      abi: Pair
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/solidly/main.ts
+      entities:
+        - Swap
+      abis:
+        - name: PairFactory
+          file: ./abis/PairFactory.json
+        - name: Dibs
+          file: ./abis/Dibs.json
+        - name: DibsLottery
+          file: ./abis/DibsLottery.json
+        - name: EACAggregatorProxy
+          file: ./abis/EACAggregatorProxy.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Pair
+          file: ./abis/Pair.json
+      eventHandlers:
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+        - event: Sync(uint256,uint256)
+          handler: handleSync

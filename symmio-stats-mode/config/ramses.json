@@ -1,0 +1,12 @@
+{
+  "id": "ramses",
+  "network": "arbitrum-one",
+  "epochStartTimestamp": 1689206400,
+  "epochDuration": 604800,
+  "weth": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+  "wethPriceFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+  "dibs": "0x21dd036CFAB09243eeffCFC24C47b3baA860f9b7",
+  "factoryAddress": "0xAAA20D08e59F6561f242b08513D36266C5A29415",
+  "factoryStartBlock": 69820005,
+  "dibsStartBlock": 110093620
+}

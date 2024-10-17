@@ -1,0 +1,13 @@
+{
+  "id": "thena",
+  "network": "bsc",
+  "epochStartTimestamp": 1673481600,
+  "epochDuration": 604800,
+  "weth": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+  "wethPriceFeed": "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
+  "dibs": "0x664cE330511653cB2744b8eD50DbA31C6c4C08ca",
+  "dibsLottery": "0x287ed50e4c158dac38e1b7e16c50cd1b2551a300",
+  "factoryAddress": "0xAFD89d21BdB66d00817d4153E055830B1c2B3970",
+  "factoryStartBlock": 24468802,
+  "dibsStartBlock": 25238657
+}

@@ -1,0 +1,246 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Contract
+    network: mbase
+    source:
+      address: "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43"
+      abi: Contract
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ActiveEmergencyMode
+        - AddSymbol
+        - DeactiveEmergencyMode
+        - DeregisterPartyB
+        - PauseAccounting
+        - PauseGlobal
+        - PauseLiquidation
+        - PausePartyAActions
+        - PausePartyBActions
+        - RegisterPartyB
+        - RoleGranted
+        - RoleRevoked
+        - SetBalanceLimitPerUser
+        - SetCollateral
+        - SetDeallocateCooldown
+        - SetFeeCollector
+        - SetForceCancelCloseCooldown
+        - SetForceCancelCooldown
+        - SetForceCloseCooldown
+        - SetForceCloseGapRatio
+        - SetLiquidationTimeout
+        - SetLiquidatorShare
+        - SetMuonConfig
+        - SetMuonIds
+        - SetPartyBEmergencyStatus
+        - SetPendingQuotesValidLength
+        - SetSuspendedAddress
+        - SetSymbolAcceptableValues
+        - SetSymbolFundingState
+        - SetSymbolMaxLeverage
+        - SetSymbolMaxSlippage
+        - SetSymbolTradingFee
+        - SetSymbolValidationState
+        - UnpauseAccounting
+        - UnpauseGlobal
+        - UnpauseLiquidation
+        - UnpausePartyAActions
+        - UnpausePartyBActions
+        - DisputeForLiquidation
+        - FullyLiquidatedPartyB
+        - LiquidatePartyA
+        - LiquidatePartyA1
+        - LiquidatePartyB
+        - LiquidatePartyB1
+        - LiquidatePendingPositionsPartyA
+        - LiquidatePositionsPartyA
+        - LiquidatePositionsPartyB
+        - LiquidationDisputed
+        - SetSymbolsPrices
+        - SettlePartyALiquidation
+        - ExpireQuote
+        - ForceCancelCloseRequest
+        - ForceCancelQuote
+        - ForceClosePosition
+        - RequestToCancelCloseRequest
+        - RequestToCancelQuote
+        - RequestToClosePosition
+        - SendQuote
+        - DiamondCut
+        - AllocateForPartyB
+        - AllocatePartyA
+        - DeallocateForPartyB
+        - DeallocatePartyA
+        - Deposit
+        - TransferAllocation
+        - Withdraw
+        - AcceptCancelCloseRequest
+        - AcceptCancelRequest
+        - AllocatePartyB
+        - ChargeFundingRate
+        - EmergencyClosePosition
+        - FillCloseRequest
+        - LockQuote
+        - OpenPosition
+        - UnlockQuote
+      abis:
+        - name: Contract
+          file: ./abis/Contract.json
+      eventHandlers:
+        - event: ActiveEmergencyMode()
+          handler: handleActiveEmergencyMode
+        - event: AddSymbol(uint256,string,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleAddSymbol
+        - event: DeactiveEmergencyMode()
+          handler: handleDeactiveEmergencyMode
+        - event: DeregisterPartyB(address,uint256)
+          handler: handleDeregisterPartyB
+        - event: PauseAccounting()
+          handler: handlePauseAccounting
+        - event: PauseGlobal()
+          handler: handlePauseGlobal
+        - event: PauseLiquidation()
+          handler: handlePauseLiquidation
+        - event: PausePartyAActions()
+          handler: handlePausePartyAActions
+        - event: PausePartyBActions()
+          handler: handlePausePartyBActions
+        - event: RegisterPartyB(address)
+          handler: handleRegisterPartyB
+        - event: RoleGranted(bytes32,address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(bytes32,address)
+          handler: handleRoleRevoked
+        - event: SetBalanceLimitPerUser(uint256)
+          handler: handleSetBalanceLimitPerUser
+        - event: SetCollateral(address)
+          handler: handleSetCollateral
+        - event: SetDeallocateCooldown(uint256,uint256)
+          handler: handleSetDeallocateCooldown
+        - event: SetFeeCollector(address,address)
+          handler: handleSetFeeCollector
+        - event: SetForceCancelCloseCooldown(uint256,uint256)
+          handler: handleSetForceCancelCloseCooldown
+        - event: SetForceCancelCooldown(uint256,uint256)
+          handler: handleSetForceCancelCooldown
+        - event: SetForceCloseCooldown(uint256,uint256)
+          handler: handleSetForceCloseCooldown
+        - event: SetForceCloseGapRatio(uint256,uint256)
+          handler: handleSetForceCloseGapRatio
+        - event: SetLiquidationTimeout(uint256,uint256)
+          handler: handleSetLiquidationTimeout
+        - event: SetLiquidatorShare(uint256,uint256)
+          handler: handleSetLiquidatorShare
+        - event: SetMuonConfig(uint256,uint256,uint256)
+          handler: handleSetMuonConfig
+        - event: SetMuonIds(uint256,address,uint256,uint8)
+          handler: handleSetMuonIds
+        - event: SetPartyBEmergencyStatus(address,bool)
+          handler: handleSetPartyBEmergencyStatus
+        - event: SetPendingQuotesValidLength(uint256,uint256)
+          handler: handleSetPendingQuotesValidLength
+        - event: SetSuspendedAddress(address,bool)
+          handler: handleSetSuspendedAddress
+        - event: SetSymbolAcceptableValues(uint256,uint256,uint256,uint256,uint256)
+          handler: handleSetSymbolAcceptableValues
+        - event: SetSymbolFundingState(uint256,uint256,uint256)
+          handler: handleSetSymbolFundingState
+        - event: SetSymbolMaxLeverage(uint256,uint256,uint256)
+          handler: handleSetSymbolMaxLeverage
+        - event: SetSymbolMaxSlippage(uint256,uint256,uint256)
+          handler: handleSetSymbolMaxSlippage
+        - event: SetSymbolTradingFee(uint256,uint256,uint256)
+          handler: handleSetSymbolTradingFee
+        - event: SetSymbolValidationState(uint256,bool,bool)
+          handler: handleSetSymbolValidationState
+        - event: UnpauseAccounting()
+          handler: handleUnpauseAccounting
+        - event: UnpauseGlobal()
+          handler: handleUnpauseGlobal
+        - event: UnpauseLiquidation()
+          handler: handleUnpauseLiquidation
+        - event: UnpausePartyAActions()
+          handler: handleUnpausePartyAActions
+        - event: UnpausePartyBActions()
+          handler: handleUnpausePartyBActions
+        - event: DisputeForLiquidation(address,address)
+          handler: handleDisputeForLiquidation
+        - event: FullyLiquidatedPartyB(address,address)
+          handler: handleFullyLiquidatedPartyB
+        - event: LiquidatePartyA(address,address,uint256,int256,int256)
+          handler: handleLiquidatePartyA
+        - event: LiquidatePartyA(address,address)
+          handler: handleLiquidatePartyA1
+        - event: LiquidatePartyB(address,address,address,uint256,int256)
+          handler: handleLiquidatePartyB
+        - event: LiquidatePartyB(address,address,address)
+          handler: handleLiquidatePartyB1
+        - event: LiquidatePendingPositionsPartyA(address,address)
+          handler: handleLiquidatePendingPositionsPartyA
+        - event: LiquidatePositionsPartyA(address,address,uint256[])
+          handler: handleLiquidatePositionsPartyA
+        - event: LiquidatePositionsPartyB(address,address,address,uint256[])
+          handler: handleLiquidatePositionsPartyB
+        - event: LiquidationDisputed(address)
+          handler: handleLiquidationDisputed
+        - event: SetSymbolsPrices(address,address,uint256[],uint256[])
+          handler: handleSetSymbolsPrices
+        - event: SettlePartyALiquidation(address,address[])
+          handler: handleSettlePartyALiquidation
+        - event: ExpireQuote(uint8,uint256)
+          handler: handleExpireQuote
+        - event: ForceCancelCloseRequest(uint256,uint8)
+          handler: handleForceCancelCloseRequest
+        - event: ForceCancelQuote(uint256,uint8)
+          handler: handleForceCancelQuote
+        - event: ForceClosePosition(uint256,address,address,uint256,uint256,uint8)
+          handler: handleForceClosePosition
+        - event: RequestToCancelCloseRequest(address,address,uint256,uint8)
+          handler: handleRequestToCancelCloseRequest
+        - event: RequestToCancelQuote(address,address,uint8,uint256)
+          handler: handleRequestToCancelQuote
+        - event: RequestToClosePosition(address,address,uint256,uint256,uint256,uint8,uint256,uint8)
+          handler: handleRequestToClosePosition
+        - event: SendQuote(address,uint256,address[],uint256,uint8,uint8,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleSendQuote
+        - event: DiamondCut((address,uint8,bytes4[])[],address,bytes)
+          handler: handleDiamondCut
+        - event: AllocateForPartyB(address,address,uint256)
+          handler: handleAllocateForPartyB
+        - event: AllocatePartyA(address,uint256)
+          handler: handleAllocatePartyA
+        - event: DeallocateForPartyB(address,address,uint256)
+          handler: handleDeallocateForPartyB
+        - event: DeallocatePartyA(address,uint256)
+          handler: handleDeallocatePartyA
+        - event: Deposit(address,address,uint256)
+          handler: handleDeposit
+        - event: TransferAllocation(uint256,address,address)
+          handler: handleTransferAllocation
+        - event: Withdraw(address,address,uint256)
+          handler: handleWithdraw
+        - event: AcceptCancelCloseRequest(uint256,uint8)
+          handler: handleAcceptCancelCloseRequest
+        - event: AcceptCancelRequest(uint256,uint8)
+          handler: handleAcceptCancelRequest
+        - event: AllocatePartyB(address,address,uint256)
+          handler: handleAllocatePartyB
+        - event: ChargeFundingRate(address,address,uint256[],int256[])
+          handler: handleChargeFundingRate
+        - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
+          handler: handleEmergencyClosePosition
+        - event: FillCloseRequest(uint256,address,address,uint256,uint256,uint8)
+          handler: handleFillCloseRequest
+        - event: LockQuote(address,uint256)
+          handler: handleLockQuote
+        - event: OpenPosition(uint256,address,address,uint256,uint256)
+          handler: handleOpenPosition
+        - event: UnlockQuote(address,uint256,uint8)
+          handler: handleUnlockQuote
+      file: ./src/contract.ts
