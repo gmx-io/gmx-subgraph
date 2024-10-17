@@ -1,3 +1,7 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
   - kind: ethereum/contract
     name: DibsRewarder
     network: optimism
