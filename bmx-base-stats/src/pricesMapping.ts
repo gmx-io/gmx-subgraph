@@ -13,6 +13,7 @@ import {
   AERO,
   MOG,
   EURC,
+  cbBTC,
   timestampToPeriod,
   USDC,
   DAI
@@ -71,6 +72,10 @@ export function handleAnswerUpdatedMOG(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedEURC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(EURC, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedcbBTC(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(cbBTC, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
