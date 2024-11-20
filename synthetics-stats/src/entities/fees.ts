@@ -116,10 +116,10 @@ export function savePositionFeesInfo(
   feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
   feesInfo.feeUsdForPool = eventData.getUintItem("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
 
-  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
-  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor")!;
-  feesInfo.traderDiscountAmount = eventData.getUintItem("traderDiscountAmount")!;
-  feesInfo.affiliateRewardAmount = eventData.getUintItem("affiliateRewardAmount")!;
+  feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount") || ZERO;
+  feesInfo.totalRebateFactor = eventData.getUintItem("totalRebateFactor") || ZERO;
+  feesInfo.traderDiscountAmount = eventData.getUintItem("traderDiscountAmount") || ZERO;
+  feesInfo.affiliateRewardAmount = eventData.getUintItem("affiliateRewardAmount") || ZERO;
 
   feesInfo.transaction = transaction.id;
 
