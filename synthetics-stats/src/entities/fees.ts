@@ -117,13 +117,13 @@ export function savePositionFeesInfo(
   feesInfo.feeUsdForPool = eventData.getUintItem("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
 
   feesInfo.totalRebateAmount =
-    eventData.getUintItem("totalRebateAmount") || eventData.getUintItem("referral.totalRebateAmount")! || ZERO;
+    eventData.getUintItem("totalRebateAmount")! || eventData.getUintItem("referral.totalRebateAmount")! || ZERO;
   feesInfo.totalRebateFactor =
-    eventData.getUintItem("totalRebateFactor") || eventData.getUintItem("referral.totalRebateFactor")! || ZERO;
+    eventData.getUintItem("totalRebateFactor")! || eventData.getUintItem("referral.totalRebateFactor")! || ZERO;
   feesInfo.traderDiscountAmount =
-    eventData.getUintItem("traderDiscountAmount") || eventData.getUintItem("referral.traderDiscountAmount")! || ZERO;
+    eventData.getUintItem("traderDiscountAmount")! || eventData.getUintItem("referral.traderDiscountAmount")! || ZERO;
   feesInfo.affiliateRewardAmount =
-    eventData.getUintItem("affiliateRewardAmount") || eventData.getUintItem("referral.affiliateRewardAmount")! || ZERO;
+    eventData.getUintItem("affiliateRewardAmount")! || eventData.getUintItem("referral.affiliateRewardAmount")! || ZERO;
 
   feesInfo.transaction = transaction.id;
 
