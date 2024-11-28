@@ -144,6 +144,7 @@ type PositionFeesInfo @entity(immutable: true) {
   collateralTokenPriceMax: BigInt!
 
   positionFeeAmount: BigInt!
+  liquidationFeeAmount: BigInt
   borrowingFeeAmount: BigInt!
   fundingFeeAmount: BigInt!
   feeUsdForPool: BigInt!
@@ -271,6 +272,7 @@ type TradeAction @entity(immutable: true) {
   priceImpactUsd: BigInt
   priceImpactAmount: BigInt
   positionFeeAmount: BigInt
+  liquidationFeeAmount: BigInt
   borrowingFeeAmount: BigInt
   fundingFeeAmount: BigInt
   pnlUsd: BigInt
