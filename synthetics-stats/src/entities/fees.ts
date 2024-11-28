@@ -114,7 +114,7 @@ export function savePositionFeesInfo(
   feesInfo.positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
   feesInfo.borrowingFeeAmount = eventData.getUintItem("borrowingFeeAmount")!;
   feesInfo.fundingFeeAmount = eventData.getUintItem("fundingFeeAmount")!;
-  feesInfo.liquidationFeeAmount = eventData.getUintItem("liquidationFeeAmount")!;
+  feesInfo.liquidationFeeAmount = eventData.getUintItem("liquidationFeeAmount");
   feesInfo.feeUsdForPool = eventData.getUintItem("feeAmountForPool")!.times(feesInfo.collateralTokenPriceMin);
 
   feesInfo.totalRebateAmount = eventData.getUintItem("totalRebateAmount")!;
