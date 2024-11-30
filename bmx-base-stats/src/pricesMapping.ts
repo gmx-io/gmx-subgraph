@@ -79,7 +79,7 @@ export function handleAnswerUpdatedcbBTC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(cbBTC, event.params.current, event.block.timestamp, event.block.number)
 }
 
-export function handleAnswerUpdatedcWELL(event: AnswerUpdatedEvent): void {
+export function handleAnswerUpdatedWELL(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(WELL, event.params.current, event.block.timestamp, event.block.number)
 }
 
