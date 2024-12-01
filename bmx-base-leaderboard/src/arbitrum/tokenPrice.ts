@@ -3,7 +3,7 @@ import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Sync } from '../../generated/GmxPrice/UniswapPoolV3'
 import { getTokenUsdAmount, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
-import { BLT, BMX, WBTC, WETH, cbETH, YFI, AERO, MOG, EURC, cbBTC } from './constant'
+import { BLT, BMX, WBTC, WETH, cbETH, YFI, AERO, MOG, EURC, cbBTC, WELL } from './constant'
 import { BigInt } from "@graphprotocol/graph-ts"
 
 export function handleFastPriceEvent(event: PriceUpdate): void {
@@ -50,6 +50,11 @@ export function handleAnswerUpdatedBTC(event: AnswerUpdated): void {
 export function handleAnswerUpdatedcbBTC(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
   _storeDefaultPricefeed(cbBTC, event, price.div(BigInt.fromI32(10).pow(10)))
+}
+
+export function handleAnswerUpdatedWELL(event: AnswerUpdated): void {
+  const price = event.params.current.times(BI_22_PRECISION)
+  _storeDefaultPricefeed(WELL, event, price.div(BigInt.fromI32(10).pow(10)))
 }
 
 export function handleEqualizerMpxFtmSwap(event: Sync): void {

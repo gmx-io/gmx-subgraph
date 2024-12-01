@@ -42,6 +42,7 @@ enum TokenAddress {
   _0x2da56acb9ea78330f947bd57c54119debda7af71 # MOG
   _0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42 # EURC
   _0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf # cbBTC
+  _0xff8adec2221f9f4d8dfbafa6b9a297d17603493d # WELL
   _0x548f93779fbc992010c07467cbaf329dd5f059b7 # BMX
   _0x3ff7ab26f2dfd482c40bdadfc0e88d01bff79713 # oBMX
   _0xe771b4e273df31b85d7a7ae0efd22fb44bdd0633 # BLT

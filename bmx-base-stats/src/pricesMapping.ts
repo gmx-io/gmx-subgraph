@@ -14,6 +14,7 @@ import {
   MOG,
   EURC,
   cbBTC,
+  WELL,
   timestampToPeriod,
   USDC,
   DAI
@@ -76,6 +77,10 @@ export function handleAnswerUpdatedEURC(event: AnswerUpdatedEvent): void {
 
 export function handleAnswerUpdatedcbBTC(event: AnswerUpdatedEvent): void {
   _storeChainlinkPrice(cbBTC, event.params.current, event.block.timestamp, event.block.number)
+}
+
+export function handleAnswerUpdatedWELL(event: AnswerUpdatedEvent): void {
+  _storeChainlinkPrice(WELL, event.params.current, event.block.timestamp, event.block.number)
 }
 
 export function handleAnswerUpdatedUSDC(event: AnswerUpdatedEvent): void {
