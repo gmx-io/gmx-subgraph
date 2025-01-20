@@ -168,7 +168,14 @@ export function handleMarketTokenTransfer(event: Transfer): void {
   // `from` user redeems or transfers out GM tokens
   if (from != ADDRESS_ZERO) {
     // LiquidityProviderIncentivesStat *should* be updated before UserMarketInfo
-    saveLiquidityProviderIncentivesStat(from, marketAddress, "Market", "1w", value.neg(), event.block.timestamp.toI32());
+    saveLiquidityProviderIncentivesStat(
+      from,
+      marketAddress,
+      "Market",
+      "1w",
+      value.neg(),
+      event.block.timestamp.toI32()
+    );
     saveLiquidityProviderInfo(from, marketAddress, "Market", value.neg());
     let transaction = getOrCreateTransaction(event);
     saveUserGmTokensBalanceChange(from, marketAddress, value.neg(), transaction, event.logIndex);
@@ -215,7 +222,10 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
   if (eventName == "GlvCreated") {
     // saveMarketInfo(eventData);
-    log.warning("block number: {} tx hash: {}", [event.block.number.toHexString(), event.transaction.hash.toHexString()]);
+    log.warning("block number: {} tx hash: {}", [
+      event.block.number.toHexString(),
+      event.transaction.hash.toHexString()
+    ]);
     let glvToken = eventData.getAddressItem("glvToken");
     if (!glvToken) {
       // for fuji
@@ -366,7 +376,6 @@ function handleEventLog1(event: EventLog1, network: string): void {
   if (eventName == "PositionFeesInfo") {
     let transaction = getOrCreateTransaction(event);
     savePositionFeesInfo(eventData, "PositionFeesInfo", transaction);
-
     return;
   }
 
@@ -375,6 +384,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
     let positionFeeAmount = eventData.getUintItem("positionFeeAmount")!;
     let positionFeeAmountForPool = eventData.getUintItem("positionFeeAmountForPool")!;
     let collateralTokenPriceMin = eventData.getUintItem("collateralTokenPrice.min")!;
+    let liquidationFeeAmount = eventData.getUintItem("liquidationFeeAmount")!;
     let borrowingFeeUsd = eventData.getUintItem("borrowingFeeUsd")!;
     let positionFeesInfo = savePositionFeesInfo(eventData, "PositionFeesCollected", transaction);
     let poolValue = getMarketPoolValueFromContract(positionFeesInfo.marketAddress, network, transaction);
@@ -391,6 +401,7 @@ function handleEventLog1(event: EventLog1, network: string): void {
       positionFeeAmount,
       positionFeeAmountForPool,
       borrowingFeeUsd,
+      liquidationFeeAmount,
       collateralTokenPriceMin,
       transaction.timestamp
     );

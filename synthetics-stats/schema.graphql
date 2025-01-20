@@ -448,6 +448,9 @@ type PositionFeesInfoWithPeriod @entity {
   totalPositionFeeAmount: BigInt!
   totalPositionFeeUsd: BigInt!
   totalBorrowingFeeUsd: BigInt!
+
+  totalLiquidationFeeAmount: BigInt!
+  totalLiquidationFeeUsd: BigInt!
 }
 
 type LiquidityProviderIncentivesStat @entity {

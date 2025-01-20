@@ -189,6 +189,7 @@ export function saveSwapFeesInfoWithPeriod(
 export function savePositionFeesInfoWithPeriod(
   positionFeeAmount: BigInt,
   positionFeeAmountForPool: BigInt,
+  liquidationFeeAmount: BigInt,
   borrowingFeeUsd: BigInt,
   tokenPrice: BigInt,
   timestamp: i32
@@ -203,17 +204,25 @@ export function savePositionFeesInfoWithPeriod(
   let positionFeeUsd = positionFeeAmount.times(tokenPrice);
   let positionFeeUsdForPool = positionFeeAmountForPool.times(tokenPrice);
 
+  let liquidationFeeUsd = liquidationFeeAmount.times(tokenPrice);
+
   dailyFees.totalBorrowingFeeUsd = dailyFees.totalBorrowingFeeUsd.plus(borrowingFeeUsd);
   dailyFees.totalPositionFeeAmount = dailyFees.totalPositionFeeAmount.plus(positionFeeAmount);
   dailyFees.totalPositionFeeUsd = dailyFees.totalPositionFeeUsd.plus(positionFeeUsd);
   dailyFees.totalPositionFeeAmountForPool = dailyFees.totalPositionFeeAmountForPool.plus(positionFeeAmountForPool);
   dailyFees.totalPositionFeeUsdForPool = dailyFees.totalPositionFeeUsdForPool.plus(positionFeeUsdForPool);
 
+  dailyFees.totalLiquidationFeeAmount = dailyFees.totalLiquidationFeeAmount.plus(liquidationFeeAmount);
+  dailyFees.totalLiquidationFeeUsd = dailyFees.totalLiquidationFeeUsd.plus(liquidationFeeUsd);
+
   totalFees.totalBorrowingFeeUsd = totalFees.totalBorrowingFeeUsd.plus(borrowingFeeUsd);
   totalFees.totalPositionFeeAmount = totalFees.totalPositionFeeAmount.plus(positionFeeAmount);
   totalFees.totalPositionFeeUsd = totalFees.totalPositionFeeUsd.plus(positionFeeUsd);
   totalFees.totalPositionFeeAmountForPool = totalFees.totalPositionFeeAmountForPool.plus(positionFeeAmountForPool);
   totalFees.totalPositionFeeUsdForPool = totalFees.totalPositionFeeUsdForPool.plus(positionFeeUsdForPool);
+
+  totalFees.totalLiquidationFeeAmount = totalFees.totalLiquidationFeeAmount.plus(liquidationFeeAmount);
+  totalFees.totalLiquidationFeeUsd = totalFees.totalLiquidationFeeUsd.plus(liquidationFeeUsd);
 
   dailyFees.save();
   totalFees.save();
@@ -243,6 +252,8 @@ function getOrCreatePositionFeesInfoWithPeriod(id: string, period: string): Posi
     feeInfo.totalPositionFeeUsd = ZERO;
     feeInfo.totalPositionFeeAmountForPool = ZERO;
     feeInfo.totalPositionFeeUsdForPool = ZERO;
+    feeInfo.totalLiquidationFeeAmount = ZERO;
+    feeInfo.totalLiquidationFeeUsd = ZERO;
   }
 
   return feeInfo as PositionFeesInfoWithPeriod;
