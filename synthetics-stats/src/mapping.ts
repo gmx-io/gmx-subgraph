@@ -400,8 +400,8 @@ function handleEventLog1(event: EventLog1, network: string): void {
     savePositionFeesInfoWithPeriod(
       positionFeeAmount,
       positionFeeAmountForPool,
-      borrowingFeeUsd,
       liquidationFeeAmount,
+      borrowingFeeUsd,
       collateralTokenPriceMin,
       transaction.timestamp
     );
