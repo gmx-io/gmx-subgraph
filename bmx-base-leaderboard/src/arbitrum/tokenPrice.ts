@@ -49,12 +49,12 @@ export function handleAnswerUpdatedBTC(event: AnswerUpdated): void {
 
 export function handleAnswerUpdatedcbBTC(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(cbBTC, event, price.div(BigInt.fromI32(10).pow(10)))
+  _storeDefaultPricefeed(cbBTC, event, price)
 }
 
 export function handleAnswerUpdatedWELL(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
-  _storeDefaultPricefeed(WELL, event, price.div(BigInt.fromI32(10).pow(10)))
+  _storeDefaultPricefeed(WELL, event, price)
 }
 
 export function handleEqualizerMpxFtmSwap(event: Sync): void {
