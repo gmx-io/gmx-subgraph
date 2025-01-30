@@ -35,7 +35,7 @@ export enum TokenDecimals {
   GLP = 18,
   MPX = 18,
   BMX = 18,
-  BLT = 18,
+  MLT = 18,
   MLP = 18,
   EsMPX = 18,
   oBMX = 18,

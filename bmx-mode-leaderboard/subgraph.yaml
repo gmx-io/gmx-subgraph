@@ -6,46 +6,46 @@ schema:
 
 dataSources:
 # Transfers
-  - kind: ethereum
-    name: transferGmx
-    network: mode-mainnet
-    source:
-      address: "0x66eEd5FF1701E6ed8470DC391F05e27B1d0657eb"
-      abi: ERC20
-      startBlock: 9000541
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Transfer
-      abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleGmxTransfer
-      file: ./src/arbitrum/reward.ts
-  - kind: ethereum
-    name: transferGlp
-    network: mode-mainnet
-    source:
-      address: "0x952AdBB385296Dcf86a668f7eaa02DF7eb684439"
-      abi: ERC20
-      startBlock: 9842805
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Transfer
-      abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleGlpTransfer
-      file: ./src/arbitrum/reward.ts
+#  - kind: ethereum
+#    name: transferGmx
+#    network: mode-mainnet
+#    source:
+#      address: "0x66eEd5FF1701E6ed8470DC391F05e27B1d0657eb"
+#      abi: ERC20
+#      startBlock: 9000541
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Transfer
+#      abis:
+#        - name: ERC20
+#          file: ./abis/ERC20.json
+#      eventHandlers:
+#        - event: Transfer(indexed address,indexed address,uint256)
+#          handler: handleGmxTransfer
+#      file: ./src/arbitrum/reward.ts
+#  - kind: ethereum
+#    name: transferGlp
+#    network: mode-mainnet
+#    source:
+#      address: "0x952AdBB385296Dcf86a668f7eaa02DF7eb684439"
+#      abi: ERC20
+#      startBlock: 9842805
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Transfer
+#      abis:
+#        - name: ERC20
+#          file: ./abis/ERC20.json
+#      eventHandlers:
+#        - event: Transfer(indexed address,indexed address,uint256)
+#          handler: handleGlpTransfer
+#      file: ./src/arbitrum/reward.ts
 #  - kind: ethereum
 #    name: transferEsGmx
 #    network: base
@@ -68,26 +68,26 @@ dataSources:
 #      file: ./src/arbitrum/reward.ts
 
 # Morphex contracts
-  - kind: ethereum
-    name: FastPriceFeed
-    network: mode-mainnet
-    source:
-      address: "0x3D220D2747fc2b25F771b859dBC38A6963C2b0e4"
-      abi: FastPriceEvents
-      startBlock: 9844589
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - PriceUpdate
-      abis:
-        - name: FastPriceEvents
-          file: ./abis/FastPriceEvents.json
-      eventHandlers:
-        - event: PriceUpdate(address,uint256,address)
-          handler: handleFastPriceEvent
-      file: ./src/arbitrum/tokenPrice.ts
+#  - kind: ethereum
+#    name: FastPriceFeed
+#    network: mode-mainnet
+#    source:
+#      address: "0x3D220D2747fc2b25F771b859dBC38A6963C2b0e4"
+#      abi: FastPriceEvents
+#      startBlock: 9844589
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - PriceUpdate
+#      abis:
+#        - name: FastPriceEvents
+#          file: ./abis/FastPriceEvents.json
+#      eventHandlers:
+#        - event: PriceUpdate(address,uint256,address)
+#          handler: handleFastPriceEvent
+#      file: ./src/arbitrum/tokenPrice.ts
 #  - kind: ethereum
 #    name: GmxPrice
 #    network: base
@@ -108,28 +108,28 @@ dataSources:
 #        - event: Sync(uint256,uint256)
 #          handler: handleEqualizerMpxFtmSwap
 #      file: ./src/arbitrum/tokenPrice.ts
-  - kind: ethereum
-    name: GlpManager
-    network: mode-mainnet
-    source:
-      address: "0xf9Fc0B2859f9B6d33fD1Cea5B0A9f1D56C258178"
-      abi: GlpManager
-      startBlock: 9842815
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Pricefeed
-      abis:
-        - name: GlpManager
-          file: ./abis/GlpManager.json
-      eventHandlers:
-        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleAddLiquidity
-        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleRemoveLiquidity
-      file: ./src/arbitrum/tokenPrice.ts
+#  - kind: ethereum
+#    name: GlpManager
+#    network: mode-mainnet
+#    source:
+#      address: "0xf9Fc0B2859f9B6d33fD1Cea5B0A9f1D56C258178"
+#      abi: GlpManager
+#      startBlock: 9842815
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - Pricefeed
+#      abis:
+#        - name: GlpManager
+#          file: ./abis/GlpManager.json
+#      eventHandlers:
+#        - event: AddLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+#          handler: handleAddLiquidity
+#        - event: RemoveLiquidity(address,address,uint256,uint256,uint256,uint256,uint256)
+#          handler: handleRemoveLiquidity
+#      file: ./src/arbitrum/tokenPrice.ts
   - kind: ethereum
     name: positionRouter
     network: mode-mainnet
@@ -187,3 +187,23 @@ dataSources:
         - event: UpdatePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256,uint256)
           handler: handleUpdatePosition
       file: ./src/trading.ts
+#  - kind: ethereum/contract
+#    name: FastPriceEvents
+#    network: mode-mainnet
+#    source:
+#      address: "0x005591d2B332E46fC1be1A7730b681f707c6E36b"
+#      abi: FastPriceEvents
+#      startBlock: 9844585
+#    mapping:
+#      kind: ethereum/events
+#      apiVersion: 0.0.6
+#      language: wasm/assemblyscript
+#      entities:
+#        - FastPrice
+#      abis:
+#        - name: FastPriceEvents
+#          file: ./abis/FastPriceEvents.json
+#      eventHandlers:
+#        - event: PriceUpdate(address,uint256,address)
+#          handler: handleFastPriceEvent
+#      file: ./src/arbitrum/tokenPrice.ts
