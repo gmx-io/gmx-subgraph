@@ -544,7 +544,8 @@ function handleEventLog2(event: EventLog2, network: string): void {
       saveSwapExecutedTradeAction(eventId, order as Order, transaction);
     } else if (
       order.orderType == orderTypes.get("MarketIncrease") ||
-      order.orderType == orderTypes.get("LimitIncrease")
+      order.orderType == orderTypes.get("LimitIncrease") ||
+      order.orderType === orderTypes.get("StopIncrease")
     ) {
       savePositionIncreaseExecutedTradeAction(eventId, order as Order, transaction);
     } else if (
