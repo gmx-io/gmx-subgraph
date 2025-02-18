@@ -11,7 +11,7 @@ dataSources:
     source:
       address: "0xDb17B211c34240B014ab6d61d4A31FA0C0e20c26"
       abi: EventEmitter
-      startBlock: 32162455
+      startBlock: 53359999
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -39,84 +39,83 @@ dataSources:
         - event: EventLog2(address,string,indexed string,indexed bytes32,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
           handler: handleEventLog2Avalanche
       file: ./src/mapping.ts
+#   - kind: ethereum/contract
+#     name: BatchSender
+#     network: avalanche
+#     source:
+#       address: "0xF0f929162751DD723fBa5b86A9B3C88Dc1D4957b"
+#       abi: BatchSender
+#       startBlock: 32162455 # 13065036
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.4
+#       language: wasm/assemblyscript
+#       entities:
+#         - BatchSend
+#       abis:
+#         - name: BatchSender
+#           file: ./abis/BatchSender.json
+#       eventHandlers:
+#         - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+#           handler: handleBatchSend
+#       file: ./src/mapping.ts
 
-  - kind: ethereum/contract
-    name: BatchSender
-    network: avalanche
-    source:
-      address: "0xF0f929162751DD723fBa5b86A9B3C88Dc1D4957b"
-      abi: BatchSender
-      startBlock: 32162455 # 13065036
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - BatchSend
-      abis:
-        - name: BatchSender
-          file: ./abis/BatchSender.json
-      eventHandlers:
-        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
-          handler: handleBatchSend
-      file: ./src/mapping.ts
+#   - kind: ethereum/contract
+#     name: BatchSender2
+#     network: avalanche
+#     source:
+#       address: "0x0BEa5D3081921A08d73f150126f99cda0eb29C0e"
+#       abi: BatchSender
+#       startBlock: 47790852
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.4
+#       language: wasm/assemblyscript
+#       entities:
+#         - BatchSend
+#       abis:
+#         - name: BatchSender
+#           file: ./abis/BatchSender.json
+#       eventHandlers:
+#         - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+#           handler: handleBatchSend
+#       file: ./src/mapping.ts
 
-  - kind: ethereum/contract
-    name: BatchSender2
-    network: avalanche
-    source:
-      address: "0x0BEa5D3081921A08d73f150126f99cda0eb29C0e"
-      abi: BatchSender
-      startBlock: 47790852
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - BatchSend
-      abis:
-        - name: BatchSender
-          file: ./abis/BatchSender.json
-      eventHandlers:
-        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
-          handler: handleBatchSend
-      file: ./src/mapping.ts
+# templates:
+#   - kind: ethereum/contract
+#     name: MarketTokenTemplate
+#     network: avalanche
+#     source:
+#       abi: MarketToken
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.4
+#       language: wasm/assemblyscript
+#       entities:
+#         - Transaction
+#       abis:
+#         - name: MarketToken
+#           file: ./abis/MarketToken.json
+#       eventHandlers:
+#         - event: Transfer(indexed address,indexed address,uint256)
+#           handler: handleMarketTokenTransfer
+#       file: ./src/mapping.ts
 
-templates:
-  - kind: ethereum/contract
-    name: MarketTokenTemplate
-    network: avalanche
-    source:
-      abi: MarketToken
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Transaction
-      abis:
-        - name: MarketToken
-          file: ./abis/MarketToken.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleMarketTokenTransfer
-      file: ./src/mapping.ts
-
-  - kind: ethereum/contract
-    name: GlvTokenTemplate
-    network: avalanche
-    source:
-      abi: GlvToken
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Transaction
-      abis:
-        - name: GlvToken
-          file: ./abis/GlvToken.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleGlvTokenTransfer
-      file: ./src/mapping.ts
+#   - kind: ethereum/contract
+#     name: GlvTokenTemplate
+#     network: avalanche
+#     source:
+#       abi: GlvToken
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.4
+#       language: wasm/assemblyscript
+#       entities:
+#         - Transaction
+#       abis:
+#         - name: GlvToken
+#           file: ./abis/GlvToken.json
+#       eventHandlers:
+#         - event: Transfer(indexed address,indexed address,uint256)
+#           handler: handleGlvTokenTransfer
+#       file: ./src/mapping.ts

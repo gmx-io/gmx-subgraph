@@ -1,13 +1,15 @@
 import { Address, Bytes, log } from "@graphprotocol/graph-ts";
 
-import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
-import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
-import { MarketTokenTemplate, GlvTokenTemplate } from "../generated/templates";
-import { ClaimRef, DepositRef, MarketInfo, Order, SellUSDG } from "../generated/schema";
 import { BatchSend } from "../generated/BatchSender/BatchSender";
-import { SellUSDG as SellUSDGEvent } from "../generated/Vault/Vault";
+import { EventLog, EventLog1, EventLog2, EventLogEventDataStruct } from "../generated/EventEmitter/EventEmitter";
 import { RemoveLiquidity } from "../generated/GlpManager/GlpManager";
+import { ClaimRef, DepositRef, MarketInfo, Order, SellUSDG } from "../generated/schema";
+import { GlvTokenTemplate, MarketTokenTemplate } from "../generated/templates";
+import { Transfer } from "../generated/templates/MarketTokenTemplate/MarketToken";
+import { SellUSDG as SellUSDGEvent } from "../generated/Vault/Vault";
 
+import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
+import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
 import {
   saveClaimableFundingFeeInfo as handleClaimableFundingUpdated,
   handleCollateralClaimAction,
@@ -17,6 +19,7 @@ import {
   saveClaimActionOnOrderExecuted
 } from "./entities/claims";
 import { getIdFromEvent, getOrCreateTransaction } from "./entities/common";
+import { saveDistribution } from "./entities/distributions";
 import {
   getSwapActionByFeeType,
   handlePositionImpactPoolDistributed,
@@ -27,10 +30,18 @@ import {
   saveSwapFeesInfoWithPeriod
 } from "./entities/fees";
 import {
+  saveLiquidityProviderIncentivesStat,
+  saveLiquidityProviderInfo,
+  saveMarketIncentivesStat,
+  saveUserGlpGmMigrationStatGlpData,
+  saveUserGlpGmMigrationStatGmData
+} from "./entities/incentives/liquidityIncentives";
+import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentives";
+import {
   getMarketInfo,
   saveMarketInfo,
-  saveMarketInfoTokensSupply,
-  saveMarketInfoMarketTokensSupplyFromPoolUpdated
+  saveMarketInfoMarketTokensSupplyFromPoolUpdated,
+  saveMarketInfoTokensSupply
 } from "./entities/markets";
 import {
   orderTypes,
@@ -43,6 +54,12 @@ import {
   saveOrderUpdate
 } from "./entities/orders";
 import { savePositionDecrease, savePositionIncrease } from "./entities/positions";
+import {
+  handleClaimableCollateralUpdated,
+  handleCollateralClaimed,
+  handleSetClaimableCollateralFactorForAccount,
+  handleSetClaimableCollateralFactorForTime
+} from "./entities/priceImpactRebate";
 import { getTokenPrice, handleOraclePriceUpdate } from "./entities/prices";
 import { handleSwapInfo as saveSwapInfo } from "./entities/swaps";
 import {
@@ -54,27 +71,10 @@ import {
   savePositionIncreaseExecutedTradeAction,
   saveSwapExecutedTradeAction
 } from "./entities/trades";
+import { saveUserStat } from "./entities/user";
+import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
 import { savePositionVolumeInfo, saveSwapVolumeInfo, saveVolumeInfo } from "./entities/volume";
 import { EventData } from "./utils/eventData";
-import { saveUserStat } from "./entities/user";
-import {
-  saveLiquidityProviderIncentivesStat,
-  saveMarketIncentivesStat,
-  saveUserGlpGmMigrationStatGlpData,
-  saveUserGlpGmMigrationStatGmData,
-  saveLiquidityProviderInfo
-} from "./entities/incentives/liquidityIncentives";
-import { saveDistribution } from "./entities/distributions";
-import { getMarketPoolValueFromContract } from "./contracts/getMarketPoolValueFromContract";
-import { saveUserGmTokensBalanceChange } from "./entities/userBalance";
-import { getMarketTokensSupplyFromContract } from "./contracts/getMarketTokensSupplyFromContract";
-import { saveTradingIncentivesStat } from "./entities/incentives/tradingIncentives";
-import {
-  handleClaimableCollateralUpdated,
-  handleCollateralClaimed,
-  handleSetClaimableCollateralFactorForAccount,
-  handleSetClaimableCollateralFactorForTime
-} from "./entities/priceImpactRebate";
 
 let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 let SELL_USDG_ID = "last";
