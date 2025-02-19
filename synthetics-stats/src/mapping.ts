@@ -248,6 +248,33 @@ function handleEventLog1(event: EventLog1, network: string): void {
     return;
   }
 
+  if (eventName == "OrderExecuted") {
+    let transaction = getOrCreateTransaction(event);
+    let order = saveOrderExecutedState(eventData, transaction);
+
+    if (order == null) {
+      return;
+    }
+
+    if (order.orderType == orderTypes.get("MarketSwap") || order.orderType == orderTypes.get("LimitSwap")) {
+      saveSwapExecutedTradeAction(eventId, order as Order, transaction);
+    } else if (
+      order.orderType == orderTypes.get("MarketIncrease") ||
+      order.orderType == orderTypes.get("LimitIncrease") ||
+      order.orderType == orderTypes.get("StopIncrease")
+    ) {
+      savePositionIncreaseExecutedTradeAction(eventId, order as Order, transaction);
+    } else if (
+      order.orderType == orderTypes.get("MarketDecrease") ||
+      order.orderType == orderTypes.get("LimitDecrease") ||
+      order.orderType == orderTypes.get("StopLossDecrease") ||
+      order.orderType == orderTypes.get("Liquidation")
+    ) {
+      savePositionDecreaseExecutedTradeAction(eventId, order as Order, transaction);
+    }
+    return;
+  }
+
   if (eventName == "OrderCancelled") {
     let transaction = getOrCreateTransaction(event);
     let order = saveOrderCancelledState(eventData, transaction);
@@ -519,7 +546,7 @@ function handleEventLog2(event: EventLog2, network: string): void {
     } else if (
       order.orderType == orderTypes.get("MarketIncrease") ||
       order.orderType == orderTypes.get("LimitIncrease") ||
-      order.orderType === orderTypes.get("StopIncrease")
+      order.orderType == orderTypes.get("StopIncrease")
     ) {
       savePositionIncreaseExecutedTradeAction(eventId, order as Order, transaction);
     } else if (
