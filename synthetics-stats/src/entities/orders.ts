@@ -12,6 +12,7 @@ orderTypes.set("MarketDecrease", BigInt.fromI32(4));
 orderTypes.set("LimitDecrease", BigInt.fromI32(5));
 orderTypes.set("StopLossDecrease", BigInt.fromI32(6));
 orderTypes.set("Liquidation", BigInt.fromI32(7));
+orderTypes.set("StopIncrease", BigInt.fromI32(8));
 
 export function saveOrder(eventData: EventData, transaction: Transaction): Order {
   let key = eventData.getBytes32Item("key")!.toHexString();
