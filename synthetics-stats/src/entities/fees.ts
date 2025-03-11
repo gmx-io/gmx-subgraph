@@ -24,7 +24,7 @@ swapFeeTypes.set("DEPOSIT_FEE_TYPE", "0x39226eb4fed85317aa310fa53f734c7af59274c4
 swapFeeTypes.set("WITHDRAWAL_FEE_TYPE", "0xda1ac8fcb4f900f8ab7c364d553e5b6b8bdc58f74160df840be80995056f3838");
 swapFeeTypes.set("ATOMIC_SWAP_FEE_TYPE", "0x0715366437cc1f9a874eb5c6cd8111dcbea3677598c568f8b8d013d6c4380688");
 
-export function getSwapActionByFeeType(swapFeeType: string): "swap" | "deposit" | "withdrawal" {
+export function getSwapActionByFeeType(swapFeeType: string): string {
   if (swapFeeType == swapFeeTypes.get("SWAP_FEE_TYPE") || swapFeeType == swapFeeTypes.get("ATOMIC_SWAP_FEE_TYPE")) {
     return "swap";
   }
