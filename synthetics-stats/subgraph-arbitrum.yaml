@@ -159,3 +159,10 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleGlvTokenTransfer
       file: ./src/mapping.ts
+
+# https://thegraph.com/docs/en/subgraphs/cookbook/grafting/
+# features:
+#   - grafting
+# graft:
+#   base: QmWEZy4tWQTWnFEvywAee9x6JP5xZq8ocUoh6vxejUxjG6 # deployment id of the failed subgraph
+#   block: 314611366 # the block at which our subgraph has failed

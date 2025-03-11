@@ -340,7 +340,11 @@ function handleEventLog1(event: EventLog1, network: string): void {
 
     saveSwapInfo(eventData, transaction);
     saveSwapVolumeInfo(transaction.timestamp, tokenIn, tokenOut, volumeUsd);
-    saveUserStat("swap", receiver, transaction.timestamp);
+
+    let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
+    if (orderKey != "0x0000000000000000000000000000000000000000000000000000000000000000") {
+      saveUserStat("swap", receiver, transaction.timestamp);
+    }
     return;
   }
 

@@ -105,7 +105,7 @@ export function saveSwapExecutedTradeAction(eventId: string, order: Order, trans
 
   let lastSwapAddress: string = swapPath[swapPath.length - 1];
 
-  let swapInfoId = getSwapInfoId(order.id, lastSwapAddress);
+  let swapInfoId = getSwapInfoId(order.id, lastSwapAddress, transaction);
 
   let swapInfo = SwapInfo.load(swapInfoId);
 
