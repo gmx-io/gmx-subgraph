@@ -1,10 +1,7 @@
 import { SwapInfo, Transaction } from "../../generated/schema";
 import { EventData } from "../utils/eventData";
 
-export function handleSwapInfo(
-  eventData: EventData,
-  transaction: Transaction
-): SwapInfo {
+export function handleSwapInfo(eventData: EventData, transaction: Transaction): SwapInfo {
   let orderKey = eventData.getBytes32Item("orderKey")!.toHexString();
   let marketAddress = eventData.getAddressItemString("market")!;
 
@@ -37,7 +34,7 @@ export function handleSwapInfo(
 export function getSwapInfoId(orderKey: string, marketAddress: string, transaction: Transaction): string {
   let id = orderKey + ":" + marketAddress;
 
-  if (orderKey === "0x0000000000000000000000000000000000000000000000000000000000000000") {
+  if (orderKey == "0x0000000000000000000000000000000000000000000000000000000000000000") {
     // gasless relay fee swaps are emitted with zero orderKey
     id = id + ":" + transaction.hash;
   }
