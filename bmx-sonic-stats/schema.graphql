@@ -1,0 +1,316 @@
+enum PricePeriod {
+  any
+  last
+  hourly
+  daily
+}
+
+enum LiquidationType {
+  full
+  partial
+}
+
+enum Period {
+  hourly
+  daily
+  weekly
+  total
+}
+
+type ActivePosition @entity {
+  id: ID! # key
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  collateral: BigInt!
+  size: BigInt!
+}
+
+type LiquidatedPosition @entity {
+  id: ID!
+  key: String!
+  account: String!
+  timestamp: Int!
+  indexToken: String!
+  size: BigInt!
+  isLong: Boolean!
+  collateralToken: String!
+  collateral: BigInt!
+  markPrice: BigInt!
+  averagePrice: BigInt!
+  loss: BigInt!
+  type: LiquidationType!
+  borrowFee: BigInt!
+}
+
+type ChainlinkPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  blockNumber: Int!
+  period: PricePeriod!
+}
+
+type UniswapPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  blockNumber: Int!
+  period: PricePeriod!
+}
+
+type FastPrice @entity {
+  id: ID!
+  token: String!
+  value: BigInt!
+  timestamp: Int!
+  blockNumber: Int!
+  period: PricePeriod!
+}
+
+type FundingRate @entity {
+  id: ID!
+
+  startFundingRate: Int!
+  startTimestamp: Int!
+  endFundingRate: Int!
+  endTimestamp: Int!
+  token: String!
+  timestamp: Int
+  period: Period!
+}
+
+type TradingStat @entity {
+  id: ID!
+
+  profit: BigInt!
+  loss: BigInt!
+  profitCumulative: BigInt!
+  lossCumulative: BigInt!
+
+  longOpenInterest: BigInt!
+  shortOpenInterest: BigInt!
+
+  liquidatedCollateral: BigInt!
+  liquidatedCollateralCumulative: BigInt!
+
+  timestamp: Int!
+  period: Period!
+}
+
+type TokenStat @entity {
+  id: ID!
+
+  token: String!
+  poolAmount: BigInt!
+  poolAmountUsd: BigInt!
+
+  usdgAmount: BigInt!,
+
+  reservedAmount: BigInt!,
+  reservedAmountUsd: BigInt!,
+
+  timestamp: Int!
+  period: Period!
+}
+
+enum OrderStatus {
+  open
+  cancelled
+  executed
+}
+
+type Order @entity {
+  id: ID!
+
+  type: String!
+  account: String!
+  status: OrderStatus!
+  index: BigInt!
+  size: BigInt!
+
+  # increase/decrease only
+  indexToken: String
+  isLong: Boolean
+
+  # decrease only
+  collateralToken: String
+  collateral: BigInt
+
+  # common
+  triggerPrice: BigInt
+  triggerAboveThreshold: Boolean
+
+  createdTimestamp: Int!
+  cancelledTimestamp: Int
+  executedTimestamp: Int
+}
+
+type OrderStat @entity {
+  id: ID!
+
+  openSwap: Int!
+  openIncrease: Int!
+  openDecrease: Int!
+
+  cancelledSwap: Int!
+  cancelledIncrease: Int!
+  cancelledDecrease: Int!
+
+  executedSwap: Int!
+  executedIncrease: Int!
+  executedDecrease: Int!
+
+  period: Period!
+}
+
+type UserData @entity {
+  id: ID!
+
+  actionSwapCount: Int!
+  actionMarginCount: Int!
+  actionMintBurnCount: Int!
+
+  period: Period!
+  timestamp: Int
+}
+
+type UserStat @entity {
+  id: ID!
+  uniqueCount: Int!
+  uniqueSwapCount: Int!
+  uniqueMarginCount: Int!
+  uniqueMintBurnCount: Int!
+
+  uniqueCountCumulative: Int!
+  uniqueSwapCountCumulative: Int!
+  uniqueMarginCountCumulative: Int!
+  uniqueMintBurnCountCumulative: Int!
+
+  actionCount: Int!
+  actionSwapCount: Int!
+  actionMarginCount: Int!
+  actionMintBurnCount: Int!
+
+  period: Period!
+  timestamp: Int
+}
+
+type GlpStat @entity {
+  id: ID!
+
+  glpSupply: BigInt!
+  aumInUsdg: BigInt!
+
+  distributedEth: BigInt!
+  distributedEthCumulative: BigInt!
+  distributedUsd: BigInt!
+  distributedUsdCumulative: BigInt!
+
+  distributedEsgmx: BigInt!
+  distributedEsgmxCumulative: BigInt!
+  distributedEsgmxUsd: BigInt!
+  distributedEsgmxUsdCumulative: BigInt!
+
+  period: Period!
+  timestamp: Int
+}
+
+type Swap @entity {
+  id: ID!
+
+  account: String!
+  tokenIn: String!
+  tokenOut: String!
+
+  amountIn: BigInt!
+  amountOut: BigInt!
+  amountOutAfterFees: BigInt!
+  feeBasisPoints: BigInt!
+
+  tokenInPrice: BigInt!
+
+  transaction: Transaction!
+
+  timestamp: Int!
+}
+
+type VolumeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
+
+  timestamp: Int!
+}
+
+type HourlyVolumeBySource @entity {
+  id: ID!
+
+  source: String!
+  timestamp: Int!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  marginAndLiquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+}
+
+type HourlyVolumeByToken @entity {
+  id: ID!
+
+  tokenA: Bytes!
+  tokenB: Bytes!
+  timestamp: Int!
+
+  margin: BigInt!
+  swap: BigInt!
+  liquidation: BigInt!
+  marginAndLiquidation: BigInt!
+  mint: BigInt!
+  burn: BigInt!
+}
+
+type FeeStat @entity {
+  id: ID!
+
+  margin: BigInt!
+  swap: BigInt!
+  marginAndLiquidation: BigInt!
+  liquidation: BigInt! # deprecated. it's calculated incorrectly
+  mint: BigInt!
+  burn: BigInt!
+  period: Period!
+
+  timestamp: Int!
+}
+
+type Transaction @entity {
+  id: ID!
+
+  from: String!
+  to: String!
+}
+
+type GmxStat @entity {
+  id: ID!
+
+  distributedEth: BigInt!
+  distributedEthCumulative: BigInt!
+  distributedUsd: BigInt!
+  distributedUsdCumulative: BigInt!
+
+  distributedEsgmx: BigInt!
+  distributedEsgmxCumulative: BigInt!
+  distributedEsgmxUsd: BigInt!
+  distributedEsgmxUsdCumulative: BigInt!
+
+  period: Period!
+}
