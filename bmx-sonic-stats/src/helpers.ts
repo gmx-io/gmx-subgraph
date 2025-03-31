@@ -7,7 +7,7 @@ import {
 export let BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
 export let PRECISION = BigInt.fromI32(10).pow(30)
 
-export let S = "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"
+export let S = "0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38"
 export let ETH = "0x4200000000000000000000000000000000000006"
 export let USDC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
 export let BMX = "0xc28f1d82874ccfebfe6afdab3c685d5e709067e5"
