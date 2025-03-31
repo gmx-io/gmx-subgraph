@@ -10,7 +10,7 @@ export let PRECISION = BigInt.fromI32(10).pow(30)
 export let S = "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"
 export let ETH = "0x4200000000000000000000000000000000000006"
 export let USDC = "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad"
-export let BMX = "0xC28f1D82874ccFebFE6afDAB3c685D5E709067E5"
+export let BMX = "0xc28f1d82874ccfebfe6afdab3c685d5e709067e5"
 
 export function timestampToDay(timestamp: BigInt): BigInt {
   return timestampToPeriod(timestamp, "daily")

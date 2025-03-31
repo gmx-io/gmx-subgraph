@@ -5,8 +5,6 @@ import { PriceCandle } from "../generated/schema"
 function timestampToPeriodStart(timestamp: BigInt, period: string): BigInt {
   let seconds = periodToSeconds(period)
   return timestamp.div(seconds).times(seconds)
-  // return timestamp / seconds * seconds
-  // return timestamp.div(seconds.times(seconds))
 }
 
 function periodToSeconds(period: string): BigInt {
