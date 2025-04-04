@@ -9,7 +9,7 @@ dataSources:
     name: GlpManager
     network: sonic
     source:
-      address: "0xC608188e753b1e9558731724b7F7Cdde40c3b174"
+      address: "0xc608188e753b1e9558731724b7f7cdde40c3b174"
       abi: GlpManager
       startBlock: 15932997
     mapping:
@@ -32,7 +32,7 @@ dataSources:
     name: OrderBook
     network: sonic
     source:
-      address: "0x7e3F5E2D89f6C83988301989fa3fc3a4ea3612A6"
+      address: "0x7e3f5e2d89f6c83988301989fa3fc3a4ea3612a6"
       abi: OrderBook
       startBlock: 15932997
     mapping:
@@ -93,7 +93,7 @@ dataSources:
     name: Vault2
     network: sonic
     source:
-      address: "0x9cC4E8e60a2c9a67Ac7D20f54607f98EfBA38AcF"
+      address: "0x9cc4e8e60a2c9a67ac7d20f54607f98efba38acf"
       abi: Vault
       startBlock: 15932997
     mapping:
@@ -120,7 +120,7 @@ dataSources:
     name: PriceFeedUSDC
     network: sonic
     source:
-      address: "0xdD234767F6368629fdf50CB21090AA69C9F56651"
+      address: "0xdd234767f6368629fdf50cb21090aa69c9f56651"
       abi: AggregatorInterface
       startBlock: 15932997
     mapping:
@@ -141,7 +141,7 @@ dataSources:
     name: PriceFeedETH
     network: sonic
     source:
-      address: "0x7fe2ADDE154eB97ad68D5aD70328a1DB13701Bc2"
+      address: "0x7fe2adde154eb97ad68d5ad70328a1db13701bc2"
       abi: AggregatorInterface
       startBlock: 15932997
     mapping:
@@ -162,7 +162,7 @@ dataSources:
     name: PriceFeedS
     network: sonic
     source:
-      address: "0x0BdbFF19543B20d0bc2d1eA08deE2be4C0b76743"
+      address: "0x0bdbff19543b20d0bc2d1ea08dee2be4c0b76743"
       abi: AggregatorInterface
       startBlock: 15932997
     mapping:
@@ -183,7 +183,7 @@ dataSources:
     name: Vault
     network: sonic
     source:
-      address: "0x9cC4E8e60a2c9a67Ac7D20f54607f98EfBA38AcF"
+      address: "0x9cc4e8e60a2c9a67ac7d20f54607f98efba38acf"
       abi: Vault
       startBlock: 15932997
     mapping:
