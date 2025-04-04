@@ -302,7 +302,7 @@ dataSources:
     name: FastPriceEvents
     network: base
     source:
-      address: "0xc0136b64E95697f8d22D77f702EF139a08536df2"
+      address: "0x662B64186B50d5346321cf4740119EF04A72De27"
       abi: FastPriceEvents
       startBlock: 3009046
     mapping:
