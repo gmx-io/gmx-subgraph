@@ -103,11 +103,12 @@ export function saveSwapExecutedTradeAction(eventId: string, order: Order, trans
 
   let swapPath = order.swapPath!;
 
-  let lastSwapAddress: string = swapPath[swapPath.length - 1];
-
-  let swapInfoId = getSwapInfoId(order.id, lastSwapAddress, transaction);
-
-  let swapInfo = SwapInfo.load(swapInfoId);
+  let swapInfo: SwapInfo | null = null;
+  if (swapPath.length > 0) {
+    let lastSwapAddress: string = swapPath[swapPath.length - 1];
+    let swapInfoId = getSwapInfoId(order.id, lastSwapAddress, transaction);
+    swapInfo = SwapInfo.load(swapInfoId);
+  }
 
   tradeAction.eventName = "OrderExecuted";
 
