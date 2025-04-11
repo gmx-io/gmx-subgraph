@@ -163,5 +163,5 @@ templates:
 # features:
 #   - grafting
 # graft:
-#   base: QmWEZy4tWQTWnFEvywAee9x6JP5xZq8ocUoh6vxejUxjG6 # deployment id of the failed subgraph
-#   block: 314611366 # failed on block 314611367
+#   base: QmQEWhKkCKzPw8xTGsGEcuSudHhvrivARyXqxwX5qm4EdE # deployment id of the failed subgraph
+#   block: 324975573 # the block before the failure
