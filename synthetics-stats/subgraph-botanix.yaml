@@ -7,7 +7,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: EventEmitter
-    network: botanix
+    network: botanix-mainnet
     source:
       address: "0xAf2E131d483cedE068e21a9228aD91E623a989C2"
       abi: EventEmitter
@@ -43,7 +43,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: MarketTokenTemplate
-    network: botanix
+    network: botanix-mainnet
     source:
       abi: MarketToken
     mapping:
@@ -62,7 +62,7 @@ templates:
 
   - kind: ethereum/contract
     name: GlvTokenTemplate
-    network: botanix
+    network: botanix-mainnet
     source:
       abi: GlvToken
     mapping:
