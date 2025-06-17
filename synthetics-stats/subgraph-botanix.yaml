@@ -1,0 +1,80 @@
+specVersion: 0.0.2
+description: GMX
+repository: https://github.com/gmx-io/gmx-subgraph
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum/contract
+    name: EventEmitter
+    network: botanix-mainnet
+    source:
+      address: "0xAf2E131d483cedE068e21a9228aD91E623a989C2"
+      abi: EventEmitter
+      startBlock: 117907
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Order
+        - PositionIncrease
+        - PositionDecrease
+        - PositionFeesInfo
+        - SwapInfo
+        - TradeAction
+        - Transaction
+      abis:
+        - name: EventEmitter
+          file: ./abis/EventEmitter.json
+        - name: Reader
+          file: ./abis/Reader.json
+        - name: MarketToken
+          file: ./abis/MarketToken.json
+      eventHandlers:
+        - event: EventLog(address,string,indexed string,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
+          handler: handleEventLog
+        - event: EventLog1(address,string,indexed string,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
+          handler: handleEventLog1Botanix
+        - event: EventLog2(address,string,indexed string,indexed bytes32,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
+          handler: handleEventLog2Botanix
+      file: ./src/mapping.ts
+
+templates:
+  - kind: ethereum/contract
+    name: MarketTokenTemplate
+    network: botanix-mainnet
+    source:
+      abi: MarketToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Transaction
+      abis:
+        - name: MarketToken
+          file: ./abis/MarketToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleMarketTokenTransfer
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: GlvTokenTemplate
+    network: botanix-mainnet
+    source:
+      abi: GlvToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Transaction
+      abis:
+        - name: GlvToken
+          file: ./abis/GlvToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlvTokenTransfer
+      file: ./src/mapping.ts

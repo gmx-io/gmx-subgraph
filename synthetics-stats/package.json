@@ -7,6 +7,7 @@
     "deploy-satsuma:fuji": "graph deploy synthetics-fuji-stats ./subgraph-fuji.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
     "deploy-satsuma:arbitrum": "graph deploy synthetics-arbitrum-stats ./subgraph-arbitrum.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
     "deploy-satsuma:avalanche": "graph deploy synthetics-avalanche-stats ./subgraph-avalanche.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
+    "deploy-satsuma:botanix": "graph deploy synthetics-botanix-stats ./subgraph-botanix.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
     "deploy-satsuma:all": "yarn deploy-satsuma:fuji && yarn deploy-satsuma:arbitrum && yarn deploy-satsuma:avalanche"
   },
   "dependencies": {
