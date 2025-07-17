@@ -7,22 +7,18 @@ export function getIntervalIdentifier(event: ethereum.Event, name: string, inter
   return name + ":" + interval.toString() + ':' + intervalID.toString()
 }
 
-// @ts-ignore
 export function getIntervalId(interval: intervalUnixTime, event: ethereum.Event): i32 {
   return event.block.timestamp.toI32() / interval
 }
 
-// @ts-ignore
 export function getHourlyId(event: ethereum.Event): i32 {
   return getIntervalId(3600, event)
 }
 
-// @ts-ignore
 export function getDailyId(event: ethereum.Event): i32 {
   return getIntervalId(86400, event)
 }
 
-// @ts-ignore
 export function getWeeklyId(event: ethereum.Event): i32 {
   return getIntervalId(604800, event)
 }

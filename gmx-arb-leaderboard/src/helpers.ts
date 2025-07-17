@@ -1,6 +1,6 @@
-import { BigInt, ethereum, log } from "@graphprotocol/graph-ts"
+import {  BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { AddLiquidity, RemoveLiquidity } from "../generated/GlpManager/GlpManager"
-import { Transfer, Pricefeed, PriceLatest } from "../generated/schema"
+import { Transfer, Pricefeed, PriceLatest, Claim } from "../generated/schema"
 import { getIntervalId, getIntervalIdentifier } from "./interval"
 import * as erc20 from "../generated/transferGmx/ERC20"
 
@@ -23,19 +23,20 @@ export const BI_22_PRECISION = BigInt.fromI32(10).pow(22)
 
 
 export enum TokenDecimals {
-  USDC = 18,
-  USDT = 18,
-  BTC = 18,
+  USDC = 6,
+  USDT = 6,
+  BTC = 8,
   WETH = 18,
+  LINK = 18,
+  UNI = 18,
+  MIM = 18,
+  SPELL = 18,
+  SUSHI = 18,
+  AVAX = 18,
+  FRAX = 18,
   DAI = 18,
   GMX = 18,
   GLP = 18,
-  MPX = 18,
-  BMX = 18,
-  BLT = 18,
-  MLP = 18,
-  EsMPX = 18,
-  oBMX = 18,
 }
 
 
@@ -68,7 +69,6 @@ export function timestampToDay(timestamp: BigInt): BigInt {
 
 export function getTokenUsdAmount(amount: BigInt, tokenAddress: string, decimals: TokenDecimals): BigInt {
   const priceUsd = getTokenPrice(tokenAddress)
-  // @ts-ignore
   const denominator = BigInt.fromI32(10).pow(decimals as u8)
 
   return amount.times(priceUsd).div(denominator)
@@ -109,7 +109,7 @@ export function calculatePositionDeltaPercentage(delta: BigInt, collateral: BigI
     return ZERO_BI
   }
 
-  return delta.times(BASIS_POINTS_DIVISOR).div(collateral)
+  return  delta.times(BASIS_POINTS_DIVISOR).div(collateral)
 }
 
 export function _storePriceLatest(tokenAddress: string, price: BigInt, event: ethereum.Event): PriceLatest {
@@ -156,16 +156,16 @@ export function _storePricefeed(event: ethereum.Event, token: string, interval: 
 
 export function _storeGlpAddLiqPricefeed(priceFeed: string, event: AddLiquidity): void {
   const price = event.params.aumInUsdg.equals(ZERO_BI)
-    ? ONE_BI :
-    event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
+      ? ONE_BI :
+      event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
 
   _storeDefaultPricefeed(priceFeed, event, price)
 }
 
 export function _storeGlpRemoveLiqPricefeed(priceFeed: string, event: RemoveLiquidity): void {
   const price = event.params.aumInUsdg.equals(ZERO_BI)
-    ? ONE_BI :
-    event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
+      ? ONE_BI :
+      event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
 
   _storeDefaultPricefeed(priceFeed, event, price)
 }

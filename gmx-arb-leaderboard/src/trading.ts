@@ -202,10 +202,10 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
     // comment the lines per chain before deploying
 
     // Arbitrum
-    // entity.markPrice = PriceLatest.load(aggTrade.indexToken)!.value
+    entity.markPrice = PriceLatest.load(aggTrade.indexToken)!.value
 
     // avalanche
-    entity.markPrice = event.params.markPrice
+    // entity.markPrice = event.params.markPrice
 
     const updates = aggTrade.updateList
 
