@@ -1,0 +1,216 @@
+enum IntervalTime {
+  _300
+  _900
+  _3600
+  _14400
+  _86400
+  _604800
+}
+
+enum Status {
+  open
+  closed
+  liquidated
+}
+
+
+enum TokenAddress {
+  # ARBITRUM
+  _0x82af49447d8a07e3bd95bd0d56f35241523fbab1 # WETH
+  _0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f # WBTC
+  _0xf97f4df75117a78c1a5a0dbb814af92458539fb4 # LINK
+  _0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0 # UNI
+  _0x4277f8f2c384827b5273592ff7cebd9f2c1ac258 # GLP
+  _0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a # GMX
+  _0xf42ae1d54fd613c9bb14810b0588faaa09a426ca # esGMX
+
+  # AVALANCHE
+  _0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7 # WAVAX
+  _0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab # WETHE
+  _0x50b7545627a5162f82a992c33b87adc75187b218 # WBTCE
+  _0x152b9d0fdc40c096757f570a51e494bd4b943e50 # BTCB
+  _0x01234181085565ed162a948b6a5e88758cd7c7b8 # GLP
+  _0x62edc0692bd897d2295872a9ffcac5425011c661 # GMX
+  _0xff1489227bbaac61a9209a08929e4c2a526ddd17 # esGMX
+
+  # SONIC
+  _0x50c42deacd8fc9773493ed674b675be577f2634b # WETH
+  _0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38 # S
+  _0x29219dd400f2bf60e5a23d13be72b486d4038894 # USDC
+  _0x9e462d5603bb983b74e941ebd5ce9ea76f3a9e1e # SLT
+  _0xc28f1d82874ccfebfe6afdab3c685d5e709067e5 # BMX
+}
+
+
+type Pricefeed @entity {
+  id: ID!
+  timestamp: Int!
+
+  o:  BigInt! # open
+  h:  BigInt! # high
+  l:  BigInt! # low
+  c:  BigInt! # close
+
+  tokenAddress: TokenAddress!
+  interval: IntervalTime!
+}
+
+type PriceLatest @entity {
+  id: ID!
+  value: BigInt!
+  timestamp: Int!
+}
+
+type Transfer @entity(immutable: true) {
+  id: ID!
+  token: String!
+  from: String!
+  to: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+  timestamp: BigInt!
+}
+
+type Claim @entity(immutable: true) {
+  id: ID!
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+}
+
+
+
+type IncreasePosition @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+  price: BigInt!
+  fee: BigInt!
+}
+
+type DecreasePosition @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+  price: BigInt!
+  fee: BigInt!
+}
+
+type UpdatePosition @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  key: String!
+
+  size: BigInt!
+  collateral: BigInt!
+
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  markPrice: BigInt!
+}
+
+type ReferralAdjustment @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  account: String!
+  sizeDelta: BigInt!
+  marginFeeBasisPoints: BigInt!
+  referralCode: String!
+  referrer: String!
+}
+
+type ClosePosition @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  key: String!
+
+  size: BigInt!
+  collateral: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+}
+
+type LiquidatePosition @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  key: String!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+
+  isLong: Boolean!
+
+  size: BigInt!
+  collateral: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  markPrice: BigInt!
+}
+
+
+type Trade @entity { # extends IncreasePosition
+  id: ID!
+  timestamp: Int!
+
+  # IncreasePosition
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  status: Status!
+
+  increaseList: [IncreasePosition!]!
+  decreaseList: [DecreasePosition!]!
+  updateList: [UpdatePosition!]!
+
+  # ++IncreasePosition accumulation
+  sizeDelta: BigInt!
+  collateralDelta: BigInt!
+  fee: BigInt! # ++(IncreasePosition.fee + DecreasePosiiton.fee)
+
+  # UpdatePosition latest assignment
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  realisedPnl: BigInt!  
+  realisedPnlPercentage: BigInt
+  entryFundingRate: BigInt!
+  entryReferralCode: String!
+  entryReferrer: String!
+
+  # Settlement
+  settledTimestamp: Int
+  closedPosition: ClosePosition
+  liquidatedPosition: LiquidatePosition
+}
+
+
+
+

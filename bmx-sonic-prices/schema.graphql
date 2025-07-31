@@ -1,0 +1,10 @@
+type PriceCandle @entity {
+  id: ID!
+  token: String!
+  open: BigInt!
+  high: BigInt!
+  low: BigInt!
+  close: BigInt!
+  timestamp: Int! # start of period
+  period: String!
+}
