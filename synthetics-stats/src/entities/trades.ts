@@ -101,10 +101,10 @@ export function saveOrderFrozenTradeAction(
 export function saveSwapExecutedTradeAction(eventId: string, order: Order, transaction: Transaction): void {
   let tradeAction = getTradeActionFromOrder(eventId, order);
 
-  let swapPath = order.swapPath!;
+  let swapPath = order.swapPath;
 
   let swapInfo: SwapInfo | null = null;
-  if (swapPath.length > 0) {
+  if (swapPath != null && swapPath.length > 0) {
     let lastSwapAddress: string = swapPath[swapPath.length - 1];
     let swapInfoId = getSwapInfoId(order.id, lastSwapAddress, transaction);
     swapInfo = SwapInfo.load(swapInfoId);
