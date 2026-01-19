@@ -55,6 +55,15 @@ readerContractByNetwork.set(
   )
 );
 
+readerContractByNetwork.set(
+  "megaeth",
+  new ReaderContractConfig(
+    "0x0f038EB4a38B08cd3c937a3256b51aa01904a684",
+    "0xE43C7B694f6b652a9F4A0f275C008d18758Dce35",
+    5661553 + 1
+  )
+);
+
 export function getReaderContractConfigByNetwork(network: string): ReaderContractConfig {
   let contract = readerContractByNetwork.get(network);
   if (!contract) {
