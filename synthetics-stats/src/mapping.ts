@@ -688,3 +688,11 @@ export function handleEventLog2Fuji(event: EventLog2): void {
 export function handleEventLog2Botanix(event: EventLog2): void {
   handleEventLog2(event, "botanix");
 }
+
+export function handleEventLog1Megaeth(event: EventLog1): void {
+  handleEventLog1(event, "megaeth");
+}
+
+export function handleEventLog2Megaeth(event: EventLog2): void {
+  handleEventLog2(event, "megaeth");
+}
