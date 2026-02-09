@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: OrderBook
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -29,7 +29,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: BatchSender
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -50,7 +50,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: PositionManager
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -74,7 +74,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: PositionManager
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -98,7 +98,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: PositionRouter
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -122,7 +122,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: PositionRouter
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -146,7 +146,7 @@ dataSources:
     source:
       address: "0xAd917849372eaEF498E982F90bA6459a43ecbd31"
       abi: ReferralStorage
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -186,7 +186,7 @@ dataSources:
     source:
       address: "0xAf2E131d483cedE068e21a9228aD91E623a989C2"
       abi: EventEmitter
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -207,7 +207,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000001"
       abi: ChainlinkAggregator
-      startBlock: 5661063
+      startBlock: 6920000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
