@@ -4,10 +4,11 @@
   "scripts": {
     "codegen": "graph codegen ./subgraph-arbitrum.yaml",
     "build": "graph build ./subgraph-arbitrum.yaml",
-    "deploy-satsuma:fuji": "graph deploy gmx-fuji-referrals ./subgraph-fuji.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:avalanche": "graph deploy gmx-avalanche-referrals ./subgraph-avalanche.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:goerli": "graph deploy gmx-goerli-referrals ./subgraph-goerli.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)",
-    "deploy-satsuma:arbitrum": "graph deploy gmx-arbitrum-referrals ./subgraph-arbitrum.yaml --version-label $(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --node https://subgraphs.alchemy.com/api/subgraphs/deploy --ipfs https://ipfs.satsuma.xyz --deploy-key $(cat .satsuma_token)"
+    "deploy:fuji": "graph codegen ./subgraph-fuji.yaml && graph build ./subgraph-fuji.yaml && goldsky subgraph deploy gmx-fuji-referrals/$(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --path .",
+    "deploy:avalanche": "graph codegen ./subgraph-avalanche.yaml && graph build ./subgraph-avalanche.yaml && goldsky subgraph deploy gmx-avalanche-referrals/$(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --path .",
+    "deploy:arbitrum": "graph codegen ./subgraph-arbitrum.yaml && graph build ./subgraph-arbitrum.yaml && goldsky subgraph deploy gmx-arbitrum-referrals/$(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --path .",
+    "deploy:megaeth": "graph codegen ./subgraph-megaeth.yaml && graph build ./subgraph-megaeth.yaml && goldsky subgraph deploy gmx-megaeth-referrals/$(git rev-parse --abbrev-ref HEAD)-$(date '+%y%m%d%H%M%S')-$(git rev-parse --short HEAD) --path .",
+    "deploy:all": "yarn deploy:fuji && yarn deploy:arbitrum && yarn deploy:avalanche && yarn deploy:megaeth"
   },
   "dependencies": {
     "@babel/preset-env": "^7.23.6",

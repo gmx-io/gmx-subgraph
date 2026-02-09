@@ -1,0 +1,223 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: OrderBook
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: OrderBook
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ExecuteDecreaseOrder
+      abis:
+        - name: OrderBook
+          file: ./abis/OrderBook.json
+      eventHandlers:
+        - event: ExecuteDecreaseOrder(indexed address,uint256,address,uint256,address,uint256,bool,uint256,bool,uint256,uint256)
+          handler: handleExecuteDecreaseOrder
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: BatchSender
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: BatchSender
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - BatchSend
+      abis:
+        - name: BatchSender
+          file: ./abis/BatchSender.json
+      eventHandlers:
+        - event: BatchSend(indexed uint256,indexed address,address[],uint256[])
+          handler: handleBatchSend
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionManager
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionManager
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionManager_v2
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionManager
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionRouter
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionRouter
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: PositionRouter_v2
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: PositionRouter
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - IncreasePositionReferral
+        - DecreasePositionReferral
+      abis:
+        - name: PositionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ReferralStorage
+    network: megaeth-mainnet
+    source:
+      address: "0xAd917849372eaEF498E982F90bA6459a43ecbd31"
+      abi: ReferralStorage
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - GovSetCodeOwner
+        - RegisterCode
+        - SetCodeOwner
+        - SetHandler
+        - SetReferrerDiscountShare
+        - SetReferrerTier
+        - SetTier
+        - SetTraderReferralCode
+      abis:
+        - name: ReferralStorage
+          file: ./abis/ReferralStorage.json
+      eventHandlers:
+        - event: GovSetCodeOwner(bytes32,address)
+          handler: handleGovSetCodeOwner
+        - event: RegisterCode(address,bytes32)
+          handler: handleRegisterCode
+        - event: SetCodeOwner(address,address,bytes32)
+          handler: handleSetCodeOwner
+        - event: SetReferrerDiscountShare(address,uint256)
+          handler: handleSetReferrerDiscountShare
+        - event: SetReferrerTier(address,uint256)
+          handler: handleSetReferrerTier
+        - event: SetTier(uint256,uint256,uint256)
+          handler: handleSetTier
+        - event: SetTraderReferralCode(address,bytes32)
+          handler: handleSetTraderReferralCode
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: EventEmitter
+    network: megaeth-mainnet
+    source:
+      address: "0xAf2E131d483cedE068e21a9228aD91E623a989C2"
+      abi: EventEmitter
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Test
+      abis:
+        - name: EventEmitter
+          file: ./abis/EventEmitter.json
+      eventHandlers:
+        - event: EventLog1(address,string,indexed string,indexed bytes32,(((string,address)[],(string,address[])[]),((string,uint256)[],(string,uint256[])[]),((string,int256)[],(string,int256[])[]),((string,bool)[],(string,bool[])[]),((string,bytes32)[],(string,bytes32[])[]),((string,bytes)[],(string,bytes[])[]),((string,string)[],(string,string[])[])))
+          handler: handleEventLog1
+      file: ./src/mapping.ts
+
+  - kind: ethereum/contract
+    name: ChainlinkAggregatorETH
+    network: megaeth-mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000001"
+      abi: ChainlinkAggregator
+      startBlock: 5661063
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ChainlinkPrice
+      abis:
+        - name: ChainlinkAggregator
+          file: ./abis/ChainlinkAggregator.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+      file: ./src/mapping.ts
