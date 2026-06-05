@@ -67,7 +67,7 @@ export function getMarketPoolValueFromContract(
   );
   */
 
-  let res = contract.getMarketTokenPrice(
+  let res = contract.try_getMarketTokenPrice(
     contractConfig.dataStoreAddress,
     marketArg,
     indexTokenPriceArg,
@@ -77,7 +77,18 @@ export function getMarketPoolValueFromContract(
     true
   );
 
-  return res.value1.poolValue;
+  // getMarketTokenPrice may revert (e.g. transient arithmetic overflow in the
+  // pool value calculation for certain market states). Abort would crash the
+  // whole subgraph, so fall back to ZERO; getUpdatedFeeUsdPerPoolValue handles it.
+  if (res.reverted) {
+    log.warning("getMarketTokenPrice reverted for market {} at block {}", [
+      marketAddress,
+      BigInt.fromI32(transaction.blockNumber).toString()
+    ]);
+    return ZERO;
+  }
+
+  return res.value.value1.poolValue;
 }
 
 function createPriceForContractCall<T>(tokenAddress: string): T {
