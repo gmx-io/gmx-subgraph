@@ -47,15 +47,6 @@ readerContractByNetwork.set(
 );
 
 readerContractByNetwork.set(
-  "botanix",
-  new ReaderContractConfig(
-    "0x858922fe3F9871bFA80AEc47D4B1F87D39F9d9d0",
-    "0xA23B81a89Ab9D7D89fF8fc1b5d8508fB75Cc094d",
-    118205 + 1
-  )
-);
-
-readerContractByNetwork.set(
   "megaeth",
   new ReaderContractConfig(
     "0x0f038EB4a38B08cd3c937a3256b51aa01904a684",

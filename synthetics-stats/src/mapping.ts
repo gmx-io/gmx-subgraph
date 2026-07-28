@@ -665,10 +665,6 @@ export function handleEventLog1Fuji(event: EventLog1): void {
   handleEventLog1(event, "fuji");
 }
 
-export function handleEventLog1Botanix(event: EventLog1): void {
-  handleEventLog1(event, "botanix");
-}
-
 export function handleEventLog2Arbitrum(event: EventLog2): void {
   handleEventLog2(event, "arbitrum");
 }
@@ -683,10 +679,6 @@ export function handleEventLog2Avalanche(event: EventLog2): void {
 
 export function handleEventLog2Fuji(event: EventLog2): void {
   handleEventLog2(event, "fuji");
-}
-
-export function handleEventLog2Botanix(event: EventLog2): void {
-  handleEventLog2(event, "botanix");
 }
 
 export function handleEventLog1Megaeth(event: EventLog1): void {
